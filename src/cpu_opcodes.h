@@ -124,6 +124,15 @@ void ld_a_e(void);
 void ld_a_h(void);
 void ld_a_l(void);
 void ld_a_hlp(void);
+void add_a_b(void);
+void add_a_c(void);
+void add_a_d(void);
+void add_a_e(void);
+void add_a_h(void);
+void add_a_l(void);
+void add_a_hlp(void);
+void add_a_a(void);
+void add_a_n(uint8_t val);
 void ld_nnp_a(uint16_t addr);
 void ld_a_nnp(uint16_t addr);
 

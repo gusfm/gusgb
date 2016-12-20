@@ -61,16 +61,42 @@ uint8_t dec_n(uint8_t value)
 /**
  * Add n to nn.
  * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Set if carry from bit 3.
+ * C - Set if carry from bit 7.
+ */
+uint16_t addn8(uint8_t val1, uint8_t val2)
+{
+    uint32_t result = val1 + val2;
+    FLAG_CLEAR(FLAG_N);
+    if (((val1 & 0x0f) + (val2 & 0x0f)) > 0x0f) {
+        FLAG_SET(FLAG_H);
+    } else {
+        FLAG_CLEAR(FLAG_H);
+    }
+    if (result & 0xff00) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    /* Zero flag is not updated. */
+    return (uint16_t)(result & 0xff);
+}
+
+/**
+ * Add n to nn.
+ * Flags affected:
  * Z - Not affected.
  * N - Reset.
  * H - Set if carry from bit 11.
  * C - Set if carry from bit 15.
  */
-uint16_t add_nn_n(uint16_t val1, uint16_t val2)
+uint16_t add16(uint16_t val1, uint16_t val2)
 {
     uint32_t result = val1 + val2;
     FLAG_CLEAR(FLAG_N);
-    if (((val1 & 0x0f) + (val2 & 0x0f)) > 0x0f) {
+    if (((val1 & 0x0fff) + (val2 & 0x0fff)) > 0x0fff) {
         FLAG_SET(FLAG_H);
     } else {
         FLAG_CLEAR(FLAG_H);
@@ -80,6 +106,7 @@ uint16_t add_nn_n(uint16_t val1, uint16_t val2)
     } else {
         FLAG_CLEAR(FLAG_C);
     }
+    /* Zero flag is not updated. */
     return (uint16_t)(result & 0xffff);
 }
 
@@ -149,7 +176,7 @@ void ld_nnp_sp(uint16_t addr)
 /* 0x09: Add 16-bit BC to HL. */
 void add_hl_bc(void)
 {
-    g_cpu.reg.hl = add_nn_n(g_cpu.reg.hl, g_cpu.reg.bc);
+    g_cpu.reg.hl = add16(g_cpu.reg.hl, g_cpu.reg.bc);
 }
 
 /* 0x0a: Put value pointed by BC into A. */
@@ -262,7 +289,7 @@ void jr_n(uint8_t val)
 /* 0x19: Add 16-bit DE to HL. */
 void add_hl_de(void)
 {
-    g_cpu.reg.hl = add_nn_n(g_cpu.reg.hl, g_cpu.reg.de);
+    g_cpu.reg.hl = add16(g_cpu.reg.hl, g_cpu.reg.de);
 }
 
 /* 0x1a: Put value pointed by DE into A. */
@@ -400,7 +427,7 @@ void jr_z_n(uint8_t val)
 /* 0x29: Add 16-bit HL to HL. */
 void add_hl_hl(void)
 {
-    g_cpu.reg.hl = add_nn_n(g_cpu.reg.hl, g_cpu.reg.hl);
+    g_cpu.reg.hl = add16(g_cpu.reg.hl, g_cpu.reg.hl);
 }
 
 /* 0x2a: Put value at address HL into A and increment HL. */
@@ -510,7 +537,7 @@ void jr_c_n(uint8_t val)
 /* 0x39: Add 16-bit SP to HL. */
 void add_hl_sp(void)
 {
-    g_cpu.reg.hl = add_nn_n(g_cpu.reg.hl, g_cpu.reg.sp);
+    g_cpu.reg.hl = add16(g_cpu.reg.hl, g_cpu.reg.sp);
 }
 
 /* 0x3a: Put value at address HL into A and decrement HL. */
@@ -890,6 +917,61 @@ void ld_a_l(void)
 void ld_a_hlp(void)
 {
     g_cpu.reg.a = mmu_read_byte(g_cpu.reg.hl);
+}
+
+/* 0x80: Add B to A. */
+void add_a_b(void)
+{
+    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.b);
+}
+
+/* 0x81: Add C to A. */
+void add_a_c(void)
+{
+    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.c);
+}
+
+/* 0x82: Add D to A. */
+void add_a_d(void)
+{
+    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.d);
+}
+
+/* 0x83: Add E to A. */
+void add_a_e(void)
+{
+    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.e);
+}
+
+/* 0x84: Add H to A. */
+void add_a_h(void)
+{
+    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.h);
+}
+
+/* 0x85: Add L to A. */
+void add_a_l(void)
+{
+    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.l);
+}
+
+/* 0x86: Add value pointed by HL to A. */
+void add_a_hlp(void)
+{
+    uint8_t val = mmu_read_byte(g_cpu.reg.hl);
+    g_cpu.reg.a = addn8(g_cpu.reg.a, val);
+}
+
+/* 0x87: Add A to A. */
+void add_a_a(void)
+{
+    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.a);
+}
+
+/* 0xc6: Add 8-bit immediate to A. */
+void add_a_n(uint8_t val)
+{
+    g_cpu.reg.a = addn8(g_cpu.reg.a, val);
 }
 
 /* 0xea: Save A at given 16-bit address. */

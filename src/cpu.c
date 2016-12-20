@@ -142,14 +142,14 @@ const instruction_t g_instr[256] = {
     { "LD A, L", 0, ld_a_l },                    // 0x7d
     { "LD A, (HL)", 0, ld_a_hlp },               // 0x7e
     { "LD A, A", 0, nop },                       // 0x7f
-//    { "ADD A, B", 0, add_a_b },                  // 0x80
-//    { "ADD A, C", 0, add_a_c },                  // 0x81
-//    { "ADD A, D", 0, add_a_d },                  // 0x82
-//    { "ADD A, E", 0, add_a_e },                  // 0x83
-//    { "ADD A, H", 0, add_a_h },                  // 0x84
-//    { "ADD A, L", 0, add_a_l },                  // 0x85
-//    { "ADD A, (HL)", 0, add_a_hlp },             // 0x86
-//    { "ADD A", 0, add_a_a },                     // 0x87
+    { "ADD A, B", 0, add_a_b },                  // 0x80
+    { "ADD A, C", 0, add_a_c },                  // 0x81
+    { "ADD A, D", 0, add_a_d },                  // 0x82
+    { "ADD A, E", 0, add_a_e },                  // 0x83
+    { "ADD A, H", 0, add_a_h },                  // 0x84
+    { "ADD A, L", 0, add_a_l },                  // 0x85
+    { "ADD A, (HL)", 0, add_a_hlp },             // 0x86
+    { "ADD A", 0, add_a_a },                     // 0x87
 //    { "ADC B", 0, adc_b },                       // 0x88
 //    { "ADC C", 0, adc_c },                       // 0x89
 //    { "ADC D", 0, adc_d },                       // 0x8a
@@ -212,7 +212,7 @@ const instruction_t g_instr[256] = {
 //    { "JP 0x%04X", 2, jp_nn },                   // 0xc3
 //    { "CALL NZ, 0x%04X", 2, call_nz_nn },        // 0xc4
 //    { "PUSH BC", 0, push_bc },                   // 0xc5
-//    { "ADD A, 0x%02X", 1, add_a_n },             // 0xc6
+    { "ADD A, 0x%02X", 1, add_a_n },             // 0xc6
 //    { "RST 0x00", 0, rst_0 },                    // 0xc7
 //    { "RET Z", 0, ret_z },                       // 0xc8
 //    { "RET", 0, ret },                           // 0xc9
