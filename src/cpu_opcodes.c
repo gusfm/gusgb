@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "cpu_opcodes.h"
 #include "mmu.h"
 
@@ -151,6 +152,18 @@ void add_hl_bc(void)
     g_cpu.reg.hl = add_nn_n(g_cpu.reg.hl, g_cpu.reg.bc);
 }
 
+/* 0x0a: Put value pointed by BC into A. */
+void ld_a_bcp(void)
+{
+    g_cpu.reg.a = mmu_read_byte(g_cpu.reg.bc);
+}
+
+/* 0x0b: Decrement BC. */
+void dec_bc(void)
+{
+    g_cpu.reg.bc--;
+}
+
 /* 0x0c: Increment C. */
 void inc_c(void)
 {
@@ -167,6 +180,27 @@ void dec_c(void)
 void ld_c_n(uint8_t val)
 {
     g_cpu.reg.c = val;
+}
+
+/* 0x0f: Rotate A right. Old bit 0 to Carry flag. */
+void rrca(void)
+{
+    uint8_t atmp = g_cpu.reg.a;
+    g_cpu.reg.a >>= 1;
+    if (atmp & 0x01) {
+        FLAG_SET(FLAG_C);
+        g_cpu.reg.a |= 0x80;
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    FLAG_CLEAR(FLAG_N | FLAG_Z | FLAG_H);
+}
+
+/* 0x10: The STOP command halts the GameBoy processor and screen until any
+ * button is pressed. */
+void stop(void)
+{
+    fprintf(stderr, "Received STOP command!\n");
 }
 
 /* 0x11: Load 16-bit immediate into DE. */
@@ -205,10 +239,42 @@ void ld_d_n(uint8_t val)
     g_cpu.reg.d = val;
 }
 
+/* 0x17: Rotate A left through Carry flag. */
+void rla(void)
+{
+    uint8_t old_carry = (FLAG_IS_CARRY >> 4);
+    if (g_cpu.reg.a & 0x80) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    g_cpu.reg.a <<= 1;
+    g_cpu.reg.a |= old_carry;
+    FLAG_CLEAR(FLAG_N | FLAG_Z | FLAG_H);
+}
+
+/* 0x18: Relative jump by signed immediate. */
+void jr_n(uint8_t val)
+{
+    g_cpu.reg.pc += (int8_t)val;
+}
+
 /* 0x19: Add 16-bit DE to HL. */
 void add_hl_de(void)
 {
     g_cpu.reg.hl = add_nn_n(g_cpu.reg.hl, g_cpu.reg.de);
+}
+
+/* 0x1a: Put value pointed by DE into A. */
+void ld_a_dep(void)
+{
+    g_cpu.reg.a = mmu_read_byte(g_cpu.reg.de);
+}
+
+/* 0x1b: Decrement DE. */
+void dec_de(void)
+{
+    g_cpu.reg.de--;
 }
 
 /* 0x1c: Increment E. */
@@ -229,10 +295,41 @@ void ld_e_n(uint8_t val)
     g_cpu.reg.e = val;
 }
 
-/* 0x21: Load 16-bit immediate into HL */
+/* 0x1f: Rotate A right through Carry flag. */
+void rra(void)
+{
+    uint8_t old_carry = (FLAG_IS_CARRY << 3);
+    if (g_cpu.reg.a & 0x01) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    g_cpu.reg.a >>= 1;
+    g_cpu.reg.a |= old_carry;
+    FLAG_CLEAR(FLAG_N | FLAG_Z | FLAG_H);
+}
+
+/* 0x20: Jump if Z flag is not set. */
+void jr_nz_n(uint8_t val)
+{
+    if (FLAG_IS_ZERO) {
+        g_cpu.ticks += 8;
+    } else {
+        g_cpu.reg.pc += (int8_t)val;
+        g_cpu.ticks += 12;
+    }
+}
+
+/* 0x21: Load 16-bit immediate into HL. */
 void ld_hl_nn(uint16_t value)
 {
     g_cpu.reg.hl = value;
+}
+
+/* 0x22: Put A into memory address HL and increment HL. */
+void ldi_hlp_a(void)
+{
+    mmu_write_byte(g_cpu.reg.hl++, g_cpu.reg.a);
 }
 
 /* 0x23: Increment 16-bit HL. */
@@ -259,10 +356,63 @@ void ld_h_n(uint8_t val)
     g_cpu.reg.h = val;
 }
 
+/* 0x27: Adjust A for BCD addition. */
+void daa(void)
+{
+    /* TODO: Code copyied from Cinoop. Check if this is correct. */
+    uint16_t s = g_cpu.reg.a;
+
+    if (FLAG_IS_NEGATIVE) {
+        if (FLAG_IS_HALFCARRY)
+            s = (s - 0x06) & 0xFF;
+        if (FLAG_IS_CARRY)
+            s -= 0x60;
+    } else {
+        if (FLAG_IS_HALFCARRY || (s & 0xF) > 9)
+            s += 0x06;
+        if (FLAG_IS_CARRY || s > 0x9F)
+            s += 0x60;
+    }
+
+    g_cpu.reg.a = s;
+    FLAG_CLEAR(FLAG_H);
+
+    if (g_cpu.reg.a)
+        FLAG_CLEAR(FLAG_Z);
+    else
+        FLAG_SET(FLAG_Z);
+
+    if (s >= 0x100)
+        FLAG_SET(FLAG_C);
+}
+
+/* 0x28: Jump if Z flag is set. */
+void jr_z_n(uint8_t val)
+{
+    if (FLAG_IS_ZERO) {
+        g_cpu.reg.pc += (int8_t)val;
+        g_cpu.ticks += 12;
+    } else {
+        g_cpu.ticks += 8;
+    }
+}
+
 /* 0x29: Add 16-bit HL to HL. */
 void add_hl_hl(void)
 {
     g_cpu.reg.hl = add_nn_n(g_cpu.reg.hl, g_cpu.reg.hl);
+}
+
+/* 0x2a: Put value at address HL into A and increment HL. */
+void ldi_a_hlp(void)
+{
+    g_cpu.reg.a = mmu_read_byte(g_cpu.reg.hl++);
+}
+
+/* 0x2b: Decrement HL. */
+void dec_hl(void)
+{
+    g_cpu.reg.hl--;
 }
 
 /* 0x2c: Increment L. */
@@ -283,10 +433,34 @@ void ld_l_n(uint8_t val)
     g_cpu.reg.l = val;
 }
 
+/* 0x2f: Complement A register. */
+void cpl(void)
+{
+    g_cpu.reg.a = ~g_cpu.reg.a;
+    FLAG_SET(FLAG_N | FLAG_H);
+}
+
+/* 0x30: Jump if C flag is not set. */
+void jr_nc_n(uint8_t val)
+{
+    if (FLAG_IS_CARRY) {
+        g_cpu.ticks += 8;
+    } else {
+        g_cpu.reg.pc += (int8_t)val;
+        g_cpu.ticks += 12;
+    }
+}
+
 /* 0x31: Load 16-bit immediate into SP */
 void ld_sp_nn(uint16_t value)
 {
     g_cpu.reg.sp = value;
+}
+
+/* 0x32: Put A into memory address HL and decrement HL. */
+void ldd_hlp_a(void)
+{
+    mmu_write_byte(g_cpu.reg.hl--, g_cpu.reg.a);
 }
 
 /* 0x33: Increment 16-bit SP. */
@@ -309,10 +483,46 @@ void dec_hlp(void)
     mmu_write_byte(g_cpu.reg.hl, dec_n(val));
 }
 
+/* 0x36: Load 8-bit immediate into address pointed by HL. */
+void ld_hlp_n(uint8_t val)
+{
+    mmu_write_byte(g_cpu.reg.hl, val);
+}
+
+/* 0x37: Set carry flag. */
+void scf(void)
+{
+    FLAG_SET(FLAG_C);
+    FLAG_CLEAR(FLAG_N | FLAG_H);
+}
+
+/* 0x38: Jump if C flag is set. */
+void jr_c_n(uint8_t val)
+{
+    if (FLAG_IS_CARRY) {
+        g_cpu.reg.pc += (int8_t)val;
+        g_cpu.ticks += 12;
+    } else {
+        g_cpu.ticks += 8;
+    }
+}
+
 /* 0x39: Add 16-bit SP to HL. */
 void add_hl_sp(void)
 {
     g_cpu.reg.hl = add_nn_n(g_cpu.reg.hl, g_cpu.reg.sp);
+}
+
+/* 0x3a: Put value at address HL into A and decrement HL. */
+void ldd_a_hlp(void)
+{
+    g_cpu.reg.a = mmu_read_byte(g_cpu.reg.hl--);
+}
+
+/* 0x3b: Decrement SP. */
+void dec_sp(void)
+{
+    g_cpu.reg.sp--;
 }
 
 /* 0x3c: Increment A. */
@@ -327,10 +537,95 @@ void dec_a(void)
     g_cpu.reg.a = dec_n(g_cpu.reg.a);
 }
 
+/* 0x3e: Put value into A. */
+void ld_a_n(uint8_t val)
+{
+    g_cpu.reg.a = val;
+}
+
+/* 0x3f: Complement carry flag. */
+void ccf(void)
+{
+    g_cpu.reg.f ^= FLAG_C;
+    FLAG_SET(FLAG_N | FLAG_H);
+}
+
+/* 0x41: Copy C to B. */
+void ld_b_c(uint8_t val)
+{
+    g_cpu.reg.b = g_cpu.reg.c;
+}
+
+/* 0x42: Copy D to B. */
+void ld_b_d(uint8_t val)
+{
+    g_cpu.reg.b = g_cpu.reg.d;
+}
+
+/* 0x43: Copy E to B. */
+void ld_b_e(uint8_t val)
+{
+    g_cpu.reg.b = g_cpu.reg.e;
+}
+
+/* 0x44: Copy H to B. */
+void ld_b_h(uint8_t val)
+{
+    g_cpu.reg.b = g_cpu.reg.h;
+}
+
+/* 0x45: Copy L to B. */
+void ld_b_l(uint8_t val)
+{
+    g_cpu.reg.b = g_cpu.reg.l;
+}
+
+/* 0x46: Copy value pointed by HL into B. */
+void ld_b_hlp(void)
+{
+    g_cpu.reg.b = mmu_read_byte(g_cpu.reg.hl);
+}
+
 /* 0x47: Copy A to B. */
 void ld_b_a(void)
 {
     g_cpu.reg.b = g_cpu.reg.a;
+}
+
+/* 0x48: Copy B to C. */
+void ld_c_b(void)
+{
+    g_cpu.reg.c = g_cpu.reg.b;
+}
+
+/* 0x4a: Copy D to C. */
+void ld_c_d(void)
+{
+    g_cpu.reg.c = g_cpu.reg.d;
+}
+
+/* 0x4b: Copy E to C. */
+void ld_c_e(void)
+{
+    g_cpu.reg.c = g_cpu.reg.e;
+}
+
+/* 0x4c: Copy H to C. */
+void ld_c_h(void)
+{
+    g_cpu.reg.c = g_cpu.reg.h;
+}
+
+/* 0x4d: Copy L to C. */
+void ld_c_l(void)
+{
+    g_cpu.reg.c = g_cpu.reg.l;
+}
+
+/* 0x4e: Copy value pointed by HL into C. */
+void ld_c_hlp(void)
+{
+    g_cpu.reg.c = mmu_read_byte(g_cpu.reg.hl);
 }
 
 /* 0x4f: Copy A to C. */
@@ -339,10 +634,82 @@ void ld_c_a(void)
     g_cpu.reg.c = g_cpu.reg.a;
 }
 
+/* 0x50: Copy B to D. */
+void ld_d_b(void)
+{
+    g_cpu.reg.d = g_cpu.reg.b;
+}
+
+/* 0x51: Copy C to D. */
+void ld_d_c(void)
+{
+    g_cpu.reg.d = g_cpu.reg.c;
+}
+
+/* 0x53: Copy E to D. */
+void ld_d_e(void)
+{
+    g_cpu.reg.d = g_cpu.reg.e;
+}
+
+/* 0x54: Copy H to D. */
+void ld_d_h(void)
+{
+    g_cpu.reg.d = g_cpu.reg.h;
+}
+
+/* 0x55: Copy L to D. */
+void ld_d_l(void)
+{
+    g_cpu.reg.d = g_cpu.reg.l;
+}
+
+/* 0x56: Copy value pointed by HL into D. */
+void ld_d_hlp(void)
+{
+    g_cpu.reg.d = mmu_read_byte(g_cpu.reg.hl);
+}
+
 /* 0x57: Copy A to D. */
 void ld_d_a(void)
 {
     g_cpu.reg.d = g_cpu.reg.a;
+}
+
+/* 0x58: Copy B to E. */
+void ld_e_b(void)
+{
+    g_cpu.reg.e = g_cpu.reg.b;
+}
+
+/* 0x59: Copy C to E. */
+void ld_e_c(void)
+{
+    g_cpu.reg.e = g_cpu.reg.c;
+}
+
+/* 0x5a: Copy D to E. */
+void ld_e_d(void)
+{
+    g_cpu.reg.e = g_cpu.reg.d;
+}
+
+/* 0x5c: Copy H to E. */
+void ld_e_h(void)
+{
+    g_cpu.reg.e = g_cpu.reg.h;
+}
+
+/* 0x5d: Copy L to E. */
+void ld_e_l(void)
+{
+    g_cpu.reg.e = g_cpu.reg.l;
+}
+
+/* 0x5e: Copy value pointed by HL into E. */
+void ld_e_hlp(void)
+{
+    g_cpu.reg.e = mmu_read_byte(g_cpu.reg.hl);
 }
 
 /* 0x5f: Copy A to E. */
@@ -351,10 +718,82 @@ void ld_e_a(void)
     g_cpu.reg.e = g_cpu.reg.a;
 }
 
+/* 0x60: Copy B to H. */
+void ld_h_b(void)
+{
+    g_cpu.reg.h = g_cpu.reg.b;
+}
+
+/* 0x61: Copy C to H. */
+void ld_h_c(void)
+{
+    g_cpu.reg.h = g_cpu.reg.c;
+}
+
+/* 0x62: Copy D to H. */
+void ld_h_d(void)
+{
+    g_cpu.reg.h = g_cpu.reg.d;
+}
+
+/* 0x63: Copy E to H. */
+void ld_h_e(void)
+{
+    g_cpu.reg.h = g_cpu.reg.e;
+}
+
+/* 0x65: Copy L to H. */
+void ld_h_l(void)
+{
+    g_cpu.reg.h = g_cpu.reg.l;
+}
+
+/* 0x66: Copy value pointed by HL into H. */
+void ld_h_hlp(void)
+{
+    g_cpu.reg.h = mmu_read_byte(g_cpu.reg.hl);
+}
+
 /* 0x67: Copy A to H. */
 void ld_h_a(void)
 {
     g_cpu.reg.h = g_cpu.reg.a;
+}
+
+/* 0x68: Copy B to L. */
+void ld_l_b(void)
+{
+    g_cpu.reg.l = g_cpu.reg.b;
+}
+
+/* 0x69: Copy C to L. */
+void ld_l_c(void)
+{
+    g_cpu.reg.l = g_cpu.reg.c;
+}
+
+/* 0x6a: Copy D to L. */
+void ld_l_d(void)
+{
+    g_cpu.reg.l = g_cpu.reg.d;
+}
+
+/* 0x6b: Copy E to L. */
+void ld_l_e(void)
+{
+    g_cpu.reg.l = g_cpu.reg.e;
+}
+
+/* 0x6c: Copy H to L. */
+void ld_l_h(void)
+{
+    g_cpu.reg.l = g_cpu.reg.h;
+}
+
+/* 0x6e: Copy value pointed by HL into L. */
+void ld_l_hlp(void)
+{
+    g_cpu.reg.l = mmu_read_byte(g_cpu.reg.hl);
 }
 
 /* 0x6f: Copy A to L. */
@@ -363,15 +802,105 @@ void ld_l_a(void)
     g_cpu.reg.l = g_cpu.reg.a;
 }
 
+/* 0x70: Save B to address pointed by HL. */
+void ld_hlp_b(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, g_cpu.reg.b);
+}
+
+/* 0x71: Save C to address pointed by HL. */
+void ld_hlp_c(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, g_cpu.reg.c);
+}
+
+/* 0x72: Save D to address pointed by HL. */
+void ld_hlp_d(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, g_cpu.reg.d);
+}
+
+/* 0x73: Save E to address pointed by HL. */
+void ld_hlp_e(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, g_cpu.reg.e);
+}
+
+/* 0x74: Save H to address pointed by HL. */
+void ld_hlp_h(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, g_cpu.reg.h);
+}
+
+/* 0x75: Save L to address pointed by HL. */
+void ld_hlp_l(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, g_cpu.reg.l);
+}
+
+/* 0x76: Power down CPU until an interrupt occurs. */
+void halt(void)
+{
+    fprintf(stderr, "HALT is not implemented.\n");
+}
+
 /* 0x77: Save A to address pointed by HL. */
 void ld_hlp_a(void)
 {
     mmu_write_byte(g_cpu.reg.hl, g_cpu.reg.a);
 }
 
+/* 0x78: Copy B to A. */
+void ld_a_b(void)
+{
+    g_cpu.reg.a = g_cpu.reg.b;
+}
+
+/* 0x79: Copy C to A. */
+void ld_a_c(void)
+{
+    g_cpu.reg.a = g_cpu.reg.c;
+}
+
+/* 0x7a: Copy D to A. */
+void ld_a_d(void)
+{
+    g_cpu.reg.a = g_cpu.reg.d;
+}
+
+/* 0x7b: Copy E to A. */
+void ld_a_e(void)
+{
+    g_cpu.reg.a = g_cpu.reg.e;
+}
+
+/* 0x7c: Copy H to A. */
+void ld_a_h(void)
+{
+    g_cpu.reg.a = g_cpu.reg.h;
+}
+
+/* 0x7d: Copy L to A. */
+void ld_a_l(void)
+{
+    g_cpu.reg.a = g_cpu.reg.l;
+}
+
+/* 0x7e: Copy value pointed by HL into A. */
+void ld_a_hlp(void)
+{
+    g_cpu.reg.a = mmu_read_byte(g_cpu.reg.hl);
+}
+
 /* 0xea: Save A at given 16-bit address. */
 void ld_nnp_a(uint16_t addr)
 {
     mmu_write_byte(addr, g_cpu.reg.a);
+}
+
+/* 0xfa: Copy value pointed by addr into A. */
+void ld_a_nnp(uint16_t addr)
+{
+    g_cpu.reg.a = mmu_read_byte(addr);
 }
 

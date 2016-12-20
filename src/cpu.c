@@ -24,123 +24,123 @@ const instruction_t g_instr[256] = {
     { "RLCA", 0, rlca },                         // 0x07
     { "LD (0x%04X), SP", 2, ld_nnp_sp },         // 0x08
     { "ADD HL, BC", 0, add_hl_bc },              // 0x09
-//    { "LD A, (BC)", 0, ld_a_bcp },               // 0x0a
-//    { "DEC BC", 0, dec_bc },                     // 0x0b
+    { "LD A, (BC)", 0, ld_a_bcp },               // 0x0a
+    { "DEC BC", 0, dec_bc },                     // 0x0b
     { "INC C", 0, inc_c },                       // 0x0c
     { "DEC C", 0, dec_c },                       // 0x0d
     { "LD C, 0x%02X", 1, ld_c_n },               // 0x0e
-//    { "RRCA", 0, rrca },                         // 0x0f
-//    { "STOP", 1, stop },                         // 0x10
+    { "RRCA", 0, rrca },                         // 0x0f
+    { "STOP", 0, stop },                         // 0x10
     { "LD DE, 0x%04X", 2, ld_de_nn },            // 0x11
     { "LD (DE), A", 0, ld_dep_a },               // 0x12
     { "INC DE", 0, inc_de },                     // 0x13
     { "INC D", 0, inc_d },                       // 0x14
     { "DEC D", 0, dec_d },                       // 0x15
     { "LD D, 0x%02X", 1, ld_d_n },               // 0x16
-//    { "RLA", 0, rla },                           // 0x17
-//    { "JR 0x%02X", 1, jr_n },                    // 0x18
+    { "RLA", 0, rla },                           // 0x17
+    { "JR 0x%02X", 1, jr_n },                    // 0x18
     { "ADD HL, DE", 0, add_hl_de },              // 0x19
-//    { "LD A, (DE)", 0, ld_a_dep },               // 0x1a
-//    { "DEC DE", 0, dec_de },                     // 0x1b
+    { "LD A, (DE)", 0, ld_a_dep },               // 0x1a
+    { "DEC DE", 0, dec_de },                     // 0x1b
     { "INC E", 0, inc_e },                       // 0x1c
     { "DEC E", 0, dec_e },                       // 0x1d
     { "LD E, 0x%02X", 1, ld_e_n },               // 0x1e
-//    { "RRA", 0, rra },                           // 0x1f
-//    { "JR NZ, 0x%02X", 1, jr_nz_n },             // 0x20
+    { "RRA", 0, rra },                           // 0x1f
+    { "JR NZ, 0x%02X", 1, jr_nz_n },             // 0x20
     { "LD HL, 0x%04X", 2, ld_hl_nn },            // 0x21
-//    { "LDI (HL), A", 0, ldi_hlp_a },             // 0x22
+    { "LDI (HL), A", 0, ldi_hlp_a },             // 0x22
     { "INC HL", 0, inc_hl },                     // 0x23
     { "INC H", 0, inc_h },                       // 0x24
     { "DEC H", 0, dec_h },                       // 0x25
     { "LD H, 0x%02X", 1, ld_h_n },               // 0x26
-//    { "DAA", 0, daa },                           // 0x27
-//    { "JR Z, 0x%02X", 1, jr_z_n },               // 0x28
+    { "DAA", 0, daa },                           // 0x27
+    { "JR Z, 0x%02X", 1, jr_z_n },               // 0x28
     { "ADD HL, HL", 0, add_hl_hl },              // 0x29
-//    { "LDI A, (HL)", 0, ldi_a_hlp },             // 0x2a
-//    { "DEC HL", 0, dec_hl },                     // 0x2b
+    { "LDI A, (HL)", 0, ldi_a_hlp },             // 0x2a
+    { "DEC HL", 0, dec_hl },                     // 0x2b
     { "INC L", 0, inc_l },                       // 0x2c
     { "DEC L", 0, dec_l },                       // 0x2d
     { "LD L, 0x%02X", 1, ld_l_n },               // 0x2e
-//    { "CPL", 0, cpl },                           // 0x2f
-//    { "JR NC, 0x%02X", 1, jr_nc_n },             // 0x30
+    { "CPL", 0, cpl },                           // 0x2f
+    { "JR NC, 0x%02X", 1, jr_nc_n },             // 0x30
     { "LD SP, 0x%04X", 2, ld_sp_nn },            // 0x31
-//    { "LDD (HL), A", 0, ldd_hlp_a },             // 0x32
+    { "LDD (HL), A", 0, ldd_hlp_a },             // 0x32
     { "INC SP", 0, inc_sp },                     // 0x33
     { "INC (HL)", 0, inc_hlp },                  // 0x34
     { "DEC (HL)", 0, dec_hlp },                  // 0x35
-//    { "LD (HL), 0x%02X", 1, ld_hlp_n },          // 0x36
-//    { "SCF", 0, scf },                           // 0x37
-//    { "JR C, 0x%02X", 1, jr_c_n },               // 0x38
+    { "LD (HL), 0x%02X", 1, ld_hlp_n },          // 0x36
+    { "SCF", 0, scf },                           // 0x37
+    { "JR C, 0x%02X", 1, jr_c_n },               // 0x38
     { "ADD HL, SP", 0, add_hl_sp },              // 0x39
-//    { "LDD A, (HL)", 0, ldd_a_hlp },             // 0x3a
-//    { "DEC SP", 0, dec_sp },                     // 0x3b
+    { "LDD A, (HL)", 0, ldd_a_hlp },             // 0x3a
+    { "DEC SP", 0, dec_sp },                     // 0x3b
     { "INC A", 0, inc_a },                       // 0x3c
-//    { "DEC A", 0, dec_a },                       // 0x3d
-//    { "LD A, 0x%02X", 1, ld_a_n },               // 0x3e
-//    { "CCF", 0, ccf },                           // 0x3f
+    { "DEC A", 0, dec_a },                       // 0x3d
+    { "LD A, 0x%02X", 1, ld_a_n },               // 0x3e
+    { "CCF", 0, ccf },                           // 0x3f
     { "LD B, B", 0, nop },                       // 0x40
-//    { "LD B, C", 0, ld_b_c },                    // 0x41
-//    { "LD B, D", 0, ld_b_d },                    // 0x42
-//    { "LD B, E", 0, ld_b_e },                    // 0x43
-//    { "LD B, H", 0, ld_b_h },                    // 0x44
-//    { "LD B, L", 0, ld_b_l },                    // 0x45
-//    { "LD B, (HL)", 0, ld_b_hlp },               // 0x46
+    { "LD B, C", 0, ld_b_c },                    // 0x41
+    { "LD B, D", 0, ld_b_d },                    // 0x42
+    { "LD B, E", 0, ld_b_e },                    // 0x43
+    { "LD B, H", 0, ld_b_h },                    // 0x44
+    { "LD B, L", 0, ld_b_l },                    // 0x45
+    { "LD B, (HL)", 0, ld_b_hlp },               // 0x46
     { "LD B, A", 0, ld_b_a },                    // 0x47
-//    { "LD C, B", 0, ld_c_b },                    // 0x48
+    { "LD C, B", 0, ld_c_b },                    // 0x48
     { "LD C, C", 0, nop },                       // 0x49
-//    { "LD C, D", 0, ld_c_d },                    // 0x4a
-//    { "LD C, E", 0, ld_c_e },                    // 0x4b
-//    { "LD C, H", 0, ld_c_h },                    // 0x4c
-//    { "LD C, L", 0, ld_c_l },                    // 0x4d
-//    { "LD C, (HL)", 0, ld_c_hlp },               // 0x4e
+    { "LD C, D", 0, ld_c_d },                    // 0x4a
+    { "LD C, E", 0, ld_c_e },                    // 0x4b
+    { "LD C, H", 0, ld_c_h },                    // 0x4c
+    { "LD C, L", 0, ld_c_l },                    // 0x4d
+    { "LD C, (HL)", 0, ld_c_hlp },               // 0x4e
     { "LD C, A", 0, ld_c_a },                    // 0x4f
-//    { "LD D, B", 0, ld_d_b },                    // 0x50
-//    { "LD D, C", 0, ld_d_c },                    // 0x51
+    { "LD D, B", 0, ld_d_b },                    // 0x50
+    { "LD D, C", 0, ld_d_c },                    // 0x51
     { "LD D, D", 0, nop },                       // 0x52
-//    { "LD D, E", 0, ld_d_e },                    // 0x53
-//    { "LD D, H", 0, ld_d_h },                    // 0x54
-//    { "LD D, L", 0, ld_d_l },                    // 0x55
-//    { "LD D, (HL)", 0, ld_d_hlp },               // 0x56
+    { "LD D, E", 0, ld_d_e },                    // 0x53
+    { "LD D, H", 0, ld_d_h },                    // 0x54
+    { "LD D, L", 0, ld_d_l },                    // 0x55
+    { "LD D, (HL)", 0, ld_d_hlp },               // 0x56
     { "LD D, A", 0, ld_d_a },                    // 0x57
-//    { "LD E, B", 0, ld_e_b },                    // 0x58
-//    { "LD E, C", 0, ld_e_c },                    // 0x59
-//    { "LD E, D", 0, ld_e_d },                    // 0x5a
+    { "LD E, B", 0, ld_e_b },                    // 0x58
+    { "LD E, C", 0, ld_e_c },                    // 0x59
+    { "LD E, D", 0, ld_e_d },                    // 0x5a
     { "LD E, E", 0, nop },                       // 0x5b
-//    { "LD E, H", 0, ld_e_h },                    // 0x5c
-//    { "LD E, L", 0, ld_e_l },                    // 0x5d
-//    { "LD E, (HL)", 0, ld_e_hlp },               // 0x5e
+    { "LD E, H", 0, ld_e_h },                    // 0x5c
+    { "LD E, L", 0, ld_e_l },                    // 0x5d
+    { "LD E, (HL)", 0, ld_e_hlp },               // 0x5e
     { "LD E, A", 0, ld_e_a },                    // 0x5f
-//    { "LD H, B", 0, ld_h_b },                    // 0x60
-//    { "LD H, C", 0, ld_h_c },                    // 0x61
-//    { "LD H, D", 0, ld_h_d },                    // 0x62
-//    { "LD H, E", 0, ld_h_e },                    // 0x63
+    { "LD H, B", 0, ld_h_b },                    // 0x60
+    { "LD H, C", 0, ld_h_c },                    // 0x61
+    { "LD H, D", 0, ld_h_d },                    // 0x62
+    { "LD H, E", 0, ld_h_e },                    // 0x63
     { "LD H, H", 0, nop },                       // 0x64
-//    { "LD H, L", 0, ld_h_l },                    // 0x65
-//    { "LD H, (HL)", 0, ld_h_hlp },               // 0x66
+    { "LD H, L", 0, ld_h_l },                    // 0x65
+    { "LD H, (HL)", 0, ld_h_hlp },               // 0x66
     { "LD H, A", 0, ld_h_a },                    // 0x67
-//    { "LD L, B", 0, ld_l_b },                    // 0x68
-//    { "LD L, C", 0, ld_l_c },                    // 0x69
-//    { "LD L, D", 0, ld_l_d },                    // 0x6a
-//    { "LD L, E", 0, ld_l_e },                    // 0x6b
-//    { "LD L, H", 0, ld_l_h },                    // 0x6c
+    { "LD L, B", 0, ld_l_b },                    // 0x68
+    { "LD L, C", 0, ld_l_c },                    // 0x69
+    { "LD L, D", 0, ld_l_d },                    // 0x6a
+    { "LD L, E", 0, ld_l_e },                    // 0x6b
+    { "LD L, H", 0, ld_l_h },                    // 0x6c
     { "LD L, L", 0, nop },                       // 0x6d
-//    { "LD L, (HL)", 0, ld_l_hlp },               // 0x6e
+    { "LD L, (HL)", 0, ld_l_hlp },               // 0x6e
     { "LD L, A", 0, ld_l_a },                    // 0x6f
-//    { "LD (HL), B", 0, ld_hlp_b },               // 0x70
-//    { "LD (HL), C", 0, ld_hlp_c },               // 0x71
-//    { "LD (HL), D", 0, ld_hlp_d },               // 0x72
-//    { "LD (HL), E", 0, ld_hlp_e },               // 0x73
-//    { "LD (HL), H", 0, ld_hlp_h },               // 0x74
-//    { "LD (HL), L", 0, ld_hlp_l },               // 0x75
-//    { "HALT", 0, halt },                         // 0x76
+    { "LD (HL), B", 0, ld_hlp_b },               // 0x70
+    { "LD (HL), C", 0, ld_hlp_c },               // 0x71
+    { "LD (HL), D", 0, ld_hlp_d },               // 0x72
+    { "LD (HL), E", 0, ld_hlp_e },               // 0x73
+    { "LD (HL), H", 0, ld_hlp_h },               // 0x74
+    { "LD (HL), L", 0, ld_hlp_l },               // 0x75
+    { "HALT", 0, halt },                         // 0x76
     { "LD (HL), A", 0, ld_hlp_a },               // 0x77
-//    { "LD A, B", 0, ld_a_b },                    // 0x78
-//    { "LD A, C", 0, ld_a_c },                    // 0x79
-//    { "LD A, D", 0, ld_a_d },                    // 0x7a
-//    { "LD A, E", 0, ld_a_e },                    // 0x7b
-//    { "LD A, H", 0, ld_a_h },                    // 0x7c
-//    { "LD A, L", 0, ld_a_l },                    // 0x7d
-//    { "LD A, (HL)", 0, ld_a_hlp },               // 0x7e
+    { "LD A, B", 0, ld_a_b },                    // 0x78
+    { "LD A, C", 0, ld_a_c },                    // 0x79
+    { "LD A, D", 0, ld_a_d },                    // 0x7a
+    { "LD A, E", 0, ld_a_e },                    // 0x7b
+    { "LD A, H", 0, ld_a_h },                    // 0x7c
+    { "LD A, L", 0, ld_a_l },                    // 0x7d
+    { "LD A, (HL)", 0, ld_a_hlp },               // 0x7e
     { "LD A, A", 0, nop },                       // 0x7f
 //    { "ADD A, B", 0, add_a_b },                  // 0x80
 //    { "ADD A, C", 0, add_a_c },                  // 0x81
@@ -264,7 +264,7 @@ const instruction_t g_instr[256] = {
 //    { "RST 0x30", 0, rst_30 },                   // 0xf7
 //    { "LD HL, SP+0x%02X", 1, ld_hl_sp_n },       // 0xf8
 //    { "LD SP, HL", 0, ld_sp_hl },                // 0xf9
-//    { "LD A, (0x%04X)", 2, ld_a_nnp },           // 0xfa
+    { "LD A, (0x%04X)", 2, ld_a_nnp },           // 0xfa
 //    { "EI", 0, ei },                             // 0xfb
 //    { "UNKNOWN", 0, undefined },                 // 0xfc
 //    { "UNKNOWN", 0, undefined },                 // 0xfd
@@ -307,7 +307,7 @@ static void cpu_decode_opcode(uint8_t opcode)
 {
     uint8_t oper_length = g_instr[opcode].operand_length;
     void *exec = g_instr[opcode].execute;
-    printf("exec=%p\n", exec);
+    printf("opcode=0x%hhx, exec=%p\n", opcode, exec);
 
     if (oper_length == 0) {
         PRINTD(g_instr[opcode].disassembly);
