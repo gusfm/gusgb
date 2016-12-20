@@ -34,10 +34,7 @@
  */
 #define FLAG_C (1 << 4)
 
-#define FLAG_IS_ZERO (g_cpu.reg.f & FLAG_Z)
-#define FLAG_IS_NEGATIVE (g_cpu.reg.f & FLAG_N)
-#define FLAG_IS_CARRY (g_cpu.reg.f & FLAG_C)
-#define FLAG_IS_HALFCARRY (g_cpu.reg.f & FLAG_H)
+#define FLAG_IS_SET(flag) (g_cpu.reg.f & flag)
 #define FLAG_SET(x) (g_cpu.reg.f |= (x))
 #define FLAG_CLEAR(x) (g_cpu.reg.f &= ~(x))
 

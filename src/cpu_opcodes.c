@@ -66,7 +66,7 @@ uint8_t dec_n(uint8_t value)
  * H - Set if carry from bit 3.
  * C - Set if carry from bit 7.
  */
-uint16_t addn8(uint8_t val1, uint8_t val2)
+uint16_t add8(uint8_t val1, uint8_t val2)
 {
     uint32_t result = val1 + val2;
     FLAG_CLEAR(FLAG_N);
@@ -80,7 +80,11 @@ uint16_t addn8(uint8_t val1, uint8_t val2)
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    /* Zero flag is not updated. */
+    if (result == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
     return (uint16_t)(result & 0xff);
 }
 
@@ -269,7 +273,7 @@ void ld_d_n(uint8_t val)
 /* 0x17: Rotate A left through Carry flag. */
 void rla(void)
 {
-    uint8_t old_carry = (FLAG_IS_CARRY >> 4);
+    uint8_t old_carry = (FLAG_IS_SET(FLAG_C) >> 4);
     if (g_cpu.reg.a & 0x80) {
         FLAG_SET(FLAG_C);
     } else {
@@ -325,7 +329,7 @@ void ld_e_n(uint8_t val)
 /* 0x1f: Rotate A right through Carry flag. */
 void rra(void)
 {
-    uint8_t old_carry = (FLAG_IS_CARRY << 3);
+    uint8_t old_carry = (FLAG_IS_SET(FLAG_C) << 3);
     if (g_cpu.reg.a & 0x01) {
         FLAG_SET(FLAG_C);
     } else {
@@ -339,7 +343,7 @@ void rra(void)
 /* 0x20: Jump if Z flag is not set. */
 void jr_nz_n(uint8_t val)
 {
-    if (FLAG_IS_ZERO) {
+    if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.ticks += 8;
     } else {
         g_cpu.reg.pc += (int8_t)val;
@@ -389,15 +393,15 @@ void daa(void)
     /* TODO: Code copyied from Cinoop. Check if this is correct. */
     uint16_t s = g_cpu.reg.a;
 
-    if (FLAG_IS_NEGATIVE) {
-        if (FLAG_IS_HALFCARRY)
+    if (FLAG_IS_SET(FLAG_N)) {
+        if (FLAG_IS_SET(FLAG_H))
             s = (s - 0x06) & 0xFF;
-        if (FLAG_IS_CARRY)
+        if (FLAG_IS_SET(FLAG_C))
             s -= 0x60;
     } else {
-        if (FLAG_IS_HALFCARRY || (s & 0xF) > 9)
+        if (FLAG_IS_SET(FLAG_H) || (s & 0xF) > 9)
             s += 0x06;
-        if (FLAG_IS_CARRY || s > 0x9F)
+        if (FLAG_IS_SET(FLAG_C) || s > 0x9F)
             s += 0x60;
     }
 
@@ -416,7 +420,7 @@ void daa(void)
 /* 0x28: Jump if Z flag is set. */
 void jr_z_n(uint8_t val)
 {
-    if (FLAG_IS_ZERO) {
+    if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.reg.pc += (int8_t)val;
         g_cpu.ticks += 12;
     } else {
@@ -470,7 +474,7 @@ void cpl(void)
 /* 0x30: Jump if C flag is not set. */
 void jr_nc_n(uint8_t val)
 {
-    if (FLAG_IS_CARRY) {
+    if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.ticks += 8;
     } else {
         g_cpu.reg.pc += (int8_t)val;
@@ -526,7 +530,7 @@ void scf(void)
 /* 0x38: Jump if C flag is set. */
 void jr_c_n(uint8_t val)
 {
-    if (FLAG_IS_CARRY) {
+    if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.reg.pc += (int8_t)val;
         g_cpu.ticks += 12;
     } else {
@@ -922,56 +926,119 @@ void ld_a_hlp(void)
 /* 0x80: Add B to A. */
 void add_a_b(void)
 {
-    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.b);
+    g_cpu.reg.a = add8(g_cpu.reg.a, g_cpu.reg.b);
 }
 
 /* 0x81: Add C to A. */
 void add_a_c(void)
 {
-    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.c);
+    g_cpu.reg.a = add8(g_cpu.reg.a, g_cpu.reg.c);
 }
 
 /* 0x82: Add D to A. */
 void add_a_d(void)
 {
-    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.d);
+    g_cpu.reg.a = add8(g_cpu.reg.a, g_cpu.reg.d);
 }
 
 /* 0x83: Add E to A. */
 void add_a_e(void)
 {
-    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.e);
+    g_cpu.reg.a = add8(g_cpu.reg.a, g_cpu.reg.e);
 }
 
 /* 0x84: Add H to A. */
 void add_a_h(void)
 {
-    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.h);
+    g_cpu.reg.a = add8(g_cpu.reg.a, g_cpu.reg.h);
 }
 
 /* 0x85: Add L to A. */
 void add_a_l(void)
 {
-    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.l);
+    g_cpu.reg.a = add8(g_cpu.reg.a, g_cpu.reg.l);
 }
 
 /* 0x86: Add value pointed by HL to A. */
 void add_a_hlp(void)
 {
     uint8_t val = mmu_read_byte(g_cpu.reg.hl);
-    g_cpu.reg.a = addn8(g_cpu.reg.a, val);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0x87: Add A to A. */
 void add_a_a(void)
 {
-    g_cpu.reg.a = addn8(g_cpu.reg.a, g_cpu.reg.a);
+    g_cpu.reg.a = add8(g_cpu.reg.a, g_cpu.reg.a);
+}
+
+/* 0x88: Add B and carry flag to A. */
+void adc_b(void)
+{
+    uint8_t val = g_cpu.reg.b + (FLAG_IS_SET(FLAG_C) >> 4);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+}
+
+/* 0x89: Add C and carry flag to A. */
+void adc_c(void)
+{
+    uint8_t val = g_cpu.reg.c + (FLAG_IS_SET(FLAG_C) >> 4);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+}
+
+/* 0x8a: Add D and carry flag to A. */
+void adc_d(void)
+{
+    uint8_t val = g_cpu.reg.d + (FLAG_IS_SET(FLAG_C) >> 4);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+}
+
+/* 0x8b: Add E and carry flag to A. */
+void adc_e(void)
+{
+    uint8_t val = g_cpu.reg.e + (FLAG_IS_SET(FLAG_C) >> 4);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+}
+
+/* 0x8c: Add H and carry flag to A. */
+void adc_h(void)
+{
+    uint8_t val = g_cpu.reg.h + (FLAG_IS_SET(FLAG_C) >> 4);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+}
+
+/* 0x8d: Add L and carry flag to A. */
+void adc_l(void)
+{
+    uint8_t val = g_cpu.reg.l + (FLAG_IS_SET(FLAG_C) >> 4);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+}
+
+/* 0x8e: Add (HL) and carry flag to A. */
+void adc_hlp(void)
+{
+    uint8_t val = mmu_read_byte(g_cpu.reg.hl) + (FLAG_IS_SET(FLAG_C) >> 4);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+}
+
+/* 0x8f: Add A and carry flag to A. */
+void adc_a(void)
+{
+    uint8_t val = g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
-    g_cpu.reg.a = addn8(g_cpu.reg.a, val);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+}
+
+/* 0xce: Add immediate 8-bit value and carry flag to A. */
+void adc_n(uint8_t n)
+{
+    uint8_t val = n + (FLAG_IS_SET(FLAG_C) >> 4);
+    g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0xea: Save A at given 16-bit address. */
