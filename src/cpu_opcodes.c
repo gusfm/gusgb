@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include "cpu_opcodes.h"
+#include <stdio.h>
 #include "mmu.h"
 
 extern cpu_t g_cpu;

@@ -1,8 +1,8 @@
 #ifndef __MMU_H__
 #define __MMU_H__
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct {
     uint8_t rom[0x8000];
