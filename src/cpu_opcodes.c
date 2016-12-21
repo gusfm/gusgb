@@ -230,6 +230,14 @@ void cp(uint8_t val)
     }
 }
 
+/* Pop from stack. */
+uint16_t pop()
+{
+    uint16_t val = mmu_read_word(g_cpu.reg.sp);
+    g_cpu.reg.sp += 2;
+    return val;
+}
+
 /*************** Opcodes implementaion. ***************/
 
 /* 0x00: No operation. */
@@ -1432,10 +1440,38 @@ void cp_a(void)
     cp(g_cpu.reg.a);
 }
 
+/* 0xc0: Return if Z flag is not set. */
+void ret_nz(void)
+{
+    if (FLAG_IS_SET(FLAG_Z)) {
+        g_cpu.ticks += 8;
+    } else {
+        g_cpu.reg.pc = pop();
+        g_cpu.ticks += 20;
+    }
+}
+
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
+}
+
+/* 0xc8: Return if Z flag is set. */
+void ret_z(void)
+{
+    if (FLAG_IS_SET(FLAG_Z)) {
+        g_cpu.reg.pc = pop();
+        g_cpu.ticks += 20;
+    } else {
+        g_cpu.ticks += 8;
+    }
+}
+
+/* 0xc9: Return if Z flag is set. */
+void ret(void)
+{
+    g_cpu.reg.pc = pop();
 }
 
 /* 0xce: Add immediate 8-bit value and carry flag to A. */
@@ -1445,10 +1481,32 @@ void adc_n(uint8_t n)
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
+/* 0xd0: Return if C flag is not set. */
+void ret_nc(void)
+{
+    if (FLAG_IS_SET(FLAG_C)) {
+        g_cpu.ticks += 8;
+    } else {
+        g_cpu.reg.pc = pop();
+        g_cpu.ticks += 20;
+    }
+}
+
 /* 0xd6: Subtract n from A. */
 void sub_n(uint8_t val)
 {
     sub(val);
+}
+
+/* 0xd8: Return if C flag is set. */
+void ret_c(void)
+{
+    if (FLAG_IS_SET(FLAG_C)) {
+        g_cpu.reg.pc = pop();
+        g_cpu.ticks += 20;
+    } else {
+        g_cpu.ticks += 8;
+    }
 }
 
 /* 0xde: Subtract n and carry flag from A. */

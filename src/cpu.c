@@ -207,7 +207,7 @@ const instruction_t g_instr[256] = {
     {"CP L", NULL, 0, cp_l},              // 0xbd
     {"CP (HL)", NULL, 0, cp_hlp},         // 0xbe
     {"CP A", NULL, 0, cp_a},              // 0xbf
-    //    { "RET NZ", NULL, 0, ret_nz },                     // 0xc0
+    {"RET NZ", NULL, 0, ret_nz},          // 0xc0
     //    { "POP BC", NULL, 0, pop_bc },                     // 0xc1
     //    { "JP NZ, 0x", NULL, 2, jp_nz_nn },            // 0xc2
     //    { "JP 0x", NULL, 2, jp_nn },                   // 0xc3
@@ -215,15 +215,15 @@ const instruction_t g_instr[256] = {
     //    { "PUSH BC", NULL, 0, push_bc },                   // 0xc5
     {"ADD A, 0x", NULL, 1, add_a_n},  // 0xc6
     //    { "RST 0x00", NULL, 0, rst_0 },                    // 0xc7
-    //    { "RET Z", NULL, 0, ret_z },                       // 0xc8
-    //    { "RET", NULL, 0, ret },                           // 0xc9
+    {"RET Z", NULL, 0, ret_z},  // 0xc8
+    {"RET", NULL, 0, ret},      // 0xc9
     //    { "JP Z, 0x", NULL, 2, jp_z_nn },              // 0xca
     //    { "CB ", NULL, 1, cb_n },                      // 0xcb
     //    { "CALL Z, 0x", NULL, 2, call_z_nn },          // 0xcc
     //    { "CALL 0x", NULL, 2, call_nn },               // 0xcd
     {"ADC 0x", NULL, 1, adc_n},  // 0xce
     //    { "RST 0x08", NULL, 0, rst_08 },                   // 0xcf
-    //    { "RET NC", NULL, 0, ret_nc },                     // 0xd0
+    {"RET NC", NULL, 0, ret_nc},  // 0xd0
     //    { "POP DE", NULL, 0, pop_de },                     // 0xd1
     //    { "JP NC, 0x", NULL, 2, jp_nc_nn },            // 0xd2
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xd3
@@ -231,7 +231,7 @@ const instruction_t g_instr[256] = {
     //    { "PUSH DE", NULL, 0, push_de },                   // 0xd5
     {"SUB 0x", NULL, 1, sub_n},  // 0xd6
     //    { "RST 0x10", NULL, 0, rst_10 },                   // 0xd7
-    //    { "RET C", NULL, 0, ret_c },                       // 0xd8
+    {"RET C", NULL, 0, ret_c},  // 0xd8
     //    { "RETI", NULL, 0, returnFromInterrupt },          // 0xd9
     //    { "JP C, 0x", NULL, 2, jp_c_nn },              // 0xda
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xdb
