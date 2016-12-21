@@ -201,6 +201,35 @@ void or(uint8_t val)
     FLAG_CLEAR(FLAG_N | FLAG_H | FLAG_C);
 }
 
+/**
+ * Compare A with n.
+ * Flags affected:
+ * Z - Set if result is zero. (Set if A = n.)
+ * N - Set.
+ * H - Set if no borrow from bit 4.
+ * C - Set for no borrow. (Set if A < n.)
+ */
+void cp(uint8_t val)
+{
+    uint16_t result = g_cpu.reg.a - val;
+    if (result == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    FLAG_SET(FLAG_N);
+    if (((val & 0x0f) > (g_cpu.reg.a & 0x0f))) {
+        FLAG_SET(FLAG_H);
+    } else {
+        FLAG_CLEAR(FLAG_H);
+    }
+    if (val > g_cpu.reg.a) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+}
+
 /*************** Opcodes implementaion. ***************/
 
 /* 0x00: No operation. */
@@ -1355,6 +1384,54 @@ void or_a(void)
     or(g_cpu.reg.a);
 }
 
+/* 0xb8: Compare A with B. */
+void cp_b(void)
+{
+    cp(g_cpu.reg.b);
+}
+
+/* 0xb9: Compare A with C. */
+void cp_c(void)
+{
+    cp(g_cpu.reg.c);
+}
+
+/* 0xba: Compare A with D. */
+void cp_d(void)
+{
+    cp(g_cpu.reg.d);
+}
+
+/* 0xbb: Compare A with E. */
+void cp_e(void)
+{
+    cp(g_cpu.reg.e);
+}
+
+/* 0xbc: Compare A with H. */
+void cp_h(void)
+{
+    cp(g_cpu.reg.h);
+}
+
+/* 0xbd: Compare A with L. */
+void cp_l(void)
+{
+    cp(g_cpu.reg.l);
+}
+
+/* 0xbe: Compare A with (HL). */
+void cp_hlp(void)
+{
+    cp(mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0xbf: Compare A with A. */
+void cp_a(void)
+{
+    cp(g_cpu.reg.a);
+}
+
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
@@ -1410,3 +1487,8 @@ void ld_a_nnp(uint16_t addr)
     g_cpu.reg.a = mmu_read_byte(addr);
 }
 
+/* 0xfe: Compare A with n. */
+void cp_n(uint8_t val)
+{
+    cp(val);
+}

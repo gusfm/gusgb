@@ -180,6 +180,14 @@ void or_h(void);
 void or_l(void);
 void or_hlp(void);
 void or_a(void);
+void cp_b(void);
+void cp_c(void);
+void cp_d(void);
+void cp_e(void);
+void cp_h(void);
+void cp_l(void);
+void cp_hlp(void);
+void cp_a(void);
 void add_a_n(uint8_t val);
 void adc_n(uint8_t n);
 void sub_n(uint8_t val);
@@ -189,5 +197,6 @@ void ld_nnp_a(uint16_t addr);
 void xor_n(uint8_t val);
 void or_n(uint8_t val);
 void ld_a_nnp(uint16_t addr);
+void cp_n(uint8_t val);
 
 #endif /* __CPU_OPCODES_H__ */

@@ -199,14 +199,14 @@ const instruction_t g_instr[256] = {
     {"OR L", NULL, 0, or_l},              // 0xb5
     {"OR (HL)", NULL, 0, or_hlp},         // 0xb6
     {"OR A", NULL, 0, or_a},              // 0xb7
-    //    { "CP B", NULL, 0, cp_b },                         // 0xb8
-    //    { "CP C", NULL, 0, cp_c },                         // 0xb9
-    //    { "CP D", NULL, 0, cp_d },                         // 0xba
-    //    { "CP E", NULL, 0, cp_e },                         // 0xbb
-    //    { "CP H", NULL, 0, cp_h },                         // 0xbc
-    //    { "CP L", NULL, 0, cp_l },                         // 0xbd
-    //    { "CP (HL)", NULL, 0, cp_hlp },                    // 0xbe
-    //    { "CP A", NULL, 0, cp_a },                         // 0xbf
+    {"CP B", NULL, 0, cp_b},              // 0xb8
+    {"CP C", NULL, 0, cp_c},              // 0xb9
+    {"CP D", NULL, 0, cp_d},              // 0xba
+    {"CP E", NULL, 0, cp_e},              // 0xbb
+    {"CP H", NULL, 0, cp_h},              // 0xbc
+    {"CP L", NULL, 0, cp_l},              // 0xbd
+    {"CP (HL)", NULL, 0, cp_hlp},         // 0xbe
+    {"CP A", NULL, 0, cp_a},              // 0xbf
     //    { "RET NZ", NULL, 0, ret_nz },                     // 0xc0
     //    { "POP BC", NULL, 0, pop_bc },                     // 0xc1
     //    { "JP NZ, 0x", NULL, 2, jp_nz_nn },            // 0xc2
@@ -269,7 +269,7 @@ const instruction_t g_instr[256] = {
     //    { "EI", NULL, 0, ei },                             // 0xfb
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xfc
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xfd
-    //    { "CP 0x", NULL, 1, cp_n },                    // 0xfe
+    {"CP 0x", NULL, 1, cp_n},  // 0xfe
     //    { "RST 0x38", NULL, 0, rst_38 },                   // 0xff
 };
 
