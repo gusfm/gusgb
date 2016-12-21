@@ -158,14 +158,14 @@ const instruction_t g_instr[256] = {
     { "ADC L", 0, adc_l },                       // 0x8d
     { "ADC (HL)", 0, adc_hlp },                  // 0x8e
     { "ADC A", 0, adc_a },                       // 0x8f
-//    { "SUB B", 0, sub_b },                       // 0x90
-//    { "SUB C", 0, sub_c },                       // 0x91
-//    { "SUB D", 0, sub_d },                       // 0x92
-//    { "SUB E", 0, sub_e },                       // 0x93
-//    { "SUB H", 0, sub_h },                       // 0x94
-//    { "SUB L", 0, sub_l },                       // 0x95
-//    { "SUB (HL)", 0, sub_hlp },                  // 0x96
-//    { "SUB A", 0, sub_a },                       // 0x97
+    { "SUB B", 0, sub_b },                       // 0x90
+    { "SUB C", 0, sub_c },                       // 0x91
+    { "SUB D", 0, sub_d },                       // 0x92
+    { "SUB E", 0, sub_e },                       // 0x93
+    { "SUB H", 0, sub_h },                       // 0x94
+    { "SUB L", 0, sub_l },                       // 0x95
+    { "SUB (HL)", 0, sub_hlp },                  // 0x96
+    { "SUB A", 0, sub_a },                       // 0x97
 //    { "SBC B", 0, sbc_b },                       // 0x98
 //    { "SBC C", 0, sbc_c },                       // 0x99
 //    { "SBC D", 0, sbc_d },                       // 0x9a
@@ -228,7 +228,7 @@ const instruction_t g_instr[256] = {
 //    { "UNKNOWN", 0, undefined },                 // 0xd3
 //    { "CALL NC, 0x%04X", 2, call_nc_nn },        // 0xd4
 //    { "PUSH DE", 0, push_de },                   // 0xd5
-//    { "SUB 0x%02X", 1, sub_n },                  // 0xd6
+    { "SUB 0x%02X", 1, sub_n },                  // 0xd6
 //    { "RST 0x10", 0, rst_10 },                   // 0xd7
 //    { "RET C", 0, ret_c },                       // 0xd8
 //    { "RETI", 0, returnFromInterrupt },          // 0xd9

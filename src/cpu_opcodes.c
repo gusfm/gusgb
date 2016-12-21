@@ -114,6 +114,35 @@ uint16_t add16(uint16_t val1, uint16_t val2)
     return (uint16_t)(result & 0xffff);
 }
 
+/**
+ * Subtract n from A.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Set.
+ * H - Set if no borrow from bit 4.
+ * C - Set if no borrow.
+ */
+void sub(uint8_t val)
+{
+    FLAG_SET(FLAG_N);
+    if (((val & 0x0f) > (g_cpu.reg.a & 0x0f))) {
+        FLAG_SET(FLAG_H);
+    } else {
+        FLAG_CLEAR(FLAG_H);
+    }
+    if (val > g_cpu.reg.a) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    g_cpu.reg.a -= val;
+    if (g_cpu.reg.a == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+}
+
 /*************** Opcodes implementaion. ***************/
 
 /* 0x00: No operation. */
@@ -1028,6 +1057,54 @@ void adc_a(void)
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
+/* 0x90: Subtract B from A. */
+void sub_b(void)
+{
+    sub(g_cpu.reg.b);
+}
+
+/* 0x91: Subtract C from A. */
+void sub_c(void)
+{
+    sub(g_cpu.reg.c);
+}
+
+/* 0x92: Subtract D from A. */
+void sub_d(void)
+{
+    sub(g_cpu.reg.d);
+}
+
+/* 0x93: Subtract E from A. */
+void sub_e(void)
+{
+    sub(g_cpu.reg.e);
+}
+
+/* 0x94: Subtract H from A. */
+void sub_h(void)
+{
+    sub(g_cpu.reg.h);
+}
+
+/* 0x95: Subtract L from A. */
+void sub_l(void)
+{
+    sub(g_cpu.reg.l);
+}
+
+/* 0x96: Subtract (HL) from A. */
+void sub_hlp(void)
+{
+    sub(mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0x97: Subtract A from A. */
+void sub_a(void)
+{
+    sub(g_cpu.reg.a);
+}
+
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
@@ -1045,6 +1122,12 @@ void adc_n(uint8_t n)
 void ld_nnp_a(uint16_t addr)
 {
     mmu_write_byte(addr, g_cpu.reg.a);
+}
+
+/* 0xd6: Subtract n from A. */
+void sub_n(uint8_t val)
+{
+    sub(val);
 }
 
 /* 0xfa: Copy value pointed by addr into A. */
