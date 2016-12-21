@@ -191,14 +191,14 @@ const instruction_t g_instr[256] = {
     {"XOR L", NULL, 0, xor_l},            // 0xad
     {"XOR (HL)", NULL, 0, xor_hlp},       // 0xae
     {"XOR A", NULL, 0, xor_a},            // 0xaf
-    //    { "OR B", NULL, 0, or_b },                         // 0xb0
-    //    { "OR C", NULL, 0, or_c },                         // 0xb1
-    //    { "OR D", NULL, 0, or_d },                         // 0xb2
-    //    { "OR E", NULL, 0, or_e },                         // 0xb3
-    //    { "OR H", NULL, 0, or_h },                         // 0xb4
-    //    { "OR L", NULL, 0, or_l },                         // 0xb5
-    //    { "OR (HL)", NULL, 0, or_hlp },                    // 0xb6
-    //    { "OR A", NULL, 0, or_a },                         // 0xb7
+    {"OR B", NULL, 0, or_b},              // 0xb0
+    {"OR C", NULL, 0, or_c},              // 0xb1
+    {"OR D", NULL, 0, or_d},              // 0xb2
+    {"OR E", NULL, 0, or_e},              // 0xb3
+    {"OR H", NULL, 0, or_h},              // 0xb4
+    {"OR L", NULL, 0, or_l},              // 0xb5
+    {"OR (HL)", NULL, 0, or_hlp},         // 0xb6
+    {"OR A", NULL, 0, or_a},              // 0xb7
     //    { "CP B", NULL, 0, cp_b },                         // 0xb8
     //    { "CP C", NULL, 0, cp_c },                         // 0xb9
     //    { "CP D", NULL, 0, cp_d },                         // 0xba
@@ -261,7 +261,7 @@ const instruction_t g_instr[256] = {
     //    { "DI", NULL, 0, di_inst },                        // 0xf3
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xf4
     //    { "PUSH AF", NULL, 0, push_af },                   // 0xf5
-    //    { "OR 0x", NULL, 1, or_n },                    // 0xf6
+    {"OR 0x", NULL, 1, or_n},  // 0xf6
     //    { "RST 0x30", NULL, 0, rst_30 },                   // 0xf7
     //    { "LD HL, SP+0x", NULL, 1, ld_hl_sp_n },       // 0xf8
     //    { "LD SP, HL", NULL, 0, ld_sp_hl },                // 0xf9

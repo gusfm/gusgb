@@ -144,7 +144,7 @@ void sub(uint8_t val)
 }
 
 /**
- * Logically AND n with A, result in A.
+ * Bitwise AND n with A, result in A.
  * Flags affected:
  * Z - Set if result is zero.
  * N - Reset.
@@ -164,7 +164,7 @@ void and(uint8_t val)
 }
 
 /**
- * Logically XOR n with A, result in A.
+ * Bitwise XOR n with A, result in A.
  * Flags affected:
  * Z - Set if result is zero.
  * N - Reset.
@@ -174,6 +174,25 @@ void and(uint8_t val)
 void xor(uint8_t val)
 {
     g_cpu.reg.a ^= val;
+    if (g_cpu.reg.a == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    FLAG_CLEAR(FLAG_N | FLAG_H | FLAG_C);
+}
+
+/**
+ * Bitwise OR n with A, result in A.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Reset.
+ */
+void or(uint8_t val)
+{
+    g_cpu.reg.a |= val;
     if (g_cpu.reg.a == 0) {
         FLAG_SET(FLAG_Z);
     } else {
@@ -1192,100 +1211,148 @@ void sbc_a(void)
     sub(g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4));
 }
 
-/* 0xa0: Logical AND B against A. */
+/* 0xa0: Bitwise AND B against A. */
 void and_b(void)
 {
     and(g_cpu.reg.b);
 }
 
-/* 0xa1: Logical AND C against A. */
+/* 0xa1: Bitwise AND C against A. */
 void and_c(void)
 {
     and(g_cpu.reg.c);
 }
 
-/* 0xa2: Logical AND D against A. */
+/* 0xa2: Bitwise AND D against A. */
 void and_d(void)
 {
     and(g_cpu.reg.d);
 }
 
-/* 0xa3: Logical AND E against A. */
+/* 0xa3: Bitwise AND E against A. */
 void and_e(void)
 {
     and(g_cpu.reg.e);
 }
 
-/* 0xa4: Logical AND H against A. */
+/* 0xa4: Bitwise AND H against A. */
 void and_h(void)
 {
     and(g_cpu.reg.h);
 }
 
-/* 0xa5: Logical AND L against A. */
+/* 0xa5: Bitwise AND L against A. */
 void and_l(void)
 {
     and(g_cpu.reg.l);
 }
 
-/* 0xa6: Logical AND (HL) against A. */
+/* 0xa6: Bitwise AND (HL) against A. */
 void and_hlp(void)
 {
     and(mmu_read_byte(g_cpu.reg.hl));
 }
 
-/* 0xa7: Logical AND A against A. */
+/* 0xa7: Bitwise AND A against A. */
 void and_a(void)
 {
     and(g_cpu.reg.a);
 }
 
-/* 0xa8: Logical XOR B against A. */
+/* 0xa8: Bitwise XOR B against A. */
 void xor_b(void)
 {
     xor(g_cpu.reg.b);
 }
 
-/* 0xa9: Logical XOR C against A. */
+/* 0xa9: Bitwise XOR C against A. */
 void xor_c(void)
 {
     xor(g_cpu.reg.c);
 }
 
-/* 0xaa: Logical XOR D against A. */
+/* 0xaa: Bitwise XOR D against A. */
 void xor_d(void)
 {
     xor(g_cpu.reg.d);
 }
 
-/* 0xab: Logical XOR E against A. */
+/* 0xab: Bitwise XOR E against A. */
 void xor_e(void)
 {
     xor(g_cpu.reg.e);
 }
 
-/* 0xac: Logical XOR H against A. */
+/* 0xac: Bitwise XOR H against A. */
 void xor_h(void)
 {
     xor(g_cpu.reg.h);
 }
 
-/* 0xad: Logical XOR L against A. */
+/* 0xad: Bitwise XOR L against A. */
 void xor_l(void)
 {
     xor(g_cpu.reg.l);
 }
 
-/* 0xae: Logical XOR (HL) against A. */
+/* 0xae: Bitwise XOR (HL) against A. */
 void xor_hlp(void)
 {
     xor(mmu_read_byte(g_cpu.reg.hl));
 }
 
-/* 0xaf: Logical XOR A against A. */
+/* 0xaf: Bitwise XOR A against A. */
 void xor_a(void)
 {
     xor(g_cpu.reg.a);
+}
+
+/* 0xb0: Bitwise OR B against A. */
+void or_b(void)
+{
+    or(g_cpu.reg.b);
+}
+
+/* 0xb1: Bitwise OR C against A. */
+void or_c(void)
+{
+    or(g_cpu.reg.c);
+}
+
+/* 0xb2: Bitwise OR D against A. */
+void or_d(void)
+{
+    or(g_cpu.reg.d);
+}
+
+/* 0xb3: Bitwise OR E against A. */
+void or_e(void)
+{
+    or(g_cpu.reg.e);
+}
+
+/* 0xb4: Bitwise OR H against A. */
+void or_h(void)
+{
+    or(g_cpu.reg.h);
+}
+
+/* 0xb5: Bitwise OR L against A. */
+void or_l(void)
+{
+    or(g_cpu.reg.l);
+}
+
+/* 0xb6: Bitwise OR (HL) against A. */
+void or_hlp(void)
+{
+    or(mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0xb7: Bitwise OR A against A. */
+void or_a(void)
+{
+    or(g_cpu.reg.a);
 }
 
 /* 0xc6: Add 8-bit immediate to A. */
@@ -1313,7 +1380,7 @@ void sbc_n(uint8_t val)
     sub(val + (FLAG_IS_SET(FLAG_C) >> 4));
 }
 
-/* 0xe6: Logical AND n against A. */
+/* 0xe6: Bitwise AND n against A. */
 void and_n(uint8_t val)
 {
     and(val);
@@ -1325,10 +1392,16 @@ void ld_nnp_a(uint16_t addr)
     mmu_write_byte(addr, g_cpu.reg.a);
 }
 
-/* 0xee: Logical XOR n against A. */
+/* 0xee: Bitwise XOR n against A. */
 void xor_n(uint8_t val)
 {
     xor(val);
+}
+
+/* 0xf6: Bitwise OR n against A. */
+void or_n(uint8_t val)
+{
+    or(val);
 }
 
 /* 0xfa: Copy value pointed by addr into A. */

@@ -172,6 +172,14 @@ void xor_h(void);
 void xor_l(void);
 void xor_hlp(void);
 void xor_a(void);
+void or_b(void);
+void or_c(void);
+void or_d(void);
+void or_e(void);
+void or_h(void);
+void or_l(void);
+void or_hlp(void);
+void or_a(void);
 void add_a_n(uint8_t val);
 void adc_n(uint8_t n);
 void sub_n(uint8_t val);
@@ -179,6 +187,7 @@ void sbc_n(uint8_t val);
 void and_n(uint8_t val);
 void ld_nnp_a(uint16_t addr);
 void xor_n(uint8_t val);
+void or_n(uint8_t val);
 void ld_a_nnp(uint16_t addr);
 
 #endif /* __CPU_OPCODES_H__ */
