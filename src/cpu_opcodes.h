@@ -148,10 +148,19 @@ void sub_h(void);
 void sub_l(void);
 void sub_hlp(void);
 void sub_a(void);
+void sbc_b(void);
+void sbc_c(void);
+void sbc_d(void);
+void sbc_e(void);
+void sbc_h(void);
+void sbc_l(void);
+void sbc_hlp(void);
+void sbc_a(void);
 void add_a_n(uint8_t val);
 void adc_n(uint8_t n);
-void ld_nnp_a(uint16_t addr);
 void sub_n(uint8_t val);
+void sbc_n(uint8_t val);
+void ld_nnp_a(uint16_t addr);
 void ld_a_nnp(uint16_t addr);
 
 #endif /* __CPU_OPCODES_H__ */

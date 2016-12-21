@@ -166,14 +166,14 @@ const instruction_t g_instr[256] = {
     {"SUB L", 0, sub_l},                // 0x95
     {"SUB (HL)", 0, sub_hlp},           // 0x96
     {"SUB A", 0, sub_a},                // 0x97
-    //    { "SBC B", 0, sbc_b },                       // 0x98
-    //    { "SBC C", 0, sbc_c },                       // 0x99
-    //    { "SBC D", 0, sbc_d },                       // 0x9a
-    //    { "SBC E", 0, sbc_e },                       // 0x9b
-    //    { "SBC H", 0, sbc_h },                       // 0x9c
-    //    { "SBC L", 0, sbc_l },                       // 0x9d
-    //    { "SBC (HL)", 0, sbc_hlp },                  // 0x9e
-    //    { "SBC A", 0, sbc_a },                       // 0x9f
+    {"SBC B", 0, sbc_b},                // 0x98
+    {"SBC C", 0, sbc_c},                // 0x99
+    {"SBC D", 0, sbc_d},                // 0x9a
+    {"SBC E", 0, sbc_e},                // 0x9b
+    {"SBC H", 0, sbc_h},                // 0x9c
+    {"SBC L", 0, sbc_l},                // 0x9d
+    {"SBC (HL)", 0, sbc_hlp},           // 0x9e
+    {"SBC A", 0, sbc_a},                // 0x9f
     //    { "AND B", 0, and_b },                       // 0xa0
     //    { "AND C", 0, and_c },                       // 0xa1
     //    { "AND D", 0, and_d },                       // 0xa2
@@ -236,7 +236,7 @@ const instruction_t g_instr[256] = {
     //    { "UNKNOWN", 0, undefined },                 // 0xdb
     //    { "CALL C, 0x%04X", 2, call_c_nn },          // 0xdc
     //    { "UNKNOWN", 0, undefined },                 // 0xdd
-    //    { "SBC 0x%02X", 1, sbc_n },                  // 0xde
+    {"SBC 0x%02X", 1, sbc_n},  // 0xde
     //    { "RST 0x18", 0, rst_18 },                   // 0xdf
     //    { "LD (0xFF00 + 0x%02X), A", 1, ld_ff_n_ap },// 0xe0
     //    { "POP HL", 0, pop_hl },                     // 0xe1

@@ -1105,6 +1105,54 @@ void sub_a(void)
     sub(g_cpu.reg.a);
 }
 
+/* 0x98: Subtract B and carry flag from A. */
+void sbc_b(void)
+{
+    sub(g_cpu.reg.b + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
+/* 0x99: Subtract C and carry flag from A. */
+void sbc_c(void)
+{
+    sub(g_cpu.reg.c + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
+/* 0x9a: Subtract D and carry flag from A. */
+void sbc_d(void)
+{
+    sub(g_cpu.reg.d + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
+/* 0x9b: Subtract E and carry flag from A. */
+void sbc_e(void)
+{
+    sub(g_cpu.reg.e + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
+/* 0x9c: Subtract H and carry flag from A. */
+void sbc_h(void)
+{
+    sub(g_cpu.reg.h + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
+/* 0x9d: Subtract L and carry flag from A. */
+void sbc_l(void)
+{
+    sub(g_cpu.reg.l + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
+/* 0x9e: Subtract (HL) and carry flag from A. */
+void sbc_hlp(void)
+{
+    sub(mmu_read_byte(g_cpu.reg.hl) + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
+/* 0x9f: Subtract A and carry flag from A. */
+void sbc_a(void)
+{
+    sub(g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
@@ -1118,16 +1166,22 @@ void adc_n(uint8_t n)
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
-/* 0xea: Save A at given 16-bit address. */
-void ld_nnp_a(uint16_t addr)
-{
-    mmu_write_byte(addr, g_cpu.reg.a);
-}
-
 /* 0xd6: Subtract n from A. */
 void sub_n(uint8_t val)
 {
     sub(val);
+}
+
+/* 0xde: Subtract n and carry flag from A. */
+void sbc_n(uint8_t val)
+{
+    sub(val + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
+/* 0xea: Save A at given 16-bit address. */
+void ld_nnp_a(uint16_t addr)
+{
+    mmu_write_byte(addr, g_cpu.reg.a);
 }
 
 /* 0xfa: Copy value pointed by addr into A. */
