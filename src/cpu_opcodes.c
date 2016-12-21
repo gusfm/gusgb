@@ -1451,6 +1451,12 @@ void ret_nz(void)
     }
 }
 
+/* 0xc1: Pop two bytes off stack into register pair nn. */
+void pop_bc(void)
+{
+    g_cpu.reg.bc = pop();
+}
+
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
@@ -1492,6 +1498,12 @@ void ret_nc(void)
     }
 }
 
+/* 0xd1: Pop two bytes off stack into register pair nn. */
+void pop_de(void)
+{
+    g_cpu.reg.de = pop();
+}
+
 /* 0xd6: Subtract n from A. */
 void sub_n(uint8_t val)
 {
@@ -1515,6 +1527,12 @@ void sbc_n(uint8_t val)
     sub(val + (FLAG_IS_SET(FLAG_C) >> 4));
 }
 
+/* 0xe1: Pop two bytes off stack into register pair nn. */
+void pop_hl(void)
+{
+    g_cpu.reg.hl = pop();
+}
+
 /* 0xe6: Bitwise AND n against A. */
 void and_n(uint8_t val)
 {
@@ -1531,6 +1549,12 @@ void ld_nnp_a(uint16_t addr)
 void xor_n(uint8_t val)
 {
     xor(val);
+}
+
+/* 0xf1: Pop two bytes off stack into register pair nn. */
+void pop_af(void)
+{
+    g_cpu.reg.af = pop();
 }
 
 /* 0xf6: Bitwise OR n against A. */

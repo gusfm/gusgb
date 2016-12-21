@@ -208,7 +208,7 @@ const instruction_t g_instr[256] = {
     {"CP (HL)", NULL, 0, cp_hlp},         // 0xbe
     {"CP A", NULL, 0, cp_a},              // 0xbf
     {"RET NZ", NULL, 0, ret_nz},          // 0xc0
-    //    { "POP BC", NULL, 0, pop_bc },                     // 0xc1
+    {"POP BC", NULL, 0, pop_bc},          // 0xc1
     //    { "JP NZ, 0x", NULL, 2, jp_nz_nn },            // 0xc2
     //    { "JP 0x", NULL, 2, jp_nn },                   // 0xc3
     //    { "CALL NZ, 0x", NULL, 2, call_nz_nn },        // 0xc4
@@ -224,7 +224,7 @@ const instruction_t g_instr[256] = {
     {"ADC 0x", NULL, 1, adc_n},  // 0xce
     //    { "RST 0x08", NULL, 0, rst_08 },                   // 0xcf
     {"RET NC", NULL, 0, ret_nc},  // 0xd0
-    //    { "POP DE", NULL, 0, pop_de },                     // 0xd1
+    {"POP DE", NULL, 0, pop_de},  // 0xd1
     //    { "JP NC, 0x", NULL, 2, jp_nc_nn },            // 0xd2
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xd3
     //    { "CALL NC, 0x", NULL, 2, call_nc_nn },        // 0xd4
@@ -240,7 +240,7 @@ const instruction_t g_instr[256] = {
     {"SBC 0x", NULL, 1, sbc_n},  // 0xde
     //    { "RST 0x18", NULL, 0, rst_18 },                   // 0xdf
     //    { "LD (0xFF00 + 0x", "), A", 1, ld_ff_n_ap },// 0xe0
-    //    { "POP HL", NULL, 0, pop_hl },                     // 0xe1
+    {"POP HL", NULL, 0, pop_hl},  // 0xe1
     //    { "LD (0xFF00 + C), A", NULL, 0, ld_ff_c_a },      // 0xe2
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xe3
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xe4
@@ -256,7 +256,7 @@ const instruction_t g_instr[256] = {
     {"XOR 0x", NULL, 1, xor_n},  // 0xee
     //    { "RST 0x28", NULL, 0, rst_28 },                   // 0xef
     //    { "LD A, (0xFF00 + 0x", ")", 1, ld_ff_ap_n },// 0xf0
-    //    { "POP AF", NULL, 0, pop_af },                     // 0xf1
+    {"POP AF", NULL, 0, pop_af},  // 0xf1
     //    { "LD A, (0xFF00 + C)", NULL, 0, ld_a_ff_c },      // 0xf2
     //    { "DI", NULL, 0, di_inst },                        // 0xf3
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xf4
