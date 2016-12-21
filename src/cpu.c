@@ -183,14 +183,14 @@ const instruction_t g_instr[256] = {
     {"AND L", NULL, 0, and_l},            // 0xa5
     {"AND (HL)", NULL, 0, and_hlp},       // 0xa6
     {"AND A", NULL, 0, and_a},            // 0xa7
-    //    { "XOR B", NULL, 0, xor_b },                       // 0xa8
-    //    { "XOR C", NULL, 0, xor_c },                       // 0xa9
-    //    { "XOR D", NULL, 0, xor_d },                       // 0xaa
-    //    { "XOR E", NULL, 0, xor_e },                       // 0xab
-    //    { "XOR H", NULL, 0, xor_h },                       // 0xac
-    //    { "XOR L", NULL, 0, xor_l },                       // 0xad
-    //    { "XOR (HL)", NULL, 0, xor_hlp },                  // 0xae
-    //    { "XOR A", NULL, 0, xor_a },                       // 0xaf
+    {"XOR B", NULL, 0, xor_b},            // 0xa8
+    {"XOR C", NULL, 0, xor_c},            // 0xa9
+    {"XOR D", NULL, 0, xor_d},            // 0xaa
+    {"XOR E", NULL, 0, xor_e},            // 0xab
+    {"XOR H", NULL, 0, xor_h},            // 0xac
+    {"XOR L", NULL, 0, xor_l},            // 0xad
+    {"XOR (HL)", NULL, 0, xor_hlp},       // 0xae
+    {"XOR A", NULL, 0, xor_a},            // 0xaf
     //    { "OR B", NULL, 0, or_b },                         // 0xb0
     //    { "OR C", NULL, 0, or_c },                         // 0xb1
     //    { "OR D", NULL, 0, or_d },                         // 0xb2
@@ -253,7 +253,7 @@ const instruction_t g_instr[256] = {
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xeb
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xec
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xed
-    //    { "XOR 0x", NULL, 1, xor_n },                  // 0xee
+    {"XOR 0x", NULL, 1, xor_n},  // 0xee
     //    { "RST 0x28", NULL, 0, rst_28 },                   // 0xef
     //    { "LD A, (0xFF00 + 0x", ")", 1, ld_ff_ap_n },// 0xf0
     //    { "POP AF", NULL, 0, pop_af },                     // 0xf1

@@ -163,6 +163,25 @@ void and(uint8_t val)
     FLAG_SET(FLAG_H);
 }
 
+/**
+ * Logically XOR n with A, result in A.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Reset.
+ * C - Reset.
+ */
+void xor(uint8_t val)
+{
+    g_cpu.reg.a ^= val;
+    if (g_cpu.reg.a == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    FLAG_CLEAR(FLAG_N | FLAG_H | FLAG_C);
+}
+
 /*************** Opcodes implementaion. ***************/
 
 /* 0x00: No operation. */
@@ -1221,6 +1240,54 @@ void and_a(void)
     and(g_cpu.reg.a);
 }
 
+/* 0xa8: Logical XOR B against A. */
+void xor_b(void)
+{
+    xor(g_cpu.reg.b);
+}
+
+/* 0xa9: Logical XOR C against A. */
+void xor_c(void)
+{
+    xor(g_cpu.reg.c);
+}
+
+/* 0xaa: Logical XOR D against A. */
+void xor_d(void)
+{
+    xor(g_cpu.reg.d);
+}
+
+/* 0xab: Logical XOR E against A. */
+void xor_e(void)
+{
+    xor(g_cpu.reg.e);
+}
+
+/* 0xac: Logical XOR H against A. */
+void xor_h(void)
+{
+    xor(g_cpu.reg.h);
+}
+
+/* 0xad: Logical XOR L against A. */
+void xor_l(void)
+{
+    xor(g_cpu.reg.l);
+}
+
+/* 0xae: Logical XOR (HL) against A. */
+void xor_hlp(void)
+{
+    xor(mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0xaf: Logical XOR A against A. */
+void xor_a(void)
+{
+    xor(g_cpu.reg.a);
+}
+
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
@@ -1256,6 +1323,12 @@ void and_n(uint8_t val)
 void ld_nnp_a(uint16_t addr)
 {
     mmu_write_byte(addr, g_cpu.reg.a);
+}
+
+/* 0xee: Logical XOR n against A. */
+void xor_n(uint8_t val)
+{
+    xor(val);
 }
 
 /* 0xfa: Copy value pointed by addr into A. */
