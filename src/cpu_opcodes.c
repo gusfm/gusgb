@@ -143,6 +143,26 @@ void sub(uint8_t val)
     }
 }
 
+/**
+ * Logically AND n with A, result in A.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Set.
+ * C - Reset.
+ */
+void and(uint8_t val)
+{
+    g_cpu.reg.a &= val;
+    if (g_cpu.reg.a == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    FLAG_CLEAR(FLAG_N | FLAG_C);
+    FLAG_SET(FLAG_H);
+}
+
 /*************** Opcodes implementaion. ***************/
 
 /* 0x00: No operation. */
@@ -1153,6 +1173,54 @@ void sbc_a(void)
     sub(g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4));
 }
 
+/* 0xa0: Logical AND B against A. */
+void and_b(void)
+{
+    and(g_cpu.reg.b);
+}
+
+/* 0xa1: Logical AND C against A. */
+void and_c(void)
+{
+    and(g_cpu.reg.c);
+}
+
+/* 0xa2: Logical AND D against A. */
+void and_d(void)
+{
+    and(g_cpu.reg.d);
+}
+
+/* 0xa3: Logical AND E against A. */
+void and_e(void)
+{
+    and(g_cpu.reg.e);
+}
+
+/* 0xa4: Logical AND H against A. */
+void and_h(void)
+{
+    and(g_cpu.reg.h);
+}
+
+/* 0xa5: Logical AND L against A. */
+void and_l(void)
+{
+    and(g_cpu.reg.l);
+}
+
+/* 0xa6: Logical AND (HL) against A. */
+void and_hlp(void)
+{
+    and(mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0xa7: Logical AND A against A. */
+void and_a(void)
+{
+    and(g_cpu.reg.a);
+}
+
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
@@ -1176,6 +1244,12 @@ void sub_n(uint8_t val)
 void sbc_n(uint8_t val)
 {
     sub(val + (FLAG_IS_SET(FLAG_C) >> 4));
+}
+
+/* 0xe6: Logical AND n against A. */
+void and_n(uint8_t val)
+{
+    and(val);
 }
 
 /* 0xea: Save A at given 16-bit address. */

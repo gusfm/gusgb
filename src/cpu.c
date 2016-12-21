@@ -174,14 +174,14 @@ const instruction_t g_instr[256] = {
     {"SBC L", 0, sbc_l},                // 0x9d
     {"SBC (HL)", 0, sbc_hlp},           // 0x9e
     {"SBC A", 0, sbc_a},                // 0x9f
-    //    { "AND B", 0, and_b },                       // 0xa0
-    //    { "AND C", 0, and_c },                       // 0xa1
-    //    { "AND D", 0, and_d },                       // 0xa2
-    //    { "AND E", 0, and_e },                       // 0xa3
-    //    { "AND H", 0, and_h },                       // 0xa4
-    //    { "AND L", 0, and_l },                       // 0xa5
-    //    { "AND (HL)", 0, and_hlp },                  // 0xa6
-    //    { "AND A", 0, and_a },                       // 0xa7
+    {"AND B", 0, and_b},                // 0xa0
+    {"AND C", 0, and_c},                // 0xa1
+    {"AND D", 0, and_d},                // 0xa2
+    {"AND E", 0, and_e},                // 0xa3
+    {"AND H", 0, and_h},                // 0xa4
+    {"AND L", 0, and_l},                // 0xa5
+    {"AND (HL)", 0, and_hlp},           // 0xa6
+    {"AND A", 0, and_a},                // 0xa7
     //    { "XOR B", 0, xor_b },                       // 0xa8
     //    { "XOR C", 0, xor_c },                       // 0xa9
     //    { "XOR D", 0, xor_d },                       // 0xaa
@@ -244,7 +244,7 @@ const instruction_t g_instr[256] = {
     //    { "UNKNOWN", 0, undefined },                 // 0xe3
     //    { "UNKNOWN", 0, undefined },                 // 0xe4
     //    { "PUSH HL", 0, push_hl },                   // 0xe5
-    //    { "AND 0x%02X", 1, and_n },                  // 0xe6
+    {"AND 0x%02X", 1, and_n},  // 0xe6
     //    { "RST 0x20", 0, rst_20 },                   // 0xe7
     //    { "ADD SP,0x%02X", 1, add_sp_n },            // 0xe8
     //    { "JP HL", 0, jp_hl },                       // 0xe9
