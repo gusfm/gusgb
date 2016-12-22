@@ -209,23 +209,23 @@ const instruction_t g_instr[256] = {
     {"CP A", NULL, 0, cp_a},              // 0xbf
     {"RET NZ", NULL, 0, ret_nz},          // 0xc0
     {"POP BC", NULL, 0, pop_bc},          // 0xc1
-    //    { "JP NZ, 0x", NULL, 2, jp_nz_nn },            // 0xc2
-    //    { "JP 0x", NULL, 2, jp_nn },                   // 0xc3
+    {"JP NZ, 0x", NULL, 2, jp_nz_nn},     // 0xc2
+    {"JP 0x", NULL, 2, jp_nn},            // 0xc3
     //    { "CALL NZ, 0x", NULL, 2, call_nz_nn },        // 0xc4
     //    { "PUSH BC", NULL, 0, push_bc },                   // 0xc5
     {"ADD A, 0x", NULL, 1, add_a_n},  // 0xc6
     //    { "RST 0x00", NULL, 0, rst_0 },                    // 0xc7
-    {"RET Z", NULL, 0, ret_z},  // 0xc8
-    {"RET", NULL, 0, ret},      // 0xc9
-    //    { "JP Z, 0x", NULL, 2, jp_z_nn },              // 0xca
+    {"RET Z", NULL, 0, ret_z},       // 0xc8
+    {"RET", NULL, 0, ret},           // 0xc9
+    {"JP Z, 0x", NULL, 2, jp_z_nn},  // 0xca
     //    { "CB ", NULL, 1, cb_n },                      // 0xcb
     //    { "CALL Z, 0x", NULL, 2, call_z_nn },          // 0xcc
     //    { "CALL 0x", NULL, 2, call_nn },               // 0xcd
     {"ADC 0x", NULL, 1, adc_n},  // 0xce
     //    { "RST 0x08", NULL, 0, rst_08 },                   // 0xcf
-    {"RET NC", NULL, 0, ret_nc},  // 0xd0
-    {"POP DE", NULL, 0, pop_de},  // 0xd1
-    //    { "JP NC, 0x", NULL, 2, jp_nc_nn },            // 0xd2
+    {"RET NC", NULL, 0, ret_nc},       // 0xd0
+    {"POP DE", NULL, 0, pop_de},       // 0xd1
+    {"JP NC, 0x", NULL, 2, jp_nc_nn},  // 0xd2
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xd3
     //    { "CALL NC, 0x", NULL, 2, call_nc_nn },        // 0xd4
     //    { "PUSH DE", NULL, 0, push_de },                   // 0xd5
@@ -233,7 +233,7 @@ const instruction_t g_instr[256] = {
     //    { "RST 0x10", NULL, 0, rst_10 },                   // 0xd7
     {"RET C", NULL, 0, ret_c},  // 0xd8
     //    { "RETI", NULL, 0, returnFromInterrupt },          // 0xd9
-    //    { "JP C, 0x", NULL, 2, jp_c_nn },              // 0xda
+    {"JP C, 0x", NULL, 2, jp_c_nn},  // 0xda
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xdb
     //    { "CALL C, 0x", NULL, 2, call_c_nn },          // 0xdc
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xdd
@@ -248,7 +248,7 @@ const instruction_t g_instr[256] = {
     {"AND 0x", NULL, 1, and_n},  // 0xe6
     //    { "RST 0x20", NULL, 0, rst_20 },                   // 0xe7
     //    { "ADD SP,0x", NULL, 1, add_sp_n },            // 0xe8
-    //    { "JP HL", NULL, 0, jp_hl },                       // 0xe9
+    {"JP HL", NULL, 0, jp_hl},        // 0xe9
     {"LD (0x", "), A", 2, ld_nnp_a},  // 0xea
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xeb
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xec

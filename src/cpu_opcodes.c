@@ -1457,6 +1457,23 @@ void pop_bc(void)
     g_cpu.reg.bc = pop();
 }
 
+/* 0xc2: Jump to address. */
+void jp_nz_nn(uint16_t val)
+{
+    if (FLAG_IS_SET(FLAG_Z)) {
+        g_cpu.ticks += 12;
+    } else {
+        g_cpu.reg.pc = val;
+        g_cpu.ticks += 16;
+    }
+}
+
+/* 0xc3: Jump to address. */
+void jp_nn(uint16_t val)
+{
+    g_cpu.reg.pc = val;
+}
+
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
@@ -1478,6 +1495,17 @@ void ret_z(void)
 void ret(void)
 {
     g_cpu.reg.pc = pop();
+}
+
+/* 0xca: Jump to address. */
+void jp_z_nn(uint16_t val)
+{
+    if (FLAG_IS_SET(FLAG_Z)) {
+        g_cpu.reg.pc = val;
+        g_cpu.ticks += 16;
+    } else {
+        g_cpu.ticks += 12;
+    }
 }
 
 /* 0xce: Add immediate 8-bit value and carry flag to A. */
@@ -1504,6 +1532,17 @@ void pop_de(void)
     g_cpu.reg.de = pop();
 }
 
+/* 0xd2: Jump to address. */
+void jp_nc_nn(uint16_t val)
+{
+    if (FLAG_IS_SET(FLAG_C)) {
+        g_cpu.ticks += 12;
+    } else {
+        g_cpu.reg.pc = val;
+        g_cpu.ticks += 16;
+    }
+}
+
 /* 0xd6: Subtract n from A. */
 void sub_n(uint8_t val)
 {
@@ -1518,6 +1557,17 @@ void ret_c(void)
         g_cpu.ticks += 20;
     } else {
         g_cpu.ticks += 8;
+    }
+}
+
+/* 0xda: Jump to address. */
+void jp_c_nn(uint16_t val)
+{
+    if (FLAG_IS_SET(FLAG_C)) {
+        g_cpu.reg.pc = val;
+        g_cpu.ticks += 16;
+    } else {
+        g_cpu.ticks += 12;
     }
 }
 
@@ -1537,6 +1587,12 @@ void pop_hl(void)
 void and_n(uint8_t val)
 {
     and(val);
+}
+
+/* 0xe9: Jump to address. */
+void jp_hl(void)
+{
+    g_cpu.reg.pc = g_cpu.reg.hl;
 }
 
 /* 0xea: Save A at given 16-bit address. */
