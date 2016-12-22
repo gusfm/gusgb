@@ -230,6 +230,13 @@ void cp(uint8_t val)
     }
 }
 
+/* Push to stack. */
+void push()
+{
+    g_cpu.reg.sp -= 2;
+    mmu_write_word(g_cpu.reg.sp, g_cpu.reg.pc + 2);
+}
+
 /* Pop from stack. */
 uint16_t pop()
 {
@@ -1458,20 +1465,32 @@ void pop_bc(void)
 }
 
 /* 0xc2: Jump to address. */
-void jp_nz_nn(uint16_t val)
+void jp_nz_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.ticks += 12;
     } else {
-        g_cpu.reg.pc = val;
+        g_cpu.reg.pc = addr;
         g_cpu.ticks += 16;
     }
 }
 
 /* 0xc3: Jump to address. */
-void jp_nn(uint16_t val)
+void jp_nn(uint16_t addr)
 {
-    g_cpu.reg.pc = val;
+    g_cpu.reg.pc = addr;
+}
+
+/* 0xc4: Push PC to stack and Jump to address. */
+void call_nz_nn(uint16_t addr)
+{
+    if (FLAG_IS_SET(FLAG_Z)) {
+        g_cpu.ticks += 12;
+    } else {
+        push();
+        g_cpu.reg.pc = addr;
+        g_cpu.ticks += 24;
+    }
 }
 
 /* 0xc6: Add 8-bit immediate to A. */
@@ -1498,14 +1517,33 @@ void ret(void)
 }
 
 /* 0xca: Jump to address. */
-void jp_z_nn(uint16_t val)
+void jp_z_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.reg.pc = val;
+        g_cpu.reg.pc = addr;
         g_cpu.ticks += 16;
     } else {
         g_cpu.ticks += 12;
     }
+}
+
+/* 0xcc: Push PC to stack and Jump to address. */
+void call_z_nn(uint16_t addr)
+{
+    if (FLAG_IS_SET(FLAG_Z)) {
+        push();
+        g_cpu.reg.pc = addr;
+        g_cpu.ticks += 24;
+    } else {
+        g_cpu.ticks += 12;
+    }
+}
+
+/* 0xcd: Push PC to stack and Jump to address. */
+void call_nn(uint16_t addr)
+{
+    push();
+    g_cpu.reg.pc = addr;
 }
 
 /* 0xce: Add immediate 8-bit value and carry flag to A. */
@@ -1533,13 +1571,25 @@ void pop_de(void)
 }
 
 /* 0xd2: Jump to address. */
-void jp_nc_nn(uint16_t val)
+void jp_nc_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.ticks += 12;
     } else {
-        g_cpu.reg.pc = val;
+        g_cpu.reg.pc = addr;
         g_cpu.ticks += 16;
+    }
+}
+
+/* 0xd4: Push PC to stack and Jump to address. */
+void call_nc_nn(uint16_t addr)
+{
+    if (FLAG_IS_SET(FLAG_C)) {
+        g_cpu.ticks += 12;
+    } else {
+        push();
+        g_cpu.reg.pc = addr;
+        g_cpu.ticks += 24;
     }
 }
 
@@ -1561,11 +1611,23 @@ void ret_c(void)
 }
 
 /* 0xda: Jump to address. */
-void jp_c_nn(uint16_t val)
+void jp_c_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        g_cpu.reg.pc = val;
+        g_cpu.reg.pc = addr;
         g_cpu.ticks += 16;
+    } else {
+        g_cpu.ticks += 12;
+    }
+}
+
+/* 0xdc: Push PC to stack and Jump to address. */
+void call_c_nn(uint16_t addr)
+{
+    if (FLAG_IS_SET(FLAG_C)) {
+        push();
+        g_cpu.reg.pc = addr;
+        g_cpu.ticks += 24;
     } else {
         g_cpu.ticks += 12;
     }
