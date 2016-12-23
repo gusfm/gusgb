@@ -1515,6 +1515,13 @@ void add_a_n(uint8_t val)
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
+/* 0xc7: Call routine at address 0x0000. */
+void rst_00(void)
+{
+    push(g_cpu.reg.pc);
+    g_cpu.reg.pc = 0x0000;
+}
+
 /* 0xc8: Return if Z flag is set. */
 void ret_z(void)
 {
@@ -1569,6 +1576,13 @@ void adc_n(uint8_t n)
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
+/* 0xcf: Call routine at address 0x0008. */
+void rst_08(void)
+{
+    push(g_cpu.reg.pc);
+    g_cpu.reg.pc = 0x0008;
+}
+
 /* 0xd0: Return if C flag is not set. */
 void ret_nc(void)
 {
@@ -1621,6 +1635,13 @@ void sub_n(uint8_t val)
     sub(val);
 }
 
+/* 0xd7: Call routine at address 0x0010. */
+void rst_10(void)
+{
+    push(g_cpu.reg.pc);
+    g_cpu.reg.pc = 0x0010;
+}
+
 /* 0xd8: Return if C flag is set. */
 void ret_c(void)
 {
@@ -1661,6 +1682,13 @@ void sbc_n(uint8_t val)
     sub(val + (FLAG_IS_SET(FLAG_C) >> 4));
 }
 
+/* 0xdf: Call routine at address 0x0018. */
+void rst_18(void)
+{
+    push(g_cpu.reg.pc);
+    g_cpu.reg.pc = 0x0018;
+}
+
 /* 0xe1: Pop two bytes off stack into register pair nn. */
 void pop_hl(void)
 {
@@ -1677,6 +1705,13 @@ void push_hl(void)
 void and_n(uint8_t val)
 {
     and(val);
+}
+
+/* 0xe7: Call routine at address 0x0020. */
+void rst_20(void)
+{
+    push(g_cpu.reg.pc);
+    g_cpu.reg.pc = 0x0020;
 }
 
 /* 0xe9: Jump to address. */
@@ -1697,6 +1732,13 @@ void xor_n(uint8_t val)
     xor(val);
 }
 
+/* 0xef: Call routine at address 0x0028. */
+void rst_28(void)
+{
+    push(g_cpu.reg.pc);
+    g_cpu.reg.pc = 0x0028;
+}
+
 /* 0xf1: Pop two bytes off stack into register pair nn. */
 void pop_af(void)
 {
@@ -1715,6 +1757,13 @@ void or_n(uint8_t val)
     or(val);
 }
 
+/* 0xf7: Call routine at address 0x0030. */
+void rst_30(void)
+{
+    push(g_cpu.reg.pc);
+    g_cpu.reg.pc = 0x0030;
+}
+
 /* 0xfa: Copy value pointed by addr into A. */
 void ld_a_nnp(uint16_t addr)
 {
@@ -1725,4 +1774,11 @@ void ld_a_nnp(uint16_t addr)
 void cp_n(uint8_t val)
 {
     cp(val);
+}
+
+/* 0xff: Call routine at address 0x0038. */
+void rst_38(void)
+{
+    push(g_cpu.reg.pc);
+    g_cpu.reg.pc = 0x0038;
 }
