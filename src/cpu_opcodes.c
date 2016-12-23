@@ -1704,6 +1704,13 @@ void rst_18(void)
     g_cpu.reg.pc = 0x0018;
 }
 
+/* 0xe0: Put A into memory address $FF00+n. */
+void ldh_n_a(uint8_t val)
+{
+    uint16_t addr = 0xff00 + val;
+    mmu_write_byte(addr, g_cpu.reg.a);
+}
+
 /* 0xe1: Pop two bytes off stack into register pair nn. */
 void pop_hl(void)
 {
@@ -1752,6 +1759,13 @@ void rst_28(void)
 {
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x0028;
+}
+
+/* 0xf0: Put memory address $FF00+n into A. */
+void ldh_a_n(uint8_t val)
+{
+    uint16_t addr = 0xff00 + val;
+    g_cpu.reg.a = mmu_read_byte(addr);
 }
 
 /* 0xf1: Pop two bytes off stack into register pair nn. */
