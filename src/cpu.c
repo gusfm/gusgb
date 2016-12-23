@@ -247,7 +247,7 @@ const instruction_t g_instr[256] = {
     {"PUSH HL", NULL, 0, push_hl},             // 0xe5
     {"AND 0x", NULL, 1, and_n},                // 0xe6
     {"RST 0x20", NULL, 0, rst_20},             // 0xe7
-    //    { "ADD SP,0x", NULL, 1, add_sp_n },            // 0xe8
+    {"ADD SP,0x", NULL, 1, add_sp_n},          // 0xe8
     {"JP HL", NULL, 0, jp_hl},                 // 0xe9
     {"LD (0x", "), A", 2, ld_nnp_a},           // 0xea
     {"UNKNOWN", NULL, 0, undefined},           // 0xeb

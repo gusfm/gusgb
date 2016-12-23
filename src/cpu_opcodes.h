@@ -223,6 +223,7 @@ void ld_cp_a(void);
 void push_hl(void);
 void and_n(uint8_t val);
 void rst_20(void);
+void add_sp_n(uint8_t val);
 void jp_hl(void);
 void ld_nnp_a(uint16_t addr);
 void xor_n(uint8_t val);

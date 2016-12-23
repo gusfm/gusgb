@@ -1743,6 +1743,24 @@ void rst_20(void)
     g_cpu.reg.pc = 0x0020;
 }
 
+/* 0xe8: Add n to Stack Pointer (SP). */
+void add_sp_n(uint8_t val)
+{
+    int result = g_cpu.reg.sp + val;
+    if (result & 0xffff0000) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    g_cpu.reg.sp += result & 0xffff;
+    if (((g_cpu.reg.sp & 0x0f) + (val & 0x0f)) > 0x0f) {
+        FLAG_SET(FLAG_H);
+    } else {
+        FLAG_CLEAR(FLAG_H);
+    }
+    FLAG_CLEAR(FLAG_Z | FLAG_N);
+}
+
 /* 0xe9: Jump to address. */
 void jp_hl(void)
 {
