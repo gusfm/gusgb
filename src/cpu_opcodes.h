@@ -235,6 +235,8 @@ void di(void);
 void push_af(void);
 void or_n(uint8_t val);
 void rst_30(void);
+void ldhl_sp_n(uint8_t val);
+void ld_sp_hl(void);
 void ld_a_nnp(uint16_t addr);
 void ei(void);
 void cp_n(uint8_t val);

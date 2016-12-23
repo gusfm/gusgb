@@ -1833,6 +1833,30 @@ void rst_30(void)
     g_cpu.reg.pc = 0x0030;
 }
 
+/* 0xf8: Put SP + n effective address into HL. */
+void ldhl_sp_n(uint8_t val)
+{
+    int result = g_cpu.reg.sp + (int8_t)val;
+    if (result & 0xffff0000) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    if (((g_cpu.reg.sp & 0x0f) + (val & 0x0f)) > 0x0f) {
+        FLAG_SET(FLAG_H);
+    } else {
+        FLAG_CLEAR(FLAG_H);
+    }
+    FLAG_CLEAR(FLAG_Z | FLAG_N);
+    g_cpu.reg.hl = (uint16_t)(result & 0xffff);
+}
+
+/* 0xf9: Put HL into Stack Pointer (SP). */
+void ld_sp_hl(void)
+{
+    g_cpu.reg.sp = g_cpu.reg.hl;
+}
+
 /* 0xfa: Copy value pointed by addr into A. */
 void ld_a_nnp(uint16_t addr)
 {

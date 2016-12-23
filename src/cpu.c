@@ -263,14 +263,14 @@ const instruction_t g_instr[256] = {
     {"PUSH AF", NULL, 0, push_af},             // 0xf5
     {"OR 0x", NULL, 1, or_n},                  // 0xf6
     {"RST 0x30", NULL, 0, rst_30},             // 0xf7
-    //    { "LD HL, SP+0x", NULL, 1, ld_hl_sp_n },       // 0xf8
-    //    { "LD SP, HL", NULL, 0, ld_sp_hl },                // 0xf9
-    {"LD A, (0x", ")", 2, ld_a_nnp},  // 0xfa
-    {"EI", NULL, 0, ei},              // 0xfb
-    {"UNKNOWN", NULL, 0, undefined},  // 0xfc
-    {"UNKNOWN", NULL, 0, undefined},  // 0xfd
-    {"CP 0x", NULL, 1, cp_n},         // 0xfe
-    {"RST 0x38", NULL, 0, rst_38},    // 0xff
+    {"LDHL, SP+0x", NULL, 1, ldhl_sp_n},       // 0xf8
+    {"LD SP, HL", NULL, 0, ld_sp_hl},          // 0xf9
+    {"LD A, (0x", ")", 2, ld_a_nnp},           // 0xfa
+    {"EI", NULL, 0, ei},                       // 0xfb
+    {"UNKNOWN", NULL, 0, undefined},           // 0xfc
+    {"UNKNOWN", NULL, 0, undefined},           // 0xfd
+    {"CP 0x", NULL, 1, cp_n},                  // 0xfe
+    {"RST 0x38", NULL, 0, rst_38},             // 0xff
 };
 
 const unsigned char instruction_ticks[256] = {
