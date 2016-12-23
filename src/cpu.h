@@ -34,6 +34,8 @@
  */
 #define FLAG_C (1 << 4)
 
+#define FLAG_ANY (FLAG_C | FLAG_H | FLAG_N | FLAG_Z)
+
 #define FLAG_IS_SET(flag) (g_cpu.reg.f & flag)
 #define FLAG_SET(x) (g_cpu.reg.f |= (x))
 #define FLAG_CLEAR(x) (g_cpu.reg.f &= ~(x))

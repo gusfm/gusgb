@@ -252,7 +252,7 @@ void undefined()
 {
     g_cpu.reg.pc--;
     uint8_t opcode = mmu_read_byte(g_cpu.reg.pc);
-    fprintf(stderr, "ERROR: undefined instruction %hhu!\n", opcode);
+    printf("ERROR: undefined instruction %hhu!\n", opcode);
     exit(EXIT_FAILURE);
 }
 
@@ -373,7 +373,7 @@ void rrca(void)
  * button is pressed. */
 void stop(void)
 {
-    fprintf(stderr, "Received STOP command!\n");
+    printf("Received STOP command!\n");
 }
 
 /* 0x11: Load 16-bit immediate into DE. */
@@ -1014,7 +1014,7 @@ void ld_hlp_l(void)
 /* 0x76: Power down CPU until an interrupt occurs. */
 void halt(void)
 {
-    fprintf(stderr, "HALT is not implemented.\n");
+    printf("HALT is not implemented.\n");
 }
 
 /* 0x77: Save A to address pointed by HL. */
@@ -1555,7 +1555,7 @@ void jp_z_nn(uint16_t addr)
 void cb_n(uint8_t val)
 {
     /* TODO */
-    fprintf(stderr, "ERROR: extended operations not implemented!\n");
+    printf("ERROR: extended operations not implemented!\n");
 }
 
 /* 0xcc: Push PC to stack and Jump to address. */

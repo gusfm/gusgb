@@ -125,13 +125,17 @@ uint8_t mmu_read_byte(uint16_t addr)
 
 uint16_t mmu_read_word(uint16_t addr)
 {
-    return mmu_read_byte(addr + 1) << 8 | mmu_read_byte(addr);
+    uint16_t ret = mmu_read_byte(addr + 1) << 8 | mmu_read_byte(addr);
+    printf("MMU: read word: 0x%04x: 0x%04x\n", addr, ret);
+    return ret;
 }
 
 void mmu_write_byte(uint16_t addr, uint8_t value)
 {
+    PRINTD("MMU: write byte: addr=0x%04x: value=0x%02x\n", addr, value);
 }
 
 void mmu_write_word(uint16_t addr, uint16_t value)
 {
+    PRINTD("MMU: write byte: addr=0x%04x: value=0x%04x\n", addr, value);
 }
