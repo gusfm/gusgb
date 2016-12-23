@@ -218,7 +218,7 @@ const instruction_t g_instr[256] = {
     {"RET Z", NULL, 0, ret_z},             // 0xc8
     {"RET", NULL, 0, ret},                 // 0xc9
     {"JP Z, 0x", NULL, 2, jp_z_nn},        // 0xca
-    //    { "CB ", NULL, 1, cb_n },                      // 0xcb
+    {"CB ", NULL, 1, cb_n},                // 0xcb
     {"CALL Z, 0x", NULL, 2, call_z_nn},    // 0xcc
     {"CALL 0x", NULL, 2, call_nn},         // 0xcd
     {"ADC 0x", NULL, 1, adc_n},            // 0xce

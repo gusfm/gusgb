@@ -1550,6 +1550,13 @@ void jp_z_nn(uint16_t addr)
     }
 }
 
+/* 0xcb: Extended operations. */
+void cb_n(uint8_t val)
+{
+    /* TODO */
+    fprintf(stderr, "ERROR: extended operations not implemented!\n");
+}
+
 /* 0xcc: Push PC to stack and Jump to address. */
 void call_z_nn(uint16_t addr)
 {
