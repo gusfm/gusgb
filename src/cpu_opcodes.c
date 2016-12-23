@@ -1493,6 +1493,12 @@ void call_nz_nn(uint16_t addr)
     }
 }
 
+/* 0xc5: Push BC to stack. */
+void push_bc(void)
+{
+    push(g_cpu.reg.bc);
+}
+
 /* 0xc6: Add 8-bit immediate to A. */
 void add_a_n(uint8_t val)
 {
@@ -1593,6 +1599,12 @@ void call_nc_nn(uint16_t addr)
     }
 }
 
+/* 0xd5: Push DE to stack. */
+void push_de(void)
+{
+    push(g_cpu.reg.de);
+}
+
 /* 0xd6: Subtract n from A. */
 void sub_n(uint8_t val)
 {
@@ -1645,6 +1657,12 @@ void pop_hl(void)
     g_cpu.reg.hl = pop();
 }
 
+/* 0xe5: Push HL to stack. */
+void push_hl(void)
+{
+    push(g_cpu.reg.hl);
+}
+
 /* 0xe6: Bitwise AND n against A. */
 void and_n(uint8_t val)
 {
@@ -1673,6 +1691,12 @@ void xor_n(uint8_t val)
 void pop_af(void)
 {
     g_cpu.reg.af = pop();
+}
+
+/* 0xf5: Push AF to stack. */
+void push_af(void)
+{
+    push(g_cpu.reg.af);
 }
 
 /* 0xf6: Bitwise OR n against A. */

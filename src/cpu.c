@@ -212,8 +212,8 @@ const instruction_t g_instr[256] = {
     {"JP NZ, 0x", NULL, 2, jp_nz_nn},      // 0xc2
     {"JP 0x", NULL, 2, jp_nn},             // 0xc3
     {"CALL NZ, 0x", NULL, 2, call_nz_nn},  // 0xc4
-    //    { "PUSH BC", NULL, 0, push_bc },                   // 0xc5
-    {"ADD A, 0x", NULL, 1, add_a_n},  // 0xc6
+    {"PUSH BC", NULL, 0, push_bc},         // 0xc5
+    {"ADD A, 0x", NULL, 1, add_a_n},       // 0xc6
     //    { "RST 0x00", NULL, 0, rst_0 },                    // 0xc7
     {"RET Z", NULL, 0, ret_z},       // 0xc8
     {"RET", NULL, 0, ret},           // 0xc9
@@ -228,8 +228,8 @@ const instruction_t g_instr[256] = {
     {"JP NC, 0x", NULL, 2, jp_nc_nn},  // 0xd2
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xd3
     {"CALL NC, 0x", NULL, 2, call_nc_nn},  // 0xd4
-    //    { "PUSH DE", NULL, 0, push_de },                   // 0xd5
-    {"SUB 0x", NULL, 1, sub_n},  // 0xd6
+    {"PUSH DE", NULL, 0, push_de},         // 0xd5
+    {"SUB 0x", NULL, 1, sub_n},            // 0xd6
     //    { "RST 0x10", NULL, 0, rst_10 },                   // 0xd7
     {"RET C", NULL, 0, ret_c},  // 0xd8
     //    { "RETI", NULL, 0, returnFromInterrupt },          // 0xd9
@@ -244,8 +244,8 @@ const instruction_t g_instr[256] = {
     //    { "LD (0xFF00 + C), A", NULL, 0, ld_ff_c_a },      // 0xe2
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xe3
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xe4
-    //    { "PUSH HL", NULL, 0, push_hl },                   // 0xe5
-    {"AND 0x", NULL, 1, and_n},  // 0xe6
+    {"PUSH HL", NULL, 0, push_hl},  // 0xe5
+    {"AND 0x", NULL, 1, and_n},     // 0xe6
     //    { "RST 0x20", NULL, 0, rst_20 },                   // 0xe7
     //    { "ADD SP,0x", NULL, 1, add_sp_n },            // 0xe8
     {"JP HL", NULL, 0, jp_hl},        // 0xe9
@@ -260,8 +260,8 @@ const instruction_t g_instr[256] = {
     //    { "LD A, (0xFF00 + C)", NULL, 0, ld_a_ff_c },      // 0xf2
     //    { "DI", NULL, 0, di_inst },                        // 0xf3
     //    { "UNKNOWN", NULL, 0, undefined },                 // 0xf4
-    //    { "PUSH AF", NULL, 0, push_af },                   // 0xf5
-    {"OR 0x", NULL, 1, or_n},  // 0xf6
+    {"PUSH AF", NULL, 0, push_af},  // 0xf5
+    {"OR 0x", NULL, 1, or_n},       // 0xf6
     //    { "RST 0x30", NULL, 0, rst_30 },                   // 0xf7
     //    { "LD HL, SP+0x", NULL, 1, ld_hl_sp_n },       // 0xf8
     //    { "LD SP, HL", NULL, 0, ld_sp_hl },                // 0xf9
