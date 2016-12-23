@@ -241,12 +241,12 @@ const instruction_t g_instr[256] = {
     {"RST 0x18", NULL, 0, rst_18},             // 0xdf
     {"LDH (0xFF00 + 0x", "), A", 1, ldh_n_a},  // 0xe0
     {"POP HL", NULL, 0, pop_hl},               // 0xe1
-    //    { "LD (0xFF00 + C), A", NULL, 0, ld_ff_c_a },      // 0xe2
-    {"UNKNOWN", NULL, 0, undefined},  // 0xe3
-    {"UNKNOWN", NULL, 0, undefined},  // 0xe4
-    {"PUSH HL", NULL, 0, push_hl},    // 0xe5
-    {"AND 0x", NULL, 1, and_n},       // 0xe6
-    {"RST 0x20", NULL, 0, rst_20},    // 0xe7
+    {"LD (0xFF00 + C), A", NULL, 0, ld_cp_a},  // 0xe2
+    {"UNKNOWN", NULL, 0, undefined},           // 0xe3
+    {"UNKNOWN", NULL, 0, undefined},           // 0xe4
+    {"PUSH HL", NULL, 0, push_hl},             // 0xe5
+    {"AND 0x", NULL, 1, and_n},                // 0xe6
+    {"RST 0x20", NULL, 0, rst_20},             // 0xe7
     //    { "ADD SP,0x", NULL, 1, add_sp_n },            // 0xe8
     {"JP HL", NULL, 0, jp_hl},                 // 0xe9
     {"LD (0x", "), A", 2, ld_nnp_a},           // 0xea
@@ -257,7 +257,7 @@ const instruction_t g_instr[256] = {
     {"RST 0x28", NULL, 0, rst_28},             // 0xef
     {"LDH A, (0xFF00 + 0x", ")", 1, ldh_a_n},  // 0xf0
     {"POP AF", NULL, 0, pop_af},               // 0xf1
-    //    { "LD A, (0xFF00 + C)", NULL, 0, ld_a_ff_c },      // 0xf2
+    {"LD A, (0xFF00 + C)", NULL, 0, ld_a_cp},  // 0xf2
     //    { "DI", NULL, 0, di_inst },                        // 0xf3
     {"UNKNOWN", NULL, 0, undefined},  // 0xf4
     {"PUSH AF", NULL, 0, push_af},    // 0xf5

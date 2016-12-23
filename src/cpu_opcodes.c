@@ -1717,6 +1717,13 @@ void pop_hl(void)
     g_cpu.reg.hl = pop();
 }
 
+/* 0xe2: Put A into address $FF00 + register C. */
+void ld_cp_a(void)
+{
+    uint16_t addr = 0xff00 + g_cpu.reg.c;
+    mmu_write_byte(addr, g_cpu.reg.a);
+}
+
 /* 0xe5: Push HL to stack. */
 void push_hl(void)
 {
@@ -1772,6 +1779,13 @@ void ldh_a_n(uint8_t val)
 void pop_af(void)
 {
     g_cpu.reg.af = pop();
+}
+
+/* 0xf2: Put value at address $FF00 + register C into A. */
+void ld_a_cp(void)
+{
+    uint16_t addr = 0xff00 + g_cpu.reg.c;
+    g_cpu.reg.a = mmu_read_byte(addr);
 }
 
 /* 0xf5: Push AF to stack. */
