@@ -11,8 +11,8 @@
 #define INTERRUPTS_JOYPAD (1 << 4)
 
 typedef struct {
+    bool master;
     bool enable;
-    uint8_t master;
     uint8_t flags;
 } interrupt_t;
 
@@ -20,6 +20,9 @@ void interrupt_init(void);
 
 uint8_t interrupt_get_enable(void);
 void interrupt_set_enable(bool value);
+
+uint8_t interrupt_get_master(void);
+void interrupt_set_master(bool value);
 
 uint8_t interrupt_flag_read(void);
 void interrupt_flag_write(uint8_t value);

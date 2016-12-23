@@ -1665,7 +1665,7 @@ void ret_c(void)
 void reti(void)
 {
     g_cpu.reg.pc = pop();
-    interrupt_set_enable(true);
+    interrupt_set_master(true);
 }
 
 /* 0xda: Jump to address. */
@@ -1806,6 +1806,14 @@ void ld_a_cp(void)
     g_cpu.reg.a = mmu_read_byte(addr);
 }
 
+/* 0xf3: This instruction disables interrupts after the next instruction is
+ * executed.
+ */
+void di(void)
+{
+    interrupt_set_master(false);
+}
+
 /* 0xf5: Push AF to stack. */
 void push_af(void)
 {
@@ -1829,6 +1837,14 @@ void rst_30(void)
 void ld_a_nnp(uint16_t addr)
 {
     g_cpu.reg.a = mmu_read_byte(addr);
+}
+
+/* 0xfb: This instruction enables interrupts after the next instruction is
+ * executed.
+ */
+void ei(void)
+{
+    interrupt_set_master(true);
 }
 
 /* 0xfe: Compare A with n. */

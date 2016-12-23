@@ -258,15 +258,15 @@ const instruction_t g_instr[256] = {
     {"LDH A, (0xFF00 + 0x", ")", 1, ldh_a_n},  // 0xf0
     {"POP AF", NULL, 0, pop_af},               // 0xf1
     {"LD A, (0xFF00 + C)", NULL, 0, ld_a_cp},  // 0xf2
-    //    { "DI", NULL, 0, di_inst },                        // 0xf3
-    {"UNKNOWN", NULL, 0, undefined},  // 0xf4
-    {"PUSH AF", NULL, 0, push_af},    // 0xf5
-    {"OR 0x", NULL, 1, or_n},         // 0xf6
-    {"RST 0x30", NULL, 0, rst_30},    // 0xf7
+    {"DI", NULL, 0, di},                       // 0xf3
+    {"UNKNOWN", NULL, 0, undefined},           // 0xf4
+    {"PUSH AF", NULL, 0, push_af},             // 0xf5
+    {"OR 0x", NULL, 1, or_n},                  // 0xf6
+    {"RST 0x30", NULL, 0, rst_30},             // 0xf7
     //    { "LD HL, SP+0x", NULL, 1, ld_hl_sp_n },       // 0xf8
     //    { "LD SP, HL", NULL, 0, ld_sp_hl },                // 0xf9
     {"LD A, (0x", ")", 2, ld_a_nnp},  // 0xfa
-    //    { "EI", NULL, 0, ei },                             // 0xfb
+    {"EI", NULL, 0, ei},              // 0xfb
     {"UNKNOWN", NULL, 0, undefined},  // 0xfc
     {"UNKNOWN", NULL, 0, undefined},  // 0xfd
     {"CP 0x", NULL, 1, cp_n},         // 0xfe
