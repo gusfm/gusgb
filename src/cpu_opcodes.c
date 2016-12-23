@@ -1,5 +1,6 @@
 #include "cpu_opcodes.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include "mmu.h"
 
 extern cpu_t g_cpu;
@@ -243,6 +244,15 @@ uint16_t pop()
     uint16_t val = mmu_read_word(g_cpu.reg.sp);
     g_cpu.reg.sp += 2;
     return val;
+}
+
+/* Function for undefined instructions. */
+void undefined()
+{
+    g_cpu.reg.pc--;
+    uint8_t opcode = mmu_read_byte(g_cpu.reg.pc);
+    fprintf(stderr, "ERROR: undefined instruction %hhu!\n", opcode);
+    exit(EXIT_FAILURE);
 }
 
 /*************** Opcodes implementaion. ***************/

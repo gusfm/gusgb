@@ -222,5 +222,6 @@ void push_af(void);
 void or_n(uint8_t val);
 void ld_a_nnp(uint16_t addr);
 void cp_n(uint8_t val);
+void undefined();
 
 #endif /* __CPU_OPCODES_H__ */

@@ -223,53 +223,53 @@ const instruction_t g_instr[256] = {
     {"CALL 0x", NULL, 2, call_nn},       // 0xcd
     {"ADC 0x", NULL, 1, adc_n},          // 0xce
     //    { "RST 0x08", NULL, 0, rst_08 },                   // 0xcf
-    {"RET NC", NULL, 0, ret_nc},       // 0xd0
-    {"POP DE", NULL, 0, pop_de},       // 0xd1
-    {"JP NC, 0x", NULL, 2, jp_nc_nn},  // 0xd2
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xd3
+    {"RET NC", NULL, 0, ret_nc},           // 0xd0
+    {"POP DE", NULL, 0, pop_de},           // 0xd1
+    {"JP NC, 0x", NULL, 2, jp_nc_nn},      // 0xd2
+    {"UNKNOWN", NULL, 0, undefined},       // 0xd3
     {"CALL NC, 0x", NULL, 2, call_nc_nn},  // 0xd4
     {"PUSH DE", NULL, 0, push_de},         // 0xd5
     {"SUB 0x", NULL, 1, sub_n},            // 0xd6
     //    { "RST 0x10", NULL, 0, rst_10 },                   // 0xd7
     {"RET C", NULL, 0, ret_c},  // 0xd8
     //    { "RETI", NULL, 0, returnFromInterrupt },          // 0xd9
-    {"JP C, 0x", NULL, 2, jp_c_nn},  // 0xda
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xdb
+    {"JP C, 0x", NULL, 2, jp_c_nn},      // 0xda
+    {"UNKNOWN", NULL, 0, undefined},     // 0xdb
     {"CALL C, 0x", NULL, 2, call_c_nn},  // 0xdc
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xdd
-    {"SBC 0x", NULL, 1, sbc_n},  // 0xde
+    {"UNKNOWN", NULL, 0, undefined},     // 0xdd
+    {"SBC 0x", NULL, 1, sbc_n},          // 0xde
     //    { "RST 0x18", NULL, 0, rst_18 },                   // 0xdf
     //    { "LD (0xFF00 + 0x", "), A", 1, ld_ff_n_ap },// 0xe0
     {"POP HL", NULL, 0, pop_hl},  // 0xe1
     //    { "LD (0xFF00 + C), A", NULL, 0, ld_ff_c_a },      // 0xe2
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xe3
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xe4
-    {"PUSH HL", NULL, 0, push_hl},  // 0xe5
-    {"AND 0x", NULL, 1, and_n},     // 0xe6
+    {"UNKNOWN", NULL, 0, undefined},  // 0xe3
+    {"UNKNOWN", NULL, 0, undefined},  // 0xe4
+    {"PUSH HL", NULL, 0, push_hl},    // 0xe5
+    {"AND 0x", NULL, 1, and_n},       // 0xe6
     //    { "RST 0x20", NULL, 0, rst_20 },                   // 0xe7
     //    { "ADD SP,0x", NULL, 1, add_sp_n },            // 0xe8
     {"JP HL", NULL, 0, jp_hl},        // 0xe9
     {"LD (0x", "), A", 2, ld_nnp_a},  // 0xea
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xeb
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xec
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xed
-    {"XOR 0x", NULL, 1, xor_n},  // 0xee
+    {"UNKNOWN", NULL, 0, undefined},  // 0xeb
+    {"UNKNOWN", NULL, 0, undefined},  // 0xec
+    {"UNKNOWN", NULL, 0, undefined},  // 0xed
+    {"XOR 0x", NULL, 1, xor_n},       // 0xee
     //    { "RST 0x28", NULL, 0, rst_28 },                   // 0xef
     //    { "LD A, (0xFF00 + 0x", ")", 1, ld_ff_ap_n },// 0xf0
     {"POP AF", NULL, 0, pop_af},  // 0xf1
     //    { "LD A, (0xFF00 + C)", NULL, 0, ld_a_ff_c },      // 0xf2
     //    { "DI", NULL, 0, di_inst },                        // 0xf3
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xf4
-    {"PUSH AF", NULL, 0, push_af},  // 0xf5
-    {"OR 0x", NULL, 1, or_n},       // 0xf6
+    {"UNKNOWN", NULL, 0, undefined},  // 0xf4
+    {"PUSH AF", NULL, 0, push_af},    // 0xf5
+    {"OR 0x", NULL, 1, or_n},         // 0xf6
     //    { "RST 0x30", NULL, 0, rst_30 },                   // 0xf7
     //    { "LD HL, SP+0x", NULL, 1, ld_hl_sp_n },       // 0xf8
     //    { "LD SP, HL", NULL, 0, ld_sp_hl },                // 0xf9
     {"LD A, (0x", ")", 2, ld_a_nnp},  // 0xfa
     //    { "EI", NULL, 0, ei },                             // 0xfb
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xfc
-    //    { "UNKNOWN", NULL, 0, undefined },                 // 0xfd
-    {"CP 0x", NULL, 1, cp_n},  // 0xfe
+    {"UNKNOWN", NULL, 0, undefined},  // 0xfc
+    {"UNKNOWN", NULL, 0, undefined},  // 0xfd
+    {"CP 0x", NULL, 1, cp_n},         // 0xfe
     //    { "RST 0x38", NULL, 0, rst_38 },                   // 0xff
 };
 
