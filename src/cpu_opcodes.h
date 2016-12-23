@@ -212,6 +212,7 @@ void push_de(void);
 void sub_n(uint8_t val);
 void rst_10(void);
 void ret_c(void);
+void reti(void);
 void jp_c_nn(uint16_t val);
 void call_c_nn(uint16_t addr);
 void sbc_n(uint8_t val);

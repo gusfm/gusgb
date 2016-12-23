@@ -140,7 +140,7 @@ uint8_t mmu_read_byte(uint16_t addr)
                         return g_mmu.hram[addr - 0xff80];
                     } else {
                         /* Interrupt Enable Register. */
-                        return interrupt_enable_read();
+                        return interrupt_get_enable();
                     }
             }
     }

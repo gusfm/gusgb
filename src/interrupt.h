@@ -1,6 +1,7 @@
 #ifndef __INTERRUPT_H__
 #define __INTERRUPT_H__
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #define INTERRUPTS_VBLANK (1 << 0)
@@ -10,19 +11,17 @@
 #define INTERRUPTS_JOYPAD (1 << 4)
 
 typedef struct {
+    bool enable;
     uint8_t master;
-    uint8_t enable;
     uint8_t flags;
 } interrupt_t;
 
 void interrupt_init(void);
 
-uint8_t interrupt_enable_read(void);
-
-void interrupt_enable_write(uint8_t value);
+uint8_t interrupt_get_enable(void);
+void interrupt_set_enable(bool value);
 
 uint8_t interrupt_flag_read(void);
-
 void interrupt_flag_write(uint8_t value);
 
 #endif /* __INTERRUPT_H__ */

@@ -232,13 +232,13 @@ const instruction_t g_instr[256] = {
     {"SUB 0x", NULL, 1, sub_n},            // 0xd6
     {"RST 0x10", NULL, 0, rst_10},         // 0xd7
     {"RET C", NULL, 0, ret_c},             // 0xd8
-    //    { "RETI", NULL, 0, returnFromInterrupt },          // 0xd9
-    {"JP C, 0x", NULL, 2, jp_c_nn},      // 0xda
-    {"UNKNOWN", NULL, 0, undefined},     // 0xdb
-    {"CALL C, 0x", NULL, 2, call_c_nn},  // 0xdc
-    {"UNKNOWN", NULL, 0, undefined},     // 0xdd
-    {"SBC 0x", NULL, 1, sbc_n},          // 0xde
-    {"RST 0x18", NULL, 0, rst_18},       // 0xdf
+    {"RETI", NULL, 0, reti},               // 0xd9
+    {"JP C, 0x", NULL, 2, jp_c_nn},        // 0xda
+    {"UNKNOWN", NULL, 0, undefined},       // 0xdb
+    {"CALL C, 0x", NULL, 2, call_c_nn},    // 0xdc
+    {"UNKNOWN", NULL, 0, undefined},       // 0xdd
+    {"SBC 0x", NULL, 1, sbc_n},            // 0xde
+    {"RST 0x18", NULL, 0, rst_18},         // 0xdf
     //    { "LD (0xFF00 + 0x", "), A", 1, ld_ff_n_ap },// 0xe0
     {"POP HL", NULL, 0, pop_hl},  // 0xe1
     //    { "LD (0xFF00 + C), A", NULL, 0, ld_ff_c_a },      // 0xe2

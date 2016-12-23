@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mmu.h"
+#include "interrupt.h"
 
 extern cpu_t g_cpu;
 
@@ -1658,6 +1659,13 @@ void ret_c(void)
     } else {
         g_cpu.ticks += 8;
     }
+}
+
+/* 0xd9: Pop two bytes from stack, jump to that address then enable interrupts. */
+void reti(void)
+{
+    g_cpu.reg.pc = pop();
+    interrupt_set_enable(true);
 }
 
 /* 0xda: Jump to address. */

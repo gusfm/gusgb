@@ -1,20 +1,20 @@
 #include "interrupt.h"
 
-static interrupt_t g_interrupt;
+interrupt_t g_interrupt;
 
 void interrupt_init(void)
 {
+    g_interrupt.enable = false;
     g_interrupt.master = 0;
-    g_interrupt.enable = 0;
     g_interrupt.flags = 0;
 }
 
-uint8_t interrupt_enable_read(void)
+uint8_t interrupt_get_enable(void)
 {
     return g_interrupt.enable;
 }
 
-void interrupt_enable_write(uint8_t value)
+void interrupt_set_enable(bool value)
 {
     g_interrupt.enable = value;
 }
