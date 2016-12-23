@@ -292,10 +292,19 @@ const unsigned char instruction_ticks[256] = {
     6, 6, 4, 2, 0, 8, 4, 8, 6,  4, 8, 2, 0, 0, 4, 8   // 0xf_
 };
 
+static void debug_registers()
+{
+    PRINTD("registers:\n");
+    PRINTD("  A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n", g_cpu.reg.a, g_cpu.reg.b, g_cpu.reg.c, g_cpu.reg.d, g_cpu.reg.e, g_cpu.reg.f, g_cpu.reg.h, g_cpu.reg.l);
+    PRINTD("  AF=0x%04x, BC=0x%04x, DE=0x%04x, HL=0x%04x\n", g_cpu.reg.af, g_cpu.reg.bc, g_cpu.reg.de, g_cpu.reg.hl);
+    PRINTD("  PC=0x%04x, SP=0x%04x\n", g_cpu.reg.pc, g_cpu.reg.sp);
+}
+
 int cpu_init(const char *rom_path)
 {
     g_cpu.reg.pc = 0x100;
     g_cpu.reg.sp = 0xfffe;
+    debug_registers();
     return mmu_init(rom_path);
 }
 
@@ -308,8 +317,8 @@ static void cpu_decode_opcode(uint8_t opcode)
 {
     uint8_t oper_length = g_instr[opcode].operand_length;
     void *exec = g_instr[opcode].execute;
-    printf("opcode=0x%hhx, exec=%p\n", opcode, exec);
 
+    PRINTD("0x%02x: ", opcode);
     if (oper_length == 0) {
         PRINTD("%s\n", g_instr[opcode].asm1);
         ((void (*)(void))exec)();
@@ -329,6 +338,7 @@ static void cpu_decode_opcode(uint8_t opcode)
         fprintf(stderr, "ERROR: invalid operand length!\n");
         exit(EXIT_FAILURE);
     }
+    debug_registers();
 }
 
 void cpu_emulate_cycle(void)
