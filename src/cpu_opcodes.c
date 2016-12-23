@@ -231,10 +231,10 @@ void cp(uint8_t val)
 }
 
 /* Push to stack. */
-void push()
+void push(uint16_t val)
 {
     g_cpu.reg.sp -= 2;
-    mmu_write_word(g_cpu.reg.sp, g_cpu.reg.pc + 2);
+    mmu_write_word(g_cpu.reg.sp, val);
 }
 
 /* Pop from stack. */
@@ -1487,7 +1487,7 @@ void call_nz_nn(uint16_t addr)
     if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.ticks += 12;
     } else {
-        push();
+        push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
         g_cpu.ticks += 24;
     }
@@ -1531,7 +1531,7 @@ void jp_z_nn(uint16_t addr)
 void call_z_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        push();
+        push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
         g_cpu.ticks += 24;
     } else {
@@ -1542,7 +1542,7 @@ void call_z_nn(uint16_t addr)
 /* 0xcd: Push PC to stack and Jump to address. */
 void call_nn(uint16_t addr)
 {
-    push();
+    push(g_cpu.reg.pc);
     g_cpu.reg.pc = addr;
 }
 
@@ -1587,7 +1587,7 @@ void call_nc_nn(uint16_t addr)
     if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.ticks += 12;
     } else {
-        push();
+        push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
         g_cpu.ticks += 24;
     }
@@ -1625,7 +1625,7 @@ void jp_c_nn(uint16_t addr)
 void call_c_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        push();
+        push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
         g_cpu.ticks += 24;
     } else {
