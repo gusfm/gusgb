@@ -59,7 +59,6 @@ const ext_instruction_t g_ext_instr[256] = {
     {"SRA L", sra_l},            // 0x2d
     {"SRA (HL)", sra_hlp},       // 0x2e
     {"SRA A", sra_a},            // 0x2f
-#if 0
     {"SWAP B", swap_b},          // 0x30
     {"SWAP C", swap_c},          // 0x31
     {"SWAP D", swap_d},          // 0x32
@@ -68,6 +67,7 @@ const ext_instruction_t g_ext_instr[256] = {
     {"SWAP L", swap_l},          // 0x35
     {"SWAP (HL)", swap_hlp},     // 0x36
     {"SWAP A", swap_a},          // 0x37
+#if 0
     {"SRL B", srl_b},            // 0x38
     {"SRL C", srl_c},            // 0x39
     {"SRL D", srl_d},            // 0x3a
@@ -589,4 +589,53 @@ void sra_hlp(void)
 void sra_a(void)
 {
     g_cpu.reg.a = sra(g_cpu.reg.a);
+}
+
+/* 0x30: Swap upper & lower nibbles of n. */
+void swap_b(void)
+{
+    g_cpu.reg.b = swap(g_cpu.reg.b);
+}
+
+/* 0x31: Swap upper & lower nibbles of n. */
+void swap_c(void)
+{
+    g_cpu.reg.c = swap(g_cpu.reg.c);
+}
+
+/* 0x32: Swap upper & lower nibbles of n. */
+void swap_d(void)
+{
+    g_cpu.reg.d = swap(g_cpu.reg.d);
+}
+
+/* 0x33: Swap upper & lower nibbles of n. */
+void swap_e(void)
+{
+    g_cpu.reg.e = swap(g_cpu.reg.e);
+}
+
+/* 0x34: Swap upper & lower nibbles of n. */
+void swap_h(void)
+{
+    g_cpu.reg.h = swap(g_cpu.reg.h);
+}
+
+/* 0x35: Swap upper & lower nibbles of n. */
+void swap_l(void)
+{
+    g_cpu.reg.l = swap(g_cpu.reg.l);
+}
+
+/* 0x36: Swap upper & lower nibbles of n. */
+void swap_hlp(void)
+{
+    uint8_t val = swap(mmu_read_byte(g_cpu.reg.hl));
+    mmu_write_byte(g_cpu.reg.hl, val);
+}
+
+/* 0x37: Swap upper & lower nibbles of n. */
+void swap_a(void)
+{
+    g_cpu.reg.a = swap(g_cpu.reg.a);
 }

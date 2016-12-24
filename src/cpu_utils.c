@@ -118,3 +118,15 @@ uint8_t sra(uint8_t value)
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
+
+uint8_t swap(uint8_t value)
+{
+    value = ((value & 0x0f) << 4) | ((value & 0xf0) >> 4);
+    if (value == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    FLAG_CLEAR(FLAG_N | FLAG_H | FLAG_C);
+    return value;
+}
