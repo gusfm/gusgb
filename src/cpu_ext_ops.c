@@ -67,7 +67,6 @@ const ext_instruction_t g_ext_instr[256] = {
     {"SWAP L", swap_l},          // 0x35
     {"SWAP (HL)", swap_hlp},     // 0x36
     {"SWAP A", swap_a},          // 0x37
-#if 0
     {"SRL B", srl_b},            // 0x38
     {"SRL C", srl_c},            // 0x39
     {"SRL D", srl_d},            // 0x3a
@@ -76,6 +75,7 @@ const ext_instruction_t g_ext_instr[256] = {
     {"SRL L", srl_l},            // 0x3d
     {"SRL (HL)", srl_hlp},       // 0x3e
     {"SRL A", srl_a},            // 0x3f
+#if 0
     {"BIT 0, B", bit_0_b},       // 0x40
     {"BIT 0, C", bit_0_c},       // 0x41
     {"BIT 0, D", bit_0_d},       // 0x42
@@ -638,4 +638,53 @@ void swap_hlp(void)
 void swap_a(void)
 {
     g_cpu.reg.a = swap(g_cpu.reg.a);
+}
+
+/* 0x38: Shift B right into Carry flag. */
+void srl_b(void)
+{
+    g_cpu.reg.b = srl(g_cpu.reg.b);
+}
+
+/* 0x39: Shift C right into Carry flag. */
+void srl_c(void)
+{
+    g_cpu.reg.c = srl(g_cpu.reg.c);
+}
+
+/* 0x3a: Shift D right into Carry flag. */
+void srl_d(void)
+{
+    g_cpu.reg.d = srl(g_cpu.reg.d);
+}
+
+/* 0x3b: Shift E right into Carry flag. */
+void srl_e(void)
+{
+    g_cpu.reg.e = srl(g_cpu.reg.e);
+}
+
+/* 0x3c: Shift H right into Carry flag. */
+void srl_h(void)
+{
+    g_cpu.reg.h = srl(g_cpu.reg.h);
+}
+
+/* 0x3d: Shift L right into Carry flag. */
+void srl_l(void)
+{
+    g_cpu.reg.l = srl(g_cpu.reg.l);
+}
+
+/* 0x3e: Shift (HL) right into Carry flag. */
+void srl_hlp(void)
+{
+    uint8_t val = srl(mmu_read_byte(g_cpu.reg.hl));
+    mmu_write_byte(g_cpu.reg.hl, val);
+}
+
+/* 0x3f: Shift A right into Carry flag. */
+void srl_a(void)
+{
+    g_cpu.reg.a = srl(g_cpu.reg.a);
 }

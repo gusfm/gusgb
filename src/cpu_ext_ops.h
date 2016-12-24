@@ -62,5 +62,13 @@ void swap_h(void);
 void swap_l(void);
 void swap_hlp(void);
 void swap_a(void);
+void srl_b(void);
+void srl_c(void);
+void srl_d(void);
+void srl_e(void);
+void srl_h(void);
+void srl_l(void);
+void srl_hlp(void);
+void srl_a(void);
 
 #endif /* __CPU_EXT_OPS_H__ */

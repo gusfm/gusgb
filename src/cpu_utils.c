@@ -130,3 +130,21 @@ uint8_t swap(uint8_t value)
     FLAG_CLEAR(FLAG_N | FLAG_H | FLAG_C);
     return value;
 }
+
+/* Shift value right into Carry flag. MSB set to 0. */
+uint8_t srl(uint8_t value)
+{
+    if (value & 0x01) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    value >>= 1;
+    if (value == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    FLAG_CLEAR(FLAG_N | FLAG_H);
+    return value;
+}
