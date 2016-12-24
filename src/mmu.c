@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "interrupt.h"
-#include "utils.h"
 #include "rom.h"
+#include "utils.h"
 
 mmu_t g_mmu;
 
@@ -21,6 +21,7 @@ int mmu_init(const char *rom_path)
     memset(g_mmu.wram, 0, sizeof(g_mmu.wram));
     memset(g_mmu.hram, 0, sizeof(g_mmu.hram));
     g_mmu.read_internal_rom = true;
+    g_mmu.cart_type = g_mmu.rom[ROM_OFFSET_TYPE];
     interrupt_init();
     return 0;
 }
@@ -133,9 +134,93 @@ uint16_t mmu_read_word(uint16_t addr)
 void mmu_write_byte(uint16_t addr, uint8_t value)
 {
     PRINTD("MMU: write byte: addr=0x%04x: value=0x%02x\n", addr, value);
+    switch (addr & 0xf000) {
+        /* 16kB ROM bank #0. */
+        case 0x0000:
+        case 0x1000:
+            /* MBC1: Turn external RAM on. */
+#if 0
+            switch (g_mmu.cart_type) {
+                case ROM_MBC1:
+                    g_mmu.ram_on = ((value & 0x0f) == 0x0a) ? true : false;
+                    break;
+            }
+#endif
+            break;
+        case 0x2000:
+        case 0x3000:
+            /* MBC1: ROM bank switch. */
+#if 0
+            switch (g_mmu.cart_type) {
+                case ROM_MBC1:
+                    /* TODO */
+                    printf("not implemented!");
+                    break;
+            }
+#endif
+            break;
+
+        /* 16kB ROM bank #1. */
+        case 0x4000:
+        case 0x5000:
+        case 0x6000:
+        case 0x7000:
+            /* TODO */
+            printf("not implemented!");
+
+        /* 8kB Video RAM. */
+        case 0x8000:
+        case 0x9000:
+            g_mmu.vram[addr & 0x1fff] = value;
+            break;
+
+        /* 8kB Switchable RAM bank. */
+        case 0xa000:
+        case 0xb000:
+            g_mmu.sram[addr & 0x1fff] = value;
+            break;
+
+        /* 8kB Internal RAM. */
+        case 0xc000:
+        case 0xd000:
+            g_mmu.wram[addr & 0x1fff] = value;
+            break;
+
+        case 0xe000:
+        case 0xf000:
+            /* Echo of 8kB Internal RAM; */
+            if (addr < 0xfe00) {
+                g_mmu.wram[addr & 0x1fff] = value;
+                break;
+            }
+            switch (addr & 0x0f00) {
+                case 0xe00:
+                    /* Sprite Attrib Memory (OAM). */
+                    if ((addr & 0xff) < 0xa0) {
+                        g_mmu.oam[addr & 0xff] = value;
+                    }
+                    break;
+
+                case 0xf00:
+                    if (addr < 0xff80) {
+                        /* I/O ports. */
+                        printf("ERROR: I/O not implemented!\n");
+                        // return g_mmu.io[addr & 0x7f];
+                    } else if (addr < 0xfffe) {
+                        /* Internal RAM. */
+                        g_mmu.hram[addr - 0xff80] = value;
+                    } else {
+                        /* Interrupt Enable Register. */
+                        interrupt_set_enable(value);
+                    }
+                    break;
+            }
+    }
 }
 
 void mmu_write_word(uint16_t addr, uint16_t value)
 {
     PRINTD("MMU: write byte: addr=0x%04x: value=0x%04x\n", addr, value);
+    mmu_write_byte(addr, (uint8_t)(value & 0x00ff));
+    mmu_write_byte(addr + 1, (uint8_t)((value & 0xff00) >> 8));
 }

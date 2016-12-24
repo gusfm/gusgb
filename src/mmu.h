@@ -12,6 +12,7 @@ typedef struct {
     uint8_t oam[0x100];
     uint8_t hram[0x80];
     bool read_internal_rom;
+    uint8_t cart_type;
 } mmu_t;
 
 /* Init MMU subsystem. */

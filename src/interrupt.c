@@ -14,7 +14,7 @@ uint8_t interrupt_get_enable(void)
     return g_interrupt.enable;
 }
 
-void interrupt_set_enable(bool value)
+void interrupt_set_enable(uint8_t value)
 {
     g_interrupt.enable = value;
 }
