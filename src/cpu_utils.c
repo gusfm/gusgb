@@ -159,3 +159,13 @@ void bit(uint8_t bit, uint8_t value)
     FLAG_CLEAR(FLAG_N);
     FLAG_SET(FLAG_H);
 }
+
+uint8_t res(uint8_t bit, uint8_t value)
+{
+    return value & ~bit;
+}
+
+uint8_t set(uint8_t bit, uint8_t value)
+{
+    return value | bit;
+}
