@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cpu_ext_ops.h"
 #include "cpu_opcodes.h"
 #include "mmu.h"
 #include "utils.h"

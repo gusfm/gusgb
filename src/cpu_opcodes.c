@@ -1,6 +1,8 @@
 #include "cpu_opcodes.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "cpu.h"
+#include "cpu_utils.h"
 #include "mmu.h"
 #include "interrupt.h"
 
@@ -302,15 +304,7 @@ void ld_b_n(uint8_t val)
 /* 0x07: Rotate A left. Old bit 7 to Carry flag. */
 void rlca(void)
 {
-    uint8_t carry = (g_cpu.reg.a & 0x80) >> 7;
-    if (carry) {
-        FLAG_SET(FLAG_C);
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
-    g_cpu.reg.a <<= 1;
-    g_cpu.reg.a += carry;
-    FLAG_CLEAR(FLAG_N | FLAG_Z | FLAG_H);
+    g_cpu.reg.a = rlc(g_cpu.reg.a);
 }
 
 /* 0x08: Save SP to given address. */
@@ -1549,13 +1543,6 @@ void jp_z_nn(uint16_t addr)
     } else {
         g_cpu.ticks += 12;
     }
-}
-
-/* 0xcb: Extended operations. */
-void cb_n(uint8_t val)
-{
-    /* TODO */
-    printf("ERROR: extended operations not implemented!\n");
 }
 
 /* 0xcc: Push PC to stack and Jump to address. */

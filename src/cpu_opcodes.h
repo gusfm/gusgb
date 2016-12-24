@@ -1,7 +1,7 @@
 #ifndef __CPU_OPCODES_H__
 #define __CPU_OPCODES_H__
 
-#include "cpu.h"
+#include <stdint.h>
 
 void nop();
 void ld_bc_nn(uint16_t value);
@@ -199,7 +199,6 @@ void rst_00(void);
 void ret_z(void);
 void ret(void);
 void jp_z_nn(uint16_t val);
-void cb_n(uint8_t val);
 void call_z_nn(uint16_t addr);
 void call_nn(uint16_t addr);
 void adc_n(uint8_t n);

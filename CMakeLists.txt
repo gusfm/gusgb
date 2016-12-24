@@ -21,7 +21,9 @@ add_library(libgusgb SHARED
     src/interrupt.c
     src/rom.c
     src/mmu.c
+    src/cpu_utils.c
     src/cpu_opcodes.c
+    src/cpu_ext_ops.c
     src/cpu.c
     )
 target_link_libraries(libgusgb m)
