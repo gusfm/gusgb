@@ -38,5 +38,13 @@ void rr_h(void);
 void rr_l(void);
 void rr_hlp(void);
 void rr_a(void);
+void sla_b(void);
+void sla_c(void);
+void sla_d(void);
+void sla_e(void);
+void sla_h(void);
+void sla_l(void);
+void sla_hlp(void);
+void sla_a(void);
 
 #endif /* __CPU_EXT_OPS_H__ */

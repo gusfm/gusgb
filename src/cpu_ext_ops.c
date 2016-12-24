@@ -43,7 +43,6 @@ const ext_instruction_t g_ext_instr[256] = {
     {"RR L", rr_l},              // 0x1d
     {"RR (HL)", rr_hlp},         // 0x1e
     {"RR A", rr_a},              // 0x1f
-#if 0
     {"SLA B", sla_b},            // 0x20
     {"SLA C", sla_c},            // 0x21
     {"SLA D", sla_d},            // 0x22
@@ -52,6 +51,7 @@ const ext_instruction_t g_ext_instr[256] = {
     {"SLA L", sla_l},            // 0x25
     {"SLA (HL)", sla_hlp},       // 0x26
     {"SLA A", sla_a},            // 0x27
+#if 0
     {"SRA B", sra_b},            // 0x28
     {"SRA C", sra_c},            // 0x29
     {"SRA D", sra_d},            // 0x2a
@@ -491,4 +491,53 @@ void rr_hlp(void)
 void rr_a(void)
 {
     g_cpu.reg.a = rr(g_cpu.reg.a);
+}
+
+/* 0x20: Shift B left into Carry flag. */
+void sla_b(void)
+{
+    g_cpu.reg.b = sla(g_cpu.reg.b);
+}
+
+/* 0x21: Shift C left into Carry flag. */
+void sla_c(void)
+{
+    g_cpu.reg.c = sla(g_cpu.reg.c);
+}
+
+/* 0x22: Shift D left into Carry flag. */
+void sla_d(void)
+{
+    g_cpu.reg.d = sla(g_cpu.reg.d);
+}
+
+/* 0x23: Shift E left into Carry flag. */
+void sla_e(void)
+{
+    g_cpu.reg.e = sla(g_cpu.reg.e);
+}
+
+/* 0x24: Shift H left into Carry flag. */
+void sla_h(void)
+{
+    g_cpu.reg.h = sla(g_cpu.reg.h);
+}
+
+/* 0x25: Shift L left into Carry flag. */
+void sla_l(void)
+{
+    g_cpu.reg.l = sla(g_cpu.reg.l);
+}
+
+/* 0x26: Shift (HL) with carry. */
+void sla_hlp(void)
+{
+    uint8_t val = sla(mmu_read_byte(g_cpu.reg.hl));
+    mmu_write_byte(g_cpu.reg.hl, val);
+}
+
+/* 0x27: Shift A left into Carry flag. */
+void sla_a(void)
+{
+    g_cpu.reg.a = sla(g_cpu.reg.a);
 }
