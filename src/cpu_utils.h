@@ -4,5 +4,6 @@
 #include <stdint.h>
 
 uint8_t rlc(uint8_t value);
+uint8_t rrc(uint8_t value);
 
 #endif /* __CPU_UTILS_H__ */

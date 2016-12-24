@@ -352,15 +352,7 @@ void ld_c_n(uint8_t val)
 /* 0x0f: Rotate A right. Old bit 0 to Carry flag. */
 void rrca(void)
 {
-    uint8_t atmp = g_cpu.reg.a;
-    g_cpu.reg.a >>= 1;
-    if (atmp & 0x01) {
-        FLAG_SET(FLAG_C);
-        g_cpu.reg.a |= 0x80;
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
-    FLAG_CLEAR(FLAG_N | FLAG_Z | FLAG_H);
+    g_cpu.reg.a = rrc(g_cpu.reg.a);
 }
 
 /* 0x10: The STOP command halts the GameBoy processor and screen until any

@@ -22,3 +22,23 @@ uint8_t rlc(uint8_t value)
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
+
+/* Rotate value right. Old bit 0 to Carry flag. */
+uint8_t rrc(uint8_t value)
+{
+    uint8_t atmp = value;
+    value >>= 1;
+    if (atmp & 0x01) {
+        FLAG_SET(FLAG_C);
+        value |= 0x80;
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    if (value == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    FLAG_CLEAR(FLAG_N | FLAG_H);
+    return value;
+}
