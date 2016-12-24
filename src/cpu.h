@@ -2,6 +2,7 @@
 #define __CPU_H__
 
 #include <stdint.h>
+#include <stddef.h>
 
 /**
  * References:
@@ -91,9 +92,16 @@ typedef struct {
 typedef struct {
     registers_t reg;
     uint32_t ticks;
+    uint8_t last_opcode;
+    uint16_t last_operand;
+    uint32_t cycle;
 } cpu_t;
 
 int cpu_init(const char *rom_path);
 void cpu_emulate_cycle(void);
+cpu_t *cpu_get_instance(void);
+void cpu_debug_flags(char *str, size_t size);
+void cpu_debug_instr(char *str, size_t size);
+void cpu_debug_cycles(char *str, size_t size);
 
 #endif /* __CPU_H__ */

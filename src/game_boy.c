@@ -7,11 +7,13 @@
 #include "cpu.h"
 
 #define INFO_FONT_SIZE 16
+#define DEBUG_FONT_SIZE 14
 
 typedef struct {
     int width;
     int height;
-    FTGLfont *font;
+    FTGLfont *font_info;
+    FTGLfont *font_debug;
     GLFWwindow *window;
     cpu_t *cpu;
     bool debug;
@@ -28,9 +30,15 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
                             int action, int mods)
 {
     switch (key) {
+        case GLFW_KEY_Q:
         case GLFW_KEY_ESCAPE:
             /* Quit. */
             glfwSetWindowShouldClose(window, GL_TRUE);
+            break;
+
+        case GLFW_KEY_N:
+            if (game_boy.debug == true && action == GLFW_PRESS)
+                cpu_emulate_cycle();
             break;
 
         default:
@@ -53,8 +61,8 @@ static void gb_resize_callback(GLFWwindow *window, int width, int height)
 
 void gb_finish(void)
 {
-    if (game_boy.font) {
-        ftglDestroyFont(game_boy.font);
+    if (game_boy.font_info) {
+        ftglDestroyFont(game_boy.font_info);
     }
     if (game_boy.window) {
         glfwDestroyWindow(game_boy.window);
@@ -65,11 +73,41 @@ void gb_finish(void)
 static void gb_render_help()
 {
     glRasterPos2f(0, INFO_FONT_SIZE);
-    ftglRenderFont(game_boy.font, "[Esc]Quit", FTGL_RENDER_ALL);
+    ftglRenderFont(game_boy.font_info, "[Esc]Quit", FTGL_RENDER_ALL);
 }
 
 void gb_render_debug(void)
 {
+    char str[100];
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glRasterPos2f(500, INFO_FONT_SIZE);
+    ftglRenderFont(game_boy.font_info, "Debug info", FTGL_RENDER_ALL);
+    int debug_y = 30;
+    const int debug_x = 500;
+    /* PC and SP. */
+    glRasterPos2f(debug_x, debug_y);
+    snprintf(str, sizeof(str), "PC:0x%04x SP:0x%04x", game_boy.cpu->reg.pc, game_boy.cpu->reg.sp);
+    ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
+    debug_y += DEBUG_FONT_SIZE;
+    /* Registers. */
+    glRasterPos2f(debug_x, debug_y);
+    snprintf(str, sizeof(str), "AF:0x%04x BC:0x%04x DE:0x%04x HL:0x%04x", game_boy.cpu->reg.af, game_boy.cpu->reg.bc, game_boy.cpu->reg.de, game_boy.cpu->reg.hl);
+    ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
+    debug_y += DEBUG_FONT_SIZE;
+    /* Flags. */
+    cpu_debug_flags(str, sizeof(str));
+    glRasterPos2f(debug_x, debug_y);
+    ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
+    debug_y += DEBUG_FONT_SIZE;
+    /* Current instruction. */
+    cpu_debug_instr(str, sizeof(str));
+    glRasterPos2f(debug_x, debug_y);
+    ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
+    debug_y += DEBUG_FONT_SIZE;
+    /* Print cycle count. */
+    cpu_debug_cycles(str, sizeof(str));
+    glRasterPos2f(debug_x, debug_y);
+    ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
 }
 
 static void gb_render_info()
@@ -151,14 +189,21 @@ int gb_init(const char *rom_path, int width, int height, bool debug)
         return -1;
     }
     /* Create a pixmap font from a TrueType file. */
-    game_boy.font = ftglCreatePixmapFont(
+    game_boy.font_info = ftglCreatePixmapFont(
         "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf");
-    if (game_boy.font == NULL) {
+    if (game_boy.font_info == NULL) {
+        gb_finish();
+        return -1;
+    }
+    game_boy.font_debug = ftglCreatePixmapFont(
+        "/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf");
+    if (game_boy.font_debug == NULL) {
         gb_finish();
         return -1;
     }
     /* Set the font size. */
-    ftglSetFontFaceSize(game_boy.font, INFO_FONT_SIZE, INFO_FONT_SIZE);
+    ftglSetFontFaceSize(game_boy.font_info, INFO_FONT_SIZE, INFO_FONT_SIZE);
+    ftglSetFontFaceSize(game_boy.font_debug, DEBUG_FONT_SIZE, DEBUG_FONT_SIZE);
     /* Initialize OpenGl. */
     gb_gl_init();
     /* Initialize emulation. */
@@ -167,12 +212,14 @@ int gb_init(const char *rom_path, int width, int height, bool debug)
         fprintf(stderr, "Error: Cannot load rom: %s\n", rom_path);
         return -1;
     }
+    game_boy.cpu = cpu_get_instance();
     return 0;
 }
 
 static void gb_process(void)
 {
-    cpu_emulate_cycle();
+    if (game_boy.debug == false)
+        cpu_emulate_cycle();
 }
 
 void gb_main(void)

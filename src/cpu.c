@@ -293,36 +293,46 @@ const unsigned char instruction_ticks[256] = {
     6, 6, 4, 2, 0, 8, 4, 8, 6,  4, 8, 2, 0, 0, 4, 8   // 0xf_
 };
 
-static void debug_registers()
+cpu_t *cpu_get_instance(void)
 {
-    PRINTD("Registers debug:\n");
-    PRINTD("  A=0x%02x, B=0x%02x, C=0x%02x, D=0x%02x, E=0x%02x, F=0x%02x, H=0x%02x, L=0x%02x\n", g_cpu.reg.a, g_cpu.reg.b, g_cpu.reg.c, g_cpu.reg.d, g_cpu.reg.e, g_cpu.reg.f, g_cpu.reg.h, g_cpu.reg.l);
-    PRINTD("  AF=0x%04x, BC=0x%04x, DE=0x%04x, HL=0x%04x\n", g_cpu.reg.af, g_cpu.reg.bc, g_cpu.reg.de, g_cpu.reg.hl);
-    PRINTD("  PC=0x%04x, SP=0x%04x\n", g_cpu.reg.pc, g_cpu.reg.sp);
-    PRINTD("  FLAGS:");
-    if (FLAG_IS_SET(FLAG_ANY) != 0) {
-        if (FLAG_IS_SET(FLAG_C)) {
-            PRINTD(" [CARRY]");
-        }
-        if (FLAG_IS_SET(FLAG_H)) {
-            PRINTD(" [HALF CARRY]");
-        }
-        if (FLAG_IS_SET(FLAG_N)) {
-            PRINTD(" [SUBTRACT]");
-        }
-        if (FLAG_IS_SET(FLAG_Z)) {
-            PRINTD(" [ZERO]");
-        }
+    return &g_cpu;
+}
+
+void cpu_debug_flags(char *str, size_t size)
+{
+    const char *fc = FLAG_IS_SET(FLAG_C) ? " [CARRY]" : "";
+    const char *fh = FLAG_IS_SET(FLAG_H) ? " [HALF CARRY]" : "";
+    const char *fn = FLAG_IS_SET(FLAG_N) ? " [SUBTRACT]" : "";
+    const char *fz = FLAG_IS_SET(FLAG_Z) ? " [ZERO]" : "";
+    snprintf(str, size, "FLAGS:%s%s%s%s", fc, fh, fn, fz);
+}
+
+void cpu_debug_instr(char *str, size_t size)
+{
+    uint8_t opcode = g_cpu.last_opcode;
+    uint8_t oper_length = g_instr[opcode].operand_length;
+    const char *asm1 = g_instr[opcode].asm1;
+    const char *asm2 = g_instr[opcode].asm2 ? g_instr[opcode].asm2 : "";
+
+    if (oper_length == 0) {
+        snprintf(str, size, "0x%02x: %s", opcode, asm1);
+    } else if (oper_length == 1) {
+        uint8_t operand = g_cpu.last_operand;
+        snprintf(str, size, "0x%02x: %s%02x%s", opcode, asm1, operand, asm2);
     } else {
-        PRINTD(" [-]");
+        uint16_t operand = g_cpu.last_operand;
+        snprintf(str, size, "0x%02x: %s%04x%s", opcode, asm1, operand, asm2);
     }
-    PRINTD("\n");
+}
+
+void cpu_debug_cycles(char *str, size_t size)
+{
+    snprintf(str, size, "Cycle: %u", g_cpu.cycle);
 }
 
 int cpu_init(const char *rom_path)
 {
-    memset(&g_cpu.reg, 0x0, sizeof(g_cpu.reg));
-    debug_registers();
+    memset(&g_cpu, 0x0, sizeof(g_cpu));
     return mmu_init(rom_path);
 }
 
@@ -337,25 +347,28 @@ static void cpu_decode_opcode(uint8_t opcode)
     void *exec = g_instr[opcode].execute;
 
     if (oper_length == 0) {
-        PRINTD("0x%02x: %s\n", opcode, g_instr[opcode].asm1);
+        PRINTD("%u: 0x%02x: %s\n", g_cpu.cycle, opcode, g_instr[opcode].asm1);
         ((void (*)(void))exec)();
     } else if (oper_length == 1) {
         uint8_t operand = mmu_read_byte(g_cpu.reg.pc);
         g_cpu.reg.pc += 1;
         const char *asm2 = g_instr[opcode].asm2 ? g_instr[opcode].asm2 : "";
-        PRINTD("0x%02x: %s%02x%s\n", opcode, g_instr[opcode].asm1, operand, asm2);
+        g_cpu.last_operand = operand;
+        PRINTD("%u: 0x%02x: %s%02x%s\n", g_cpu.cycle, opcode, g_instr[opcode].asm1, operand, asm2);
         ((void (*)(uint8_t))exec)((uint8_t)operand);
     } else if (oper_length == 2) {
         uint16_t operand = mmu_read_word(g_cpu.reg.pc);
         g_cpu.reg.pc += 2;
         const char *asm2 = g_instr[opcode].asm2 ? g_instr[opcode].asm2 : "";
-        PRINTD("0x%02x: %s%04x%s\n", opcode, g_instr[opcode].asm1, operand, asm2);
+        g_cpu.last_operand = operand;
+        PRINTD("%u: 0x%02x: %s%04x%s\n", g_cpu.cycle, opcode, g_instr[opcode].asm1, operand, asm2);
         ((void (*)(uint16_t))exec)(operand);
     } else {
         fprintf(stderr, "ERROR: invalid operand length!\n");
         exit(EXIT_FAILURE);
     }
-    debug_registers();
+    g_cpu.last_opcode = opcode;
+    g_cpu.cycle++;
 }
 
 void cpu_emulate_cycle(void)
