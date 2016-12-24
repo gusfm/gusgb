@@ -30,5 +30,13 @@ void rl_h(void);
 void rl_l(void);
 void rl_hlp(void);
 void rl_a(void);
+void rr_b(void);
+void rr_c(void);
+void rr_d(void);
+void rr_e(void);
+void rr_h(void);
+void rr_l(void);
+void rr_hlp(void);
+void rr_a(void);
 
 #endif /* __CPU_EXT_OPS_H__ */

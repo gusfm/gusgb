@@ -35,7 +35,6 @@ const ext_instruction_t g_ext_instr[256] = {
     {"RL L", rl_l},              // 0x15
     {"RL (HL)", rl_hlp},         // 0x16
     {"RL A", rl_a},              // 0x17
-#if 0
     {"RR B", rr_b},              // 0x18
     {"RR C", rr_c},              // 0x19
     {"RR D", rr_d},              // 0x1a
@@ -44,6 +43,7 @@ const ext_instruction_t g_ext_instr[256] = {
     {"RR L", rr_l},              // 0x1d
     {"RR (HL)", rr_hlp},         // 0x1e
     {"RR A", rr_a},              // 0x1f
+#if 0
     {"SLA B", sla_b},            // 0x20
     {"SLA C", sla_c},            // 0x21
     {"SLA D", sla_d},            // 0x22
@@ -442,4 +442,53 @@ void rl_hlp(void)
 void rl_a(void)
 {
     g_cpu.reg.a = rl(g_cpu.reg.a);
+}
+
+/* 0x18: Rotate B right through carry flag. */
+void rr_b(void)
+{
+    g_cpu.reg.b = rr(g_cpu.reg.b);
+}
+
+/* 0x19: Rotate C right through carry flag. */
+void rr_c(void)
+{
+    g_cpu.reg.c = rr(g_cpu.reg.c);
+}
+
+/* 0x1a: Rotate D right through carry flag. */
+void rr_d(void)
+{
+    g_cpu.reg.d = rr(g_cpu.reg.d);
+}
+
+/* 0x1b: Rotate E right through carry flag. */
+void rr_e(void)
+{
+    g_cpu.reg.e = rr(g_cpu.reg.e);
+}
+
+/* 0x1c: Rotate H right through carry flag. */
+void rr_h(void)
+{
+    g_cpu.reg.h = rr(g_cpu.reg.h);
+}
+
+/* 0x1d: Rotate L right through carry flag. */
+void rr_l(void)
+{
+    g_cpu.reg.l = rr(g_cpu.reg.l);
+}
+
+/* 0x1e: Rotate (HL) right through carry flag. */
+void rr_hlp(void)
+{
+    uint8_t val = rr(mmu_read_byte(g_cpu.reg.hl));
+    mmu_write_byte(g_cpu.reg.hl, val);
+}
+
+/* 0x1f: Rotate A right through carry flag. */
+void rr_a(void)
+{
+    g_cpu.reg.a = rr(g_cpu.reg.a);
 }

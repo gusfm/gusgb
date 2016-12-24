@@ -62,3 +62,23 @@ uint8_t rl(uint8_t value)
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
+
+/* Rotate value right through Carry flag. */
+uint8_t rr(uint8_t value)
+{
+    uint8_t old_carry = (FLAG_IS_SET(FLAG_C) << 3);
+    if (value & 0x01) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    value >>= 1;
+    value |= old_carry;
+    if (value == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    FLAG_CLEAR(FLAG_N | FLAG_H);
+    return value;
+}
