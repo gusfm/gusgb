@@ -6,8 +6,8 @@
 extern cpu_t g_cpu;
 
 typedef struct {
-	const char *asm;
-	void (*execute)(void);
+    const char *asm;
+    void (*execute)(void);
 } ext_instruction_t;
 
 const ext_instruction_t g_ext_instr[256] = {
@@ -139,7 +139,6 @@ const ext_instruction_t g_ext_instr[256] = {
     {"BIT 7, L", bit_7_l},       // 0x7d
     {"BIT 7, (HL)", bit_7_hlp},  // 0x7e
     {"BIT 7, A", bit_7_a},       // 0x7f
-#if 0
     {"RES 0, B", res_0_b},       // 0x80
     {"RES 0, C", res_0_c},       // 0x81
     {"RES 0, D", res_0_d},       // 0x82
@@ -204,6 +203,7 @@ const ext_instruction_t g_ext_instr[256] = {
     {"RES 7, L", res_7_l},       // 0xbd
     {"RES 7, (HL)", res_7_hlp},  // 0xbe
     {"RES 7, A", res_7_a},       // 0xbf
+#if 0
     {"SET 0, B", set_0_b},       // 0xc0
     {"SET 0, C", set_0_c},       // 0xc1
     {"SET 0, D", set_0_d},       // 0xc2
@@ -294,7 +294,7 @@ const unsigned char ext_instr_ticks[256] = {
 void cb_n(uint8_t opcode)
 {
     g_ext_instr[opcode].execute();
-	g_cpu.ticks += ext_instr_ticks[opcode];
+    g_cpu.ticks += ext_instr_ticks[opcode];
 }
 
 /* 0x00: Rotate B with carry. */
@@ -879,7 +879,6 @@ void bit_3_hlp(void)
 void bit_3_a(void)
 {
     bit(1 << 3, g_cpu.reg.a);
-
 }
 
 /* 0x60: Test bit in register. */
@@ -1072,4 +1071,388 @@ void bit_7_hlp(void)
 void bit_7_a(void)
 {
     bit(1 << 7, g_cpu.reg.a);
+}
+
+/* 0x80: Reset bit in register. */
+void res_0_b(void)
+{
+    g_cpu.reg.b &= ~(1 << 0);
+}
+
+/* 0x81: Reset bit in register. */
+void res_0_c(void)
+{
+    g_cpu.reg.c &= ~(1 << 0);
+}
+
+/* 0x82: Reset bit in register. */
+void res_0_d(void)
+{
+    g_cpu.reg.d &= ~(1 << 0);
+}
+
+/* 0x83: Reset bit in register. */
+void res_0_e(void)
+{
+    g_cpu.reg.e &= ~(1 << 0);
+}
+
+/* 0x84: Reset bit in register. */
+void res_0_h(void)
+{
+    g_cpu.reg.h &= ~(1 << 0);
+}
+
+/* 0x85: Reset bit in register. */
+void res_0_l(void)
+{
+    g_cpu.reg.l &= ~(1 << 0);
+}
+
+/* 0x86: Reset bit in register. */
+void res_0_hlp(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, mmu_read_byte(g_cpu.reg.hl) & ~(1 << 0));
+}
+
+/* 0x87: Reset bit in register. */
+void res_0_a(void)
+{
+    g_cpu.reg.a &= ~(1 << 0);
+}
+
+/* 0x88: Reset bit in register. */
+void res_1_b(void)
+{
+    g_cpu.reg.b &= ~(1 << 1);
+}
+
+/* 0x89: Reset bit in register. */
+void res_1_c(void)
+{
+    g_cpu.reg.c &= ~(1 << 1);
+}
+
+/* 0x8a: Reset bit in register. */
+void res_1_d(void)
+{
+    g_cpu.reg.d &= ~(1 << 1);
+}
+
+/* 0x8b: Reset bit in register. */
+void res_1_e(void)
+{
+    g_cpu.reg.e &= ~(1 << 1);
+}
+
+/* 0x8c: Reset bit in register. */
+void res_1_h(void)
+{
+    g_cpu.reg.h &= ~(1 << 1);
+}
+
+/* 0x8d: Reset bit in register. */
+void res_1_l(void)
+{
+    g_cpu.reg.l &= ~(1 << 1);
+}
+
+/* 0x8e: Reset bit in register. */
+void res_1_hlp(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, mmu_read_byte(g_cpu.reg.hl) & ~(1 << 1));
+}
+
+/* 0x8f: Reset bit in register. */
+void res_1_a(void)
+{
+    g_cpu.reg.a &= ~(1 << 1);
+}
+
+/* 0x90: Reset bit in register. */
+void res_2_b(void)
+{
+    g_cpu.reg.b &= ~(1 << 2);
+}
+
+/* 0x91: Reset bit in register. */
+void res_2_c(void)
+{
+    g_cpu.reg.c &= ~(1 << 2);
+}
+
+/* 0x92: Reset bit in register. */
+void res_2_d(void)
+{
+    g_cpu.reg.d &= ~(1 << 2);
+}
+
+/* 0x93: Reset bit in register. */
+void res_2_e(void)
+{
+    g_cpu.reg.e &= ~(1 << 2);
+}
+
+/* 0x94: Reset bit in register. */
+void res_2_h(void)
+{
+    g_cpu.reg.h &= ~(1 << 2);
+}
+
+/* 0x95: Reset bit in register. */
+void res_2_l(void)
+{
+    g_cpu.reg.l &= ~(1 << 2);
+}
+
+/* 0x96: Reset bit in register. */
+void res_2_hlp(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, mmu_read_byte(g_cpu.reg.hl) & ~(1 << 2));
+}
+
+/* 0x97: Reset bit in register. */
+void res_2_a(void)
+{
+    g_cpu.reg.a &= ~(1 << 2);
+}
+
+/* 0x98: Reset bit in register. */
+void res_3_b(void)
+{
+    g_cpu.reg.b &= ~(1 << 3);
+}
+
+/* 0x99: Reset bit in register. */
+void res_3_c(void)
+{
+    g_cpu.reg.c &= ~(1 << 3);
+}
+
+/* 0x9a: Reset bit in register. */
+void res_3_d(void)
+{
+    g_cpu.reg.d &= ~(1 << 3);
+}
+
+/* 0x9b: Reset bit in register. */
+void res_3_e(void)
+{
+    g_cpu.reg.e &= ~(1 << 3);
+}
+
+/* 0x9c: Reset bit in register. */
+void res_3_h(void)
+{
+    g_cpu.reg.h &= ~(1 << 3);
+}
+
+/* 0x9d: Reset bit in register. */
+void res_3_l(void)
+{
+    g_cpu.reg.l &= ~(1 << 3);
+}
+
+/* 0x9e: Reset bit in register. */
+void res_3_hlp(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, mmu_read_byte(g_cpu.reg.hl) & ~(1 << 3));
+}
+
+/* 0x9f: Reset bit in register. */
+void res_3_a(void)
+{
+    g_cpu.reg.a &= ~(1 << 3);
+}
+
+/* 0xa0: Reset bit in register. */
+void res_4_b(void)
+{
+    g_cpu.reg.b &= ~(1 << 4);
+}
+
+/* 0xa1: Reset bit in register. */
+void res_4_c(void)
+{
+    g_cpu.reg.c &= ~(1 << 4);
+}
+
+/* 0xa2: Reset bit in register. */
+void res_4_d(void)
+{
+    g_cpu.reg.d &= ~(1 << 4);
+}
+
+/* 0xa3: Reset bit in register. */
+void res_4_e(void)
+{
+    g_cpu.reg.e &= ~(1 << 4);
+}
+
+/* 0xa4: Reset bit in register. */
+void res_4_h(void)
+{
+    g_cpu.reg.h &= ~(1 << 4);
+}
+
+/* 0xa5: Reset bit in register. */
+void res_4_l(void)
+{
+    g_cpu.reg.l &= ~(1 << 4);
+}
+
+/* 0xa6: Reset bit in register. */
+void res_4_hlp(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, mmu_read_byte(g_cpu.reg.hl) & ~(1 << 4));
+}
+
+/* 0xa7: Reset bit in register. */
+void res_4_a(void)
+{
+    g_cpu.reg.a &= ~(1 << 4);
+}
+
+/* 0xa8: Reset bit in register. */
+void res_5_b(void)
+{
+    g_cpu.reg.b &= ~(1 << 5);
+}
+
+/* 0xa9: Reset bit in register. */
+void res_5_c(void)
+{
+    g_cpu.reg.c &= ~(1 << 5);
+}
+
+/* 0xaa: Reset bit in register. */
+void res_5_d(void)
+{
+    g_cpu.reg.d &= ~(1 << 5);
+}
+
+/* 0xab: Reset bit in register. */
+void res_5_e(void)
+{
+    g_cpu.reg.e &= ~(1 << 5);
+}
+
+/* 0xac: Reset bit in register. */
+void res_5_h(void)
+{
+    g_cpu.reg.h &= ~(1 << 5);
+}
+
+/* 0xad: Reset bit in register. */
+void res_5_l(void)
+{
+    g_cpu.reg.l &= ~(1 << 5);
+}
+
+/* 0xae: Reset bit in register. */
+void res_5_hlp(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, mmu_read_byte(g_cpu.reg.hl) & ~(1 << 5));
+}
+
+/* 0xaf: Reset bit in register. */
+void res_5_a(void)
+{
+    g_cpu.reg.a &= ~(1 << 5);
+}
+
+/* 0xb0: Reset bit in register. */
+void res_6_b(void)
+{
+    g_cpu.reg.b &= ~(1 << 6);
+}
+
+/* 0xb1: Reset bit in register. */
+void res_6_c(void)
+{
+    g_cpu.reg.c &= ~(1 << 6);
+}
+
+/* 0xb2: Reset bit in register. */
+void res_6_d(void)
+{
+    g_cpu.reg.d &= ~(1 << 6);
+}
+
+/* 0xb3: Reset bit in register. */
+void res_6_e(void)
+{
+    g_cpu.reg.e &= ~(1 << 6);
+}
+
+/* 0xb4: Reset bit in register. */
+void res_6_h(void)
+{
+    g_cpu.reg.h &= ~(1 << 6);
+}
+
+/* 0xb5: Reset bit in register. */
+void res_6_l(void)
+{
+    g_cpu.reg.l &= ~(1 << 6);
+}
+
+/* 0xb6: Reset bit in register. */
+void res_6_hlp(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, mmu_read_byte(g_cpu.reg.hl) & ~(1 << 6));
+}
+
+/* 0xb7: Reset bit in register. */
+void res_6_a(void)
+{
+    g_cpu.reg.a &= ~(1 << 6);
+}
+
+/* 0xb8: Reset bit in register. */
+void res_7_b(void)
+{
+    g_cpu.reg.b &= ~(1 << 7);
+}
+
+/* 0xb9: Reset bit in register. */
+void res_7_c(void)
+{
+    g_cpu.reg.c &= ~(1 << 7);
+}
+
+/* 0xba: Reset bit in register. */
+void res_7_d(void)
+{
+    g_cpu.reg.d &= ~(1 << 7);
+}
+
+/* 0xbb: Reset bit in register. */
+void res_7_e(void)
+{
+    g_cpu.reg.e &= ~(1 << 7);
+}
+
+/* 0xbc: Reset bit in register. */
+void res_7_h(void)
+{
+    g_cpu.reg.h &= ~(1 << 7);
+}
+
+/* 0xbd: Reset bit in register. */
+void res_7_l(void)
+{
+    g_cpu.reg.l &= ~(1 << 7);
+}
+
+/* 0xbe: Reset bit in register. */
+void res_7_hlp(void)
+{
+    mmu_write_byte(g_cpu.reg.hl, mmu_read_byte(g_cpu.reg.hl) & ~(1 << 7));
+}
+
+/* 0xbf: Reset bit in register. */
+void res_7_a(void)
+{
+    g_cpu.reg.a &= ~(1 << 7);
 }
