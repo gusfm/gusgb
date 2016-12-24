@@ -401,15 +401,7 @@ void ld_d_n(uint8_t val)
 /* 0x17: Rotate A left through Carry flag. */
 void rla(void)
 {
-    uint8_t old_carry = (FLAG_IS_SET(FLAG_C) >> 4);
-    if (g_cpu.reg.a & 0x80) {
-        FLAG_SET(FLAG_C);
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
-    g_cpu.reg.a <<= 1;
-    g_cpu.reg.a |= old_carry;
-    FLAG_CLEAR(FLAG_N | FLAG_Z | FLAG_H);
+    g_cpu.reg.a = rl(g_cpu.reg.a);
 }
 
 /* 0x18: Relative jump by signed immediate. */
