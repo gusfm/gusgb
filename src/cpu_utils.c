@@ -148,3 +148,14 @@ uint8_t srl(uint8_t value)
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
+
+void bit(uint8_t bit, uint8_t value)
+{
+    if (value & bit) {
+        FLAG_CLEAR(FLAG_Z);
+    } else {
+        FLAG_SET(FLAG_Z);
+    }
+    FLAG_CLEAR(FLAG_N);
+    FLAG_SET(FLAG_H);
+}

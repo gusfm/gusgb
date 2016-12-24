@@ -75,7 +75,6 @@ const ext_instruction_t g_ext_instr[256] = {
     {"SRL L", srl_l},            // 0x3d
     {"SRL (HL)", srl_hlp},       // 0x3e
     {"SRL A", srl_a},            // 0x3f
-#if 0
     {"BIT 0, B", bit_0_b},       // 0x40
     {"BIT 0, C", bit_0_c},       // 0x41
     {"BIT 0, D", bit_0_d},       // 0x42
@@ -140,6 +139,7 @@ const ext_instruction_t g_ext_instr[256] = {
     {"BIT 7, L", bit_7_l},       // 0x7d
     {"BIT 7, (HL)", bit_7_hlp},  // 0x7e
     {"BIT 7, A", bit_7_a},       // 0x7f
+#if 0
     {"RES 0, B", res_0_b},       // 0x80
     {"RES 0, C", res_0_c},       // 0x81
     {"RES 0, D", res_0_d},       // 0x82
@@ -687,4 +687,389 @@ void srl_hlp(void)
 void srl_a(void)
 {
     g_cpu.reg.a = srl(g_cpu.reg.a);
+}
+
+/* 0x40: Test bit in register. */
+void bit_0_b(void)
+{
+    bit(1 << 0, g_cpu.reg.b);
+}
+
+/* 0x41: Test bit in register. */
+void bit_0_c(void)
+{
+    bit(1 << 0, g_cpu.reg.c);
+}
+
+/* 0x42: Test bit in register. */
+void bit_0_d(void)
+{
+    bit(1 << 0, g_cpu.reg.d);
+}
+
+/* 0x43: Test bit in register. */
+void bit_0_e(void)
+{
+    bit(1 << 0, g_cpu.reg.e);
+}
+
+/* 0x44: Test bit in register. */
+void bit_0_h(void)
+{
+    bit(1 << 0, g_cpu.reg.h);
+}
+
+/* 0x45: Test bit in register. */
+void bit_0_l(void)
+{
+    bit(1 << 0, g_cpu.reg.l);
+}
+
+/* 0x46: Test bit in register. */
+void bit_0_hlp(void)
+{
+    bit(1 << 0, mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0x47: Test bit in register. */
+void bit_0_a(void)
+{
+    bit(1 << 0, g_cpu.reg.a);
+}
+
+/* 0x48: Test bit in register. */
+void bit_1_b(void)
+{
+    bit(1 << 1, g_cpu.reg.b);
+}
+
+/* 0x49: Test bit in register. */
+void bit_1_c(void)
+{
+    bit(1 << 1, g_cpu.reg.c);
+}
+
+/* 0x4a: Test bit in register. */
+void bit_1_d(void)
+{
+    bit(1 << 1, g_cpu.reg.d);
+}
+
+/* 0x4b: Test bit in register. */
+void bit_1_e(void)
+{
+    bit(1 << 1, g_cpu.reg.e);
+}
+
+/* 0x4c: Test bit in register. */
+void bit_1_h(void)
+{
+    bit(1 << 1, g_cpu.reg.h);
+}
+
+/* 0x4d: Test bit in register. */
+void bit_1_l(void)
+{
+    bit(1 << 1, g_cpu.reg.l);
+}
+
+/* 0x4e: Test bit in register. */
+void bit_1_hlp(void)
+{
+    bit(1 << 1, mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0x4f: Test bit in register. */
+void bit_1_a(void)
+{
+    bit(1 << 1, g_cpu.reg.a);
+}
+
+/* 0x50: Test bit in register. */
+void bit_2_b(void)
+{
+    bit(1 << 2, g_cpu.reg.b);
+}
+
+/* 0x51: Test bit in register. */
+void bit_2_c(void)
+{
+    bit(1 << 2, g_cpu.reg.c);
+}
+
+/* 0x52: Test bit in register. */
+void bit_2_d(void)
+{
+    bit(1 << 2, g_cpu.reg.d);
+}
+
+/* 0x53: Test bit in register. */
+void bit_2_e(void)
+{
+    bit(1 << 2, g_cpu.reg.e);
+}
+
+/* 0x54: Test bit in register. */
+void bit_2_h(void)
+{
+    bit(1 << 2, g_cpu.reg.h);
+}
+
+/* 0x55: Test bit in register. */
+void bit_2_l(void)
+{
+    bit(1 << 2, g_cpu.reg.l);
+}
+
+/* 0x56: Test bit in register. */
+void bit_2_hlp(void)
+{
+    bit(1 << 2, mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0x57: Test bit in register. */
+void bit_2_a(void)
+{
+    bit(1 << 2, g_cpu.reg.a);
+}
+
+/* 0x58: Test bit in register. */
+void bit_3_b(void)
+{
+    bit(1 << 3, g_cpu.reg.b);
+}
+
+/* 0x59: Test bit in register. */
+void bit_3_c(void)
+{
+    bit(1 << 3, g_cpu.reg.c);
+}
+
+/* 0x5a: Test bit in register. */
+void bit_3_d(void)
+{
+    bit(1 << 3, g_cpu.reg.d);
+}
+
+/* 0x5b: Test bit in register. */
+void bit_3_e(void)
+{
+    bit(1 << 3, g_cpu.reg.e);
+}
+
+/* 0x5c: Test bit in register. */
+void bit_3_h(void)
+{
+    bit(1 << 3, g_cpu.reg.h);
+}
+
+/* 0x5d: Test bit in register. */
+void bit_3_l(void)
+{
+    bit(1 << 3, g_cpu.reg.l);
+}
+
+/* 0x5e: Test bit in register. */
+void bit_3_hlp(void)
+{
+    bit(1 << 3, mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0x5f: Test bit in register. */
+void bit_3_a(void)
+{
+    bit(1 << 3, g_cpu.reg.a);
+
+}
+
+/* 0x60: Test bit in register. */
+void bit_4_b(void)
+{
+    bit(1 << 4, g_cpu.reg.b);
+}
+
+/* 0x61: Test bit in register. */
+void bit_4_c(void)
+{
+    bit(1 << 4, g_cpu.reg.c);
+}
+
+/* 0x62: Test bit in register. */
+void bit_4_d(void)
+{
+    bit(1 << 4, g_cpu.reg.d);
+}
+
+/* 0x63: Test bit in register. */
+void bit_4_e(void)
+{
+    bit(1 << 4, g_cpu.reg.e);
+}
+
+/* 0x64: Test bit in register. */
+void bit_4_h(void)
+{
+    bit(1 << 4, g_cpu.reg.h);
+}
+
+/* 0x65: Test bit in register. */
+void bit_4_l(void)
+{
+    bit(1 << 4, g_cpu.reg.l);
+}
+
+/* 0x66: Test bit in register. */
+void bit_4_hlp(void)
+{
+    bit(1 << 4, mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0x67: Test bit in register. */
+void bit_4_a(void)
+{
+    bit(1 << 4, g_cpu.reg.a);
+}
+
+/* 0x68: Test bit in register. */
+void bit_5_b(void)
+{
+    bit(1 << 5, g_cpu.reg.b);
+}
+
+/* 0x69: Test bit in register. */
+void bit_5_c(void)
+{
+    bit(1 << 5, g_cpu.reg.c);
+}
+
+/* 0x6a: Test bit in register. */
+void bit_5_d(void)
+{
+    bit(1 << 5, g_cpu.reg.d);
+}
+
+/* 0x6b: Test bit in register. */
+void bit_5_e(void)
+{
+    bit(1 << 5, g_cpu.reg.e);
+}
+
+/* 0x6c: Test bit in register. */
+void bit_5_h(void)
+{
+    bit(1 << 5, g_cpu.reg.h);
+}
+
+/* 0x6d: Test bit in register. */
+void bit_5_l(void)
+{
+    bit(1 << 5, g_cpu.reg.l);
+}
+
+/* 0x6e: Test bit in register. */
+void bit_5_hlp(void)
+{
+    bit(1 << 5, mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0x6f: Test bit in register. */
+void bit_5_a(void)
+{
+    bit(1 << 5, g_cpu.reg.a);
+}
+
+/* 0x70: Test bit in register. */
+void bit_6_b(void)
+{
+    bit(1 << 6, g_cpu.reg.b);
+}
+
+/* 0x71: Test bit in register. */
+void bit_6_c(void)
+{
+    bit(1 << 6, g_cpu.reg.c);
+}
+
+/* 0x72: Test bit in register. */
+void bit_6_d(void)
+{
+    bit(1 << 6, g_cpu.reg.d);
+}
+
+/* 0x73: Test bit in register. */
+void bit_6_e(void)
+{
+    bit(1 << 6, g_cpu.reg.e);
+}
+
+/* 0x74: Test bit in register. */
+void bit_6_h(void)
+{
+    bit(1 << 6, g_cpu.reg.h);
+}
+
+/* 0x75: Test bit in register. */
+void bit_6_l(void)
+{
+    bit(1 << 6, g_cpu.reg.l);
+}
+
+/* 0x76: Test bit in register. */
+void bit_6_hlp(void)
+{
+    bit(1 << 6, mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0x77: Test bit in register. */
+void bit_6_a(void)
+{
+    bit(1 << 6, g_cpu.reg.a);
+}
+
+/* 0x78: Test bit in register. */
+void bit_7_b(void)
+{
+    bit(1 << 7, g_cpu.reg.b);
+}
+
+/* 0x79: Test bit in register. */
+void bit_7_c(void)
+{
+    bit(1 << 7, g_cpu.reg.c);
+}
+
+/* 0x7a: Test bit in register. */
+void bit_7_d(void)
+{
+    bit(1 << 7, g_cpu.reg.d);
+}
+
+/* 0x7b: Test bit in register. */
+void bit_7_e(void)
+{
+    bit(1 << 7, g_cpu.reg.e);
+}
+
+/* 0x7c: Test bit in register. */
+void bit_7_h(void)
+{
+    bit(1 << 7, g_cpu.reg.h);
+}
+
+/* 0x7d: Test bit in register. */
+void bit_7_l(void)
+{
+    bit(1 << 7, g_cpu.reg.l);
+}
+
+/* 0x7e: Test bit in register. */
+void bit_7_hlp(void)
+{
+    bit(1 << 7, mmu_read_byte(g_cpu.reg.hl));
+}
+
+/* 0x7f: Test bit in register. */
+void bit_7_a(void)
+{
+    bit(1 << 7, g_cpu.reg.a);
 }

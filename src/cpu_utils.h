@@ -11,5 +11,6 @@ uint8_t sla(uint8_t value);
 uint8_t sra(uint8_t value);
 uint8_t swap(uint8_t value);
 uint8_t srl(uint8_t value);
+void bit(uint8_t bit, uint8_t value);
 
 #endif /* __CPU_UTILS_H__ */
