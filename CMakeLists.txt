@@ -11,6 +11,7 @@ set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=c11 -O2 -DDEBUG -g")
 #set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=c11 -g")
 #set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=c11 -pg")
 include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(SYSTEM "/usr/include/freetype2")
 
 #-------------------
 # Module source
@@ -22,10 +23,10 @@ add_library(libgusgb SHARED
     src/mmu.c
     src/cpu_opcodes.c
     src/cpu.c
-    src/game_boy.c
     )
 target_link_libraries(libgusgb m)
 
 add_executable(${PROJECT_NAME}
+    src/game_boy.c
     src/main.c)
-target_link_libraries(${PROJECT_NAME} libgusgb m)
+target_link_libraries(${PROJECT_NAME} libgusgb GL glfw ftgl)

@@ -1,8 +1,10 @@
 #ifndef __GAME_BOY_H__
 #define __GAME_BOY_H__
 
-int game_boy_init(const char *rom_path);
+#include <stdbool.h>
 
-void game_boy_main();
+int gb_init(const char *rom_path, int width, int height, bool debug);
+void gb_finish(void);
+void gb_main(void);
 
 #endif /* __GAME_BOY_H__ */
