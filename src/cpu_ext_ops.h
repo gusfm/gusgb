@@ -46,5 +46,13 @@ void sla_h(void);
 void sla_l(void);
 void sla_hlp(void);
 void sla_a(void);
+void sra_b(void);
+void sra_c(void);
+void sra_d(void);
+void sra_e(void);
+void sra_h(void);
+void sra_l(void);
+void sra_hlp(void);
+void sra_a(void);
 
 #endif /* __CPU_EXT_OPS_H__ */

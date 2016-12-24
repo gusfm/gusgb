@@ -100,3 +100,21 @@ uint8_t sla(uint8_t value)
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
+
+/* Shift value right into Carry flag. */
+uint8_t sra(uint8_t value)
+{
+    if (value & 0x01) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    value = (value & 0x80) | (value >> 1);
+    if (value == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    FLAG_CLEAR(FLAG_N | FLAG_H);
+    return value;
+}

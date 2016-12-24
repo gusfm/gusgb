@@ -51,7 +51,6 @@ const ext_instruction_t g_ext_instr[256] = {
     {"SLA L", sla_l},            // 0x25
     {"SLA (HL)", sla_hlp},       // 0x26
     {"SLA A", sla_a},            // 0x27
-#if 0
     {"SRA B", sra_b},            // 0x28
     {"SRA C", sra_c},            // 0x29
     {"SRA D", sra_d},            // 0x2a
@@ -60,6 +59,7 @@ const ext_instruction_t g_ext_instr[256] = {
     {"SRA L", sra_l},            // 0x2d
     {"SRA (HL)", sra_hlp},       // 0x2e
     {"SRA A", sra_a},            // 0x2f
+#if 0
     {"SWAP B", swap_b},          // 0x30
     {"SWAP C", swap_c},          // 0x31
     {"SWAP D", swap_d},          // 0x32
@@ -540,4 +540,53 @@ void sla_hlp(void)
 void sla_a(void)
 {
     g_cpu.reg.a = sla(g_cpu.reg.a);
+}
+
+/* 0x28: Shift B right into Carry flag. */
+void sra_b(void)
+{
+    g_cpu.reg.b = sra(g_cpu.reg.b);
+}
+
+/* 0x29: Shift C right into Carry flag. */
+void sra_c(void)
+{
+    g_cpu.reg.c = sra(g_cpu.reg.c);
+}
+
+/* 0x2a: Shift D right into Carry flag. */
+void sra_d(void)
+{
+    g_cpu.reg.d = sra(g_cpu.reg.d);
+}
+
+/* 0x2b: Shift E right into Carry flag. */
+void sra_e(void)
+{
+    g_cpu.reg.e = sra(g_cpu.reg.e);
+}
+
+/* 0x2c: Shift H right into Carry flag. */
+void sra_h(void)
+{
+    g_cpu.reg.h = sra(g_cpu.reg.h);
+}
+
+/* 0x2d: Shift L right into Carry flag. */
+void sra_l(void)
+{
+    g_cpu.reg.l = sra(g_cpu.reg.l);
+}
+
+/* 0x2e: Shift (HL) right into Carry flag. */
+void sra_hlp(void)
+{
+    uint8_t val = sra(mmu_read_byte(g_cpu.reg.hl));
+    mmu_write_byte(g_cpu.reg.hl, val);
+}
+
+/* 0x2f: Shift A right into Carry flag. */
+void sra_a(void)
+{
+    g_cpu.reg.a = sra(g_cpu.reg.a);
 }
