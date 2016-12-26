@@ -1,6 +1,8 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#include <stdio.h>
+
 #ifdef DEBUG
 #define PRINTD(format, ...) printf(format, ##__VA_ARGS__)
 #else

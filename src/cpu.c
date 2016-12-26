@@ -316,13 +316,13 @@ void cpu_debug_instr(char *str, size_t size)
     const char *asm2 = g_instr[opcode].asm2 ? g_instr[opcode].asm2 : "";
 
     if (oper_length == 0) {
-        snprintf(str, size, "0x%02x: %s", opcode, asm1);
+        snprintf(str, size, "Last instr: 0x%02x: %s", opcode, asm1);
     } else if (oper_length == 1) {
         uint8_t operand = g_cpu.last_operand;
-        snprintf(str, size, "0x%02x: %s%02x%s", opcode, asm1, operand, asm2);
+        snprintf(str, size, "Last instr: 0x%02x: %s%02x%s", opcode, asm1, operand, asm2);
     } else {
         uint16_t operand = g_cpu.last_operand;
-        snprintf(str, size, "0x%02x: %s%04x%s", opcode, asm1, operand, asm2);
+        snprintf(str, size, "Last instr: 0x%02x: %s%04x%s", opcode, asm1, operand, asm2);
     }
 }
 
