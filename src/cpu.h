@@ -93,13 +93,15 @@ typedef struct {
     registers_t reg;
     uint32_t ticks;
     uint32_t cycle;
+    uint16_t last_pc;
 } cpu_t;
 
 int cpu_init(const char *rom_path);
 void cpu_emulate_cycle(void);
 cpu_t *cpu_get_instance(void);
 void cpu_debug_flags(char *str, size_t size);
-void cpu_debug_instr(char *str, size_t size);
+void cpu_debug_last_instr(char *str, size_t size);
+void cpu_debug_next_instr(char *str, size_t size);
 void cpu_debug_cycles(char *str, size_t size);
 
 #endif /* __CPU_H__ */

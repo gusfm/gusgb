@@ -18,6 +18,7 @@ typedef struct {
     cpu_t *cpu;
     bool debug;
     char debug_flags[100];
+    char debug_last_instr[100];
     char debug_next_instr[100];
     char debug_cycles[100];
 } game_boy_t;
@@ -33,7 +34,9 @@ static void gb_error_callback(int error, const char *description)
 static void gb_update_debugs(void)
 {
     cpu_debug_flags(game_boy.debug_flags, sizeof(game_boy.debug_flags));
-    cpu_debug_instr(game_boy.debug_next_instr,
+    cpu_debug_last_instr(game_boy.debug_last_instr,
+                    sizeof(game_boy.debug_last_instr));
+    cpu_debug_next_instr(game_boy.debug_next_instr,
                     sizeof(game_boy.debug_next_instr));
     cpu_debug_cycles(game_boy.debug_cycles, sizeof(game_boy.debug_cycles));
 }
@@ -124,6 +127,11 @@ static void gb_render_debug(void)
     ftglRenderFont(game_boy.font_debug, game_boy.debug_flags, FTGL_RENDER_ALL);
     debug_y += DEBUG_FONT_SIZE;
     /* Current instruction. */
+    glRasterPos2f(debug_x, debug_y);
+    ftglRenderFont(game_boy.font_debug, game_boy.debug_last_instr,
+                   FTGL_RENDER_ALL);
+    debug_y += DEBUG_FONT_SIZE;
+    /* Next instruction. */
     glRasterPos2f(debug_x, debug_y);
     ftglRenderFont(game_boy.font_debug, game_boy.debug_next_instr,
                    FTGL_RENDER_ALL);

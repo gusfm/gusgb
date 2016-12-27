@@ -313,26 +313,35 @@ void cpu_debug_flags(char *str, size_t size)
     snprintf(str, size, "FLAGS:%s%s%s%s", fc, fh, fn, fz);
 }
 
-void cpu_debug_instr(char *str, size_t size)
+static void cpu_debug_instr(uint16_t pc, char *str, size_t size)
 {
     /* Get next opcode. */
-    uint16_t pctmp = g_cpu.reg.pc;
-    uint8_t opcode = mmu_read_byte(pctmp++);
+    uint8_t opcode = mmu_read_byte(pc++);
     uint8_t oper_length = g_instr[opcode].operand_length;
     const char *asm1 = g_instr[opcode].asm1;
     const char *asm2 = g_instr[opcode].asm2 ? g_instr[opcode].asm2 : "";
 
     if (oper_length == 0) {
-        snprintf(str, size, "Next instr: 0x%02x: %s", opcode, asm1);
+        snprintf(str, size, "0x%02x: %s", opcode, asm1);
     } else if (oper_length == 1) {
-        uint8_t operand = mmu_read_byte(pctmp);
-        snprintf(str, size, "Next instr: 0x%02x: %s%02x%s", opcode, asm1,
-                 operand, asm2);
+        uint8_t operand = mmu_read_byte(pc);
+        snprintf(str, size, "0x%02x: %s%02x%s", opcode, asm1, operand, asm2);
     } else {
-        uint16_t operand = mmu_read_word(pctmp);
-        snprintf(str, size, "Next instr: 0x%02x: %s%04x%s", opcode, asm1,
-                 operand, asm2);
+        uint16_t operand = mmu_read_word(pc);
+        snprintf(str, size, "0x%02x: %s%04x%s", opcode, asm1, operand, asm2);
     }
+}
+
+void cpu_debug_last_instr(char *str, size_t size)
+{
+    snprintf(str, size, "Last: ");
+    cpu_debug_instr(g_cpu.last_pc, str + strlen(str), size);
+}
+
+void cpu_debug_next_instr(char *str, size_t size)
+{
+    snprintf(str, size, "Next: ");
+    cpu_debug_instr(g_cpu.reg.pc, str + strlen(str), size);
 }
 
 void cpu_debug_cycles(char *str, size_t size)
@@ -348,7 +357,9 @@ int cpu_init(const char *rom_path)
 
 static uint8_t cpu_fetch_opcode(void)
 {
-    return mmu_read_byte(g_cpu.reg.pc++);
+    uint8_t op = mmu_read_byte(g_cpu.reg.pc);
+    g_cpu.last_pc = g_cpu.reg.pc++;
+    return op;
 }
 
 static void cpu_decode_opcode(uint8_t opcode)
@@ -369,6 +380,7 @@ static void cpu_decode_opcode(uint8_t opcode)
         fprintf(stderr, "ERROR: invalid operand length!\n");
         exit(EXIT_FAILURE);
     }
+
     g_cpu.cycle++;
 }
 
