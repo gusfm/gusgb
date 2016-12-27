@@ -17,6 +17,10 @@ typedef struct {
     GLFWwindow *window;
     cpu_t *cpu;
     bool debug;
+    uint16_t breakpoint;
+    char debug_flags[100];
+    char debug_next_instr[100];
+    char debug_cycles[100];
 } game_boy_t;
 
 static game_boy_t game_boy;
@@ -24,6 +28,19 @@ static game_boy_t game_boy;
 static void gb_error_callback(int error, const char *description)
 {
     fputs(description, stderr);
+}
+
+static void gb_update_debugs(void)
+{
+    cpu_debug_flags(game_boy.debug_flags, sizeof(game_boy.debug_flags));
+    cpu_debug_instr(game_boy.debug_next_instr, sizeof(game_boy.debug_next_instr));
+    cpu_debug_cycles(game_boy.debug_cycles, sizeof(game_boy.debug_cycles));
+}
+
+static void gb_tick(void)
+{
+    cpu_emulate_cycle();
+    gb_update_debugs();
 }
 
 static void gb_key_callback(GLFWwindow *window, int key, int scancode,
@@ -37,8 +54,9 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
             break;
 
         case GLFW_KEY_N:
-            if (game_boy.debug == true && action == GLFW_PRESS)
-                cpu_emulate_cycle();
+            if (game_boy.debug == true && action == GLFW_PRESS) {
+                gb_tick();
+            }
             break;
 
         default:
@@ -95,19 +113,16 @@ void gb_render_debug(void)
     ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
     debug_y += DEBUG_FONT_SIZE;
     /* Flags. */
-    cpu_debug_flags(str, sizeof(str));
     glRasterPos2f(debug_x, debug_y);
-    ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
+    ftglRenderFont(game_boy.font_debug, game_boy.debug_flags, FTGL_RENDER_ALL);
     debug_y += DEBUG_FONT_SIZE;
     /* Current instruction. */
-    cpu_debug_instr(str, sizeof(str));
     glRasterPos2f(debug_x, debug_y);
-    ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
+    ftglRenderFont(game_boy.font_debug, game_boy.debug_next_instr, FTGL_RENDER_ALL);
     debug_y += DEBUG_FONT_SIZE;
     /* Print cycle count. */
-    cpu_debug_cycles(str, sizeof(str));
     glRasterPos2f(debug_x, debug_y);
-    ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
+    ftglRenderFont(game_boy.font_debug, game_boy.debug_cycles, FTGL_RENDER_ALL);
 }
 
 static void gb_render_info()
@@ -177,11 +192,12 @@ static GLFWwindow *gb_create_window(const char *name)
     return window;
 }
 
-int gb_init(const char *rom_path, int width, int height, bool debug)
+int gb_init(int width, int height, const char *rom_path, bool debug, uint16_t breakpoint)
 {
     game_boy.width = width;
     game_boy.height = height;
-    game_boy.debug = debug;
+    game_boy.debug = breakpoint == 0 ? debug : true;
+    game_boy.breakpoint = breakpoint;
     /* Create window. */
     game_boy.window = gb_create_window("gusgb");
     if (game_boy.window == NULL) {
@@ -213,13 +229,15 @@ int gb_init(const char *rom_path, int width, int height, bool debug)
         return -1;
     }
     game_boy.cpu = cpu_get_instance();
+    gb_update_debugs();
     return 0;
 }
 
 static void gb_process(void)
 {
-    if (game_boy.debug == false)
-        cpu_emulate_cycle();
+    if (game_boy.debug == false || game_boy.cpu->reg.pc < game_boy.breakpoint) {
+        gb_tick();
+    }
 }
 
 void gb_main(void)

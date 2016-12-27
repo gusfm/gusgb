@@ -92,8 +92,6 @@ typedef struct {
 typedef struct {
     registers_t reg;
     uint32_t ticks;
-    uint8_t last_opcode;
-    uint16_t last_operand;
     uint32_t cycle;
 } cpu_t;
 
