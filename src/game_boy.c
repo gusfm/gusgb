@@ -17,7 +17,6 @@ typedef struct {
     GLFWwindow *window;
     cpu_t *cpu;
     bool debug;
-    uint16_t breakpoint;
     char debug_flags[100];
     char debug_next_instr[100];
     char debug_cycles[100];
@@ -197,7 +196,6 @@ int gb_init(int width, int height, const char *rom_path, bool debug, uint16_t br
     game_boy.width = width;
     game_boy.height = height;
     game_boy.debug = breakpoint == 0 ? debug : true;
-    game_boy.breakpoint = breakpoint;
     /* Create window. */
     game_boy.window = gb_create_window("gusgb");
     if (game_boy.window == NULL) {
@@ -229,13 +227,17 @@ int gb_init(int width, int height, const char *rom_path, bool debug, uint16_t br
         return -1;
     }
     game_boy.cpu = cpu_get_instance();
+    /* Execute until breakpoint. */
+    while (game_boy.cpu->reg.pc < breakpoint) {
+        cpu_emulate_cycle();
+    }
     gb_update_debugs();
     return 0;
 }
 
 static void gb_process(void)
 {
-    if (game_boy.debug == false || game_boy.cpu->reg.pc < game_boy.breakpoint) {
+    if (game_boy.debug == false) {
         gb_tick();
     }
 }
