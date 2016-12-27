@@ -12,7 +12,6 @@ void rlc_e(void);
 void rlc_h(void);
 void rlc_l(void);
 void rlc_hlp(void);
-void rlc_l(void);
 void rlc_a(void);
 void rrc_b(void);
 void rrc_c(void);

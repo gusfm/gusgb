@@ -12,8 +12,8 @@ uint8_t rlc(uint8_t value)
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    value <<= 1;
-    value += carry;
+    value = (uint8_t)(value << 1);
+    value = (uint8_t)(value + carry);
     if (value == 0) {
         FLAG_SET(FLAG_Z);
     } else {
@@ -46,13 +46,13 @@ uint8_t rrc(uint8_t value)
 /* Rotate value left through Carry flag. */
 uint8_t rl(uint8_t value)
 {
-    uint8_t old_carry = (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t old_carry = (uint8_t)(FLAG_IS_SET(FLAG_C) >> 4);
     if (value & 0x80) {
         FLAG_SET(FLAG_C);
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    value <<= 1;
+    value = (uint8_t)(value << 1);
     value |= old_carry;
     if (value == 0) {
         FLAG_SET(FLAG_Z);
@@ -66,7 +66,7 @@ uint8_t rl(uint8_t value)
 /* Rotate value right through Carry flag. */
 uint8_t rr(uint8_t value)
 {
-    uint8_t old_carry = (FLAG_IS_SET(FLAG_C) << 3);
+    uint8_t old_carry = (uint8_t)(FLAG_IS_SET(FLAG_C) << 3);
     if (value & 0x01) {
         FLAG_SET(FLAG_C);
     } else {
@@ -91,7 +91,7 @@ uint8_t sla(uint8_t value)
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    value <<= 1;
+    value = (uint8_t)(value << 1);
     if (value == 0) {
         FLAG_SET(FLAG_Z);
     } else {
@@ -109,7 +109,7 @@ uint8_t sra(uint8_t value)
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    value = (value & 0x80) | (value >> 1);
+    value = (uint8_t)((value & 0x80) | (value >> 1));
     if (value == 0) {
         FLAG_SET(FLAG_Z);
     } else {
@@ -121,7 +121,7 @@ uint8_t sra(uint8_t value)
 
 uint8_t swap(uint8_t value)
 {
-    value = ((value & 0x0f) << 4) | ((value & 0xf0) >> 4);
+    value = (uint8_t)(((value & 0x0f) << 4) | ((value & 0xf0) >> 4));
     if (value == 0) {
         FLAG_SET(FLAG_Z);
     } else {
@@ -162,10 +162,10 @@ void bit(uint8_t bit, uint8_t value)
 
 uint8_t res(uint8_t bit, uint8_t value)
 {
-    return value & ~bit;
+    return (uint8_t)(value & ~bit);
 }
 
 uint8_t set(uint8_t bit, uint8_t value)
 {
-    return value | bit;
+    return (uint8_t)(value | bit);
 }

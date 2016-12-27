@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include "cpu.h"
 #include "cpu_utils.h"
-#include "mmu.h"
 #include "interrupt.h"
+#include "mmu.h"
 
 extern cpu_t g_cpu;
 
@@ -19,7 +19,7 @@ extern cpu_t g_cpu;
  * H - Set if carry from bit 3.
  * C - Not affected.
  */
-uint8_t inc_n(uint8_t value)
+static uint8_t inc_n(uint8_t value)
 {
     if ((value & 0x0f) == 0x0f) {
         FLAG_SET(FLAG_H);
@@ -45,7 +45,7 @@ uint8_t inc_n(uint8_t value)
  * H - Set if no borrow from bit 4.
  * C - Not affected.
  */
-uint8_t dec_n(uint8_t value)
+static uint8_t dec_n(uint8_t value)
 {
     if (value & 0x0f) {
         FLAG_CLEAR(FLAG_H);
@@ -70,9 +70,9 @@ uint8_t dec_n(uint8_t value)
  * H - Set if carry from bit 3.
  * C - Set if carry from bit 7.
  */
-uint16_t add8(uint8_t val1, uint8_t val2)
+static uint8_t add8(uint8_t val1, uint8_t val2)
 {
-    uint32_t result = val1 + val2;
+    uint32_t result = (uint32_t)(val1 + val2);
     FLAG_CLEAR(FLAG_N);
     if (((val1 & 0x0f) + (val2 & 0x0f)) > 0x0f) {
         FLAG_SET(FLAG_H);
@@ -89,7 +89,7 @@ uint16_t add8(uint8_t val1, uint8_t val2)
     } else {
         FLAG_CLEAR(FLAG_Z);
     }
-    return (uint16_t)(result & 0xff);
+    return (uint8_t)(result & 0xff);
 }
 
 /**
@@ -100,9 +100,9 @@ uint16_t add8(uint8_t val1, uint8_t val2)
  * H - Set if carry from bit 11.
  * C - Set if carry from bit 15.
  */
-uint16_t add16(uint16_t val1, uint16_t val2)
+static uint16_t add16(uint16_t val1, uint16_t val2)
 {
-    uint32_t result = val1 + val2;
+    uint32_t result = (uint32_t)(val1 + val2);
     FLAG_CLEAR(FLAG_N);
     if (((val1 & 0x0fff) + (val2 & 0x0fff)) > 0x0fff) {
         FLAG_SET(FLAG_H);
@@ -126,7 +126,7 @@ uint16_t add16(uint16_t val1, uint16_t val2)
  * H - Set if no borrow from bit 4.
  * C - Set if no borrow.
  */
-void sub(uint8_t val)
+static void sub(uint8_t val)
 {
     FLAG_SET(FLAG_N);
     if (((val & 0x0f) > (g_cpu.reg.a & 0x0f))) {
@@ -139,7 +139,7 @@ void sub(uint8_t val)
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    g_cpu.reg.a -= val;
+    g_cpu.reg.a = (uint8_t)(g_cpu.reg.a - val);
     if (g_cpu.reg.a == 0) {
         FLAG_SET(FLAG_Z);
     } else {
@@ -155,7 +155,7 @@ void sub(uint8_t val)
  * H - Set.
  * C - Reset.
  */
-void and(uint8_t val)
+static void and8(uint8_t val)
 {
     g_cpu.reg.a &= val;
     if (g_cpu.reg.a == 0) {
@@ -175,7 +175,7 @@ void and(uint8_t val)
  * H - Reset.
  * C - Reset.
  */
-void xor(uint8_t val)
+static void xor8(uint8_t val)
 {
     g_cpu.reg.a ^= val;
     if (g_cpu.reg.a == 0) {
@@ -194,7 +194,7 @@ void xor(uint8_t val)
  * H - Reset.
  * C - Reset.
  */
-void or(uint8_t val)
+static void or8(uint8_t val)
 {
     g_cpu.reg.a |= val;
     if (g_cpu.reg.a == 0) {
@@ -213,9 +213,9 @@ void or(uint8_t val)
  * H - Set if no borrow from bit 4.
  * C - Set for no borrow. (Set if A < n.)
  */
-void cp(uint8_t val)
+static void cp(uint8_t val)
 {
-    uint16_t result = g_cpu.reg.a - val;
+    uint16_t result = (uint16_t)(g_cpu.reg.a - val);
     if (result == 0) {
         FLAG_SET(FLAG_Z);
     } else {
@@ -235,22 +235,22 @@ void cp(uint8_t val)
 }
 
 /* Push to stack. */
-void push(uint16_t val)
+static void push(uint16_t val)
 {
-    g_cpu.reg.sp -= 2;
+    g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp - 2);
     mmu_write_word(g_cpu.reg.sp, val);
 }
 
 /* Pop from stack. */
-uint16_t pop()
+static uint16_t pop(void)
 {
     uint16_t val = mmu_read_word(g_cpu.reg.sp);
-    g_cpu.reg.sp += 2;
+    g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp + 2);
     return val;
 }
 
 /* Function for undefined instructions. */
-void undefined()
+void undefined(void)
 {
     g_cpu.reg.pc--;
     uint8_t opcode = mmu_read_byte(g_cpu.reg.pc);
@@ -261,7 +261,7 @@ void undefined()
 /*************** Opcodes implementaion. ***************/
 
 /* 0x00: No operation. */
-void nop()
+void nop(void)
 {
 }
 
@@ -407,7 +407,7 @@ void rla(void)
 /* 0x18: Relative jump by signed immediate. */
 void jr_n(uint8_t val)
 {
-    g_cpu.reg.pc += (int8_t)val;
+    g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
 }
 
 /* 0x19: Add 16-bit DE to HL. */
@@ -449,7 +449,7 @@ void ld_e_n(uint8_t val)
 /* 0x1f: Rotate A right through Carry flag. */
 void rra(void)
 {
-    uint8_t old_carry = (FLAG_IS_SET(FLAG_C) << 3);
+    uint8_t old_carry = (uint8_t)(FLAG_IS_SET(FLAG_C) << 3);
     if (g_cpu.reg.a & 0x01) {
         FLAG_SET(FLAG_C);
     } else {
@@ -466,7 +466,7 @@ void jr_nz_n(uint8_t val)
     if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.ticks += 8;
     } else {
-        g_cpu.reg.pc += (int8_t)val;
+        g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
         g_cpu.ticks += 12;
     }
 }
@@ -510,22 +510,21 @@ void ld_h_n(uint8_t val)
 /* 0x27: Adjust A for BCD addition. */
 void daa(void)
 {
-    /* TODO: Code copyied from Cinoop. Check if this is correct. */
     uint16_t s = g_cpu.reg.a;
 
     if (FLAG_IS_SET(FLAG_N)) {
         if (FLAG_IS_SET(FLAG_H))
             s = (s - 0x06) & 0xFF;
         if (FLAG_IS_SET(FLAG_C))
-            s -= 0x60;
+            s = (uint16_t)(s - 0x60);
     } else {
         if (FLAG_IS_SET(FLAG_H) || (s & 0xF) > 9)
-            s += 0x06;
+            s = (uint16_t)(s + 0x06);
         if (FLAG_IS_SET(FLAG_C) || s > 0x9F)
-            s += 0x60;
+            s = (uint16_t)(s + 0x60);
     }
 
-    g_cpu.reg.a = s;
+    g_cpu.reg.a = (uint8_t)s;
     FLAG_CLEAR(FLAG_H);
 
     if (g_cpu.reg.a)
@@ -541,7 +540,7 @@ void daa(void)
 void jr_z_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.reg.pc += (int8_t)val;
+        g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
         g_cpu.ticks += 12;
     } else {
         g_cpu.ticks += 8;
@@ -587,7 +586,7 @@ void ld_l_n(uint8_t val)
 /* 0x2f: Complement A register. */
 void cpl(void)
 {
-    g_cpu.reg.a = ~g_cpu.reg.a;
+    g_cpu.reg.a = (uint8_t)(~g_cpu.reg.a);
     FLAG_SET(FLAG_N | FLAG_H);
 }
 
@@ -597,7 +596,7 @@ void jr_nc_n(uint8_t val)
     if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.ticks += 8;
     } else {
-        g_cpu.reg.pc += (int8_t)val;
+        g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
         g_cpu.ticks += 12;
     }
 }
@@ -651,7 +650,7 @@ void scf(void)
 void jr_c_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        g_cpu.reg.pc += (int8_t)val;
+        g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
         g_cpu.ticks += 12;
     } else {
         g_cpu.ticks += 8;
@@ -702,31 +701,31 @@ void ccf(void)
 }
 
 /* 0x41: Copy C to B. */
-void ld_b_c(uint8_t val)
+void ld_b_c(void)
 {
     g_cpu.reg.b = g_cpu.reg.c;
 }
 
 /* 0x42: Copy D to B. */
-void ld_b_d(uint8_t val)
+void ld_b_d(void)
 {
     g_cpu.reg.b = g_cpu.reg.d;
 }
 
 /* 0x43: Copy E to B. */
-void ld_b_e(uint8_t val)
+void ld_b_e(void)
 {
     g_cpu.reg.b = g_cpu.reg.e;
 }
 
 /* 0x44: Copy H to B. */
-void ld_b_h(uint8_t val)
+void ld_b_h(void)
 {
     g_cpu.reg.b = g_cpu.reg.h;
 }
 
 /* 0x45: Copy L to B. */
-void ld_b_l(uint8_t val)
+void ld_b_l(void)
 {
     g_cpu.reg.b = g_cpu.reg.l;
 }
@@ -1095,56 +1094,57 @@ void add_a_a(void)
 /* 0x88: Add B and carry flag to A. */
 void adc_b(void)
 {
-    uint8_t val = g_cpu.reg.b + (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t val = (uint8_t)(g_cpu.reg.b + (FLAG_IS_SET(FLAG_C) >> 4));
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0x89: Add C and carry flag to A. */
 void adc_c(void)
 {
-    uint8_t val = g_cpu.reg.c + (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t val = (uint8_t)(g_cpu.reg.c + (FLAG_IS_SET(FLAG_C) >> 4));
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0x8a: Add D and carry flag to A. */
 void adc_d(void)
 {
-    uint8_t val = g_cpu.reg.d + (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t val = (uint8_t)(g_cpu.reg.d + (FLAG_IS_SET(FLAG_C) >> 4));
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0x8b: Add E and carry flag to A. */
 void adc_e(void)
 {
-    uint8_t val = g_cpu.reg.e + (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t val = (uint8_t)(g_cpu.reg.e + (FLAG_IS_SET(FLAG_C) >> 4));
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0x8c: Add H and carry flag to A. */
 void adc_h(void)
 {
-    uint8_t val = g_cpu.reg.h + (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t val = (uint8_t)(g_cpu.reg.h + (FLAG_IS_SET(FLAG_C) >> 4));
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0x8d: Add L and carry flag to A. */
 void adc_l(void)
 {
-    uint8_t val = g_cpu.reg.l + (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t val = (uint8_t)(g_cpu.reg.l + (FLAG_IS_SET(FLAG_C) >> 4));
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0x8e: Add (HL) and carry flag to A. */
 void adc_hlp(void)
 {
-    uint8_t val = mmu_read_byte(g_cpu.reg.hl) + (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t val =
+        (uint8_t)(mmu_read_byte(g_cpu.reg.hl) + (FLAG_IS_SET(FLAG_C) >> 4));
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
 /* 0x8f: Add A and carry flag to A. */
 void adc_a(void)
 {
-    uint8_t val = g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t val = (uint8_t)(g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4));
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
@@ -1199,193 +1199,193 @@ void sub_a(void)
 /* 0x98: Subtract B and carry flag from A. */
 void sbc_b(void)
 {
-    sub(g_cpu.reg.b + (FLAG_IS_SET(FLAG_C) >> 4));
+    sub((uint8_t)(g_cpu.reg.b + (FLAG_IS_SET(FLAG_C) >> 4)));
 }
 
 /* 0x99: Subtract C and carry flag from A. */
 void sbc_c(void)
 {
-    sub(g_cpu.reg.c + (FLAG_IS_SET(FLAG_C) >> 4));
+    sub((uint8_t)(g_cpu.reg.c + (FLAG_IS_SET(FLAG_C) >> 4)));
 }
 
 /* 0x9a: Subtract D and carry flag from A. */
 void sbc_d(void)
 {
-    sub(g_cpu.reg.d + (FLAG_IS_SET(FLAG_C) >> 4));
+    sub((uint8_t)(g_cpu.reg.d + (FLAG_IS_SET(FLAG_C) >> 4)));
 }
 
 /* 0x9b: Subtract E and carry flag from A. */
 void sbc_e(void)
 {
-    sub(g_cpu.reg.e + (FLAG_IS_SET(FLAG_C) >> 4));
+    sub((uint8_t)(g_cpu.reg.e + (FLAG_IS_SET(FLAG_C) >> 4)));
 }
 
 /* 0x9c: Subtract H and carry flag from A. */
 void sbc_h(void)
 {
-    sub(g_cpu.reg.h + (FLAG_IS_SET(FLAG_C) >> 4));
+    sub((uint8_t)(g_cpu.reg.h + (FLAG_IS_SET(FLAG_C) >> 4)));
 }
 
 /* 0x9d: Subtract L and carry flag from A. */
 void sbc_l(void)
 {
-    sub(g_cpu.reg.l + (FLAG_IS_SET(FLAG_C) >> 4));
+    sub((uint8_t)(g_cpu.reg.l + (FLAG_IS_SET(FLAG_C) >> 4)));
 }
 
 /* 0x9e: Subtract (HL) and carry flag from A. */
 void sbc_hlp(void)
 {
-    sub(mmu_read_byte(g_cpu.reg.hl) + (FLAG_IS_SET(FLAG_C) >> 4));
+    sub((uint8_t)(mmu_read_byte(g_cpu.reg.hl) + (FLAG_IS_SET(FLAG_C) >> 4)));
 }
 
 /* 0x9f: Subtract A and carry flag from A. */
 void sbc_a(void)
 {
-    sub(g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4));
+    sub((uint8_t)(g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4)));
 }
 
 /* 0xa0: Bitwise AND B against A. */
 void and_b(void)
 {
-    and(g_cpu.reg.b);
+    and8(g_cpu.reg.b);
 }
 
 /* 0xa1: Bitwise AND C against A. */
 void and_c(void)
 {
-    and(g_cpu.reg.c);
+    and8(g_cpu.reg.c);
 }
 
 /* 0xa2: Bitwise AND D against A. */
 void and_d(void)
 {
-    and(g_cpu.reg.d);
+    and8(g_cpu.reg.d);
 }
 
 /* 0xa3: Bitwise AND E against A. */
 void and_e(void)
 {
-    and(g_cpu.reg.e);
+    and8(g_cpu.reg.e);
 }
 
 /* 0xa4: Bitwise AND H against A. */
 void and_h(void)
 {
-    and(g_cpu.reg.h);
+    and8(g_cpu.reg.h);
 }
 
 /* 0xa5: Bitwise AND L against A. */
 void and_l(void)
 {
-    and(g_cpu.reg.l);
+    and8(g_cpu.reg.l);
 }
 
 /* 0xa6: Bitwise AND (HL) against A. */
 void and_hlp(void)
 {
-    and(mmu_read_byte(g_cpu.reg.hl));
+    and8(mmu_read_byte(g_cpu.reg.hl));
 }
 
 /* 0xa7: Bitwise AND A against A. */
 void and_a(void)
 {
-    and(g_cpu.reg.a);
+    and8(g_cpu.reg.a);
 }
 
 /* 0xa8: Bitwise XOR B against A. */
 void xor_b(void)
 {
-    xor(g_cpu.reg.b);
+    xor8(g_cpu.reg.b);
 }
 
 /* 0xa9: Bitwise XOR C against A. */
 void xor_c(void)
 {
-    xor(g_cpu.reg.c);
+    xor8(g_cpu.reg.c);
 }
 
 /* 0xaa: Bitwise XOR D against A. */
 void xor_d(void)
 {
-    xor(g_cpu.reg.d);
+    xor8(g_cpu.reg.d);
 }
 
 /* 0xab: Bitwise XOR E against A. */
 void xor_e(void)
 {
-    xor(g_cpu.reg.e);
+    xor8(g_cpu.reg.e);
 }
 
 /* 0xac: Bitwise XOR H against A. */
 void xor_h(void)
 {
-    xor(g_cpu.reg.h);
+    xor8(g_cpu.reg.h);
 }
 
 /* 0xad: Bitwise XOR L against A. */
 void xor_l(void)
 {
-    xor(g_cpu.reg.l);
+    xor8(g_cpu.reg.l);
 }
 
 /* 0xae: Bitwise XOR (HL) against A. */
 void xor_hlp(void)
 {
-    xor(mmu_read_byte(g_cpu.reg.hl));
+    xor8(mmu_read_byte(g_cpu.reg.hl));
 }
 
 /* 0xaf: Bitwise XOR A against A. */
 void xor_a(void)
 {
-    xor(g_cpu.reg.a);
+    xor8(g_cpu.reg.a);
 }
 
 /* 0xb0: Bitwise OR B against A. */
 void or_b(void)
 {
-    or(g_cpu.reg.b);
+    or8(g_cpu.reg.b);
 }
 
 /* 0xb1: Bitwise OR C against A. */
 void or_c(void)
 {
-    or(g_cpu.reg.c);
+    or8(g_cpu.reg.c);
 }
 
 /* 0xb2: Bitwise OR D against A. */
 void or_d(void)
 {
-    or(g_cpu.reg.d);
+    or8(g_cpu.reg.d);
 }
 
 /* 0xb3: Bitwise OR E against A. */
 void or_e(void)
 {
-    or(g_cpu.reg.e);
+    or8(g_cpu.reg.e);
 }
 
 /* 0xb4: Bitwise OR H against A. */
 void or_h(void)
 {
-    or(g_cpu.reg.h);
+    or8(g_cpu.reg.h);
 }
 
 /* 0xb5: Bitwise OR L against A. */
 void or_l(void)
 {
-    or(g_cpu.reg.l);
+    or8(g_cpu.reg.l);
 }
 
 /* 0xb6: Bitwise OR (HL) against A. */
 void or_hlp(void)
 {
-    or(mmu_read_byte(g_cpu.reg.hl));
+    or8(mmu_read_byte(g_cpu.reg.hl));
 }
 
 /* 0xb7: Bitwise OR A against A. */
 void or_a(void)
 {
-    or(g_cpu.reg.a);
+    or8(g_cpu.reg.a);
 }
 
 /* 0xb8: Compare A with B. */
@@ -1551,7 +1551,7 @@ void call_nn(uint16_t addr)
 /* 0xce: Add immediate 8-bit value and carry flag to A. */
 void adc_n(uint8_t n)
 {
-    uint8_t val = n + (FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t val = (uint8_t)(n + (FLAG_IS_SET(FLAG_C) >> 4));
     g_cpu.reg.a = add8(g_cpu.reg.a, val);
 }
 
@@ -1632,7 +1632,8 @@ void ret_c(void)
     }
 }
 
-/* 0xd9: Pop two bytes from stack, jump to that address then enable interrupts. */
+/* 0xd9: Pop two bytes from stack, jump to that address then enable interrupts.
+ */
 void reti(void)
 {
     g_cpu.reg.pc = pop();
@@ -1665,7 +1666,7 @@ void call_c_nn(uint16_t addr)
 /* 0xde: Subtract n and carry flag from A. */
 void sbc_n(uint8_t val)
 {
-    sub(val + (FLAG_IS_SET(FLAG_C) >> 4));
+    sub((uint8_t)(val + (FLAG_IS_SET(FLAG_C) >> 4)));
 }
 
 /* 0xdf: Call routine at address 0x0018. */
@@ -1678,7 +1679,7 @@ void rst_18(void)
 /* 0xe0: Put A into memory address $FF00+n. */
 void ldh_n_a(uint8_t val)
 {
-    uint16_t addr = 0xff00 + val;
+    uint16_t addr = (uint16_t)(0xff00 + val);
     mmu_write_byte(addr, g_cpu.reg.a);
 }
 
@@ -1691,7 +1692,7 @@ void pop_hl(void)
 /* 0xe2: Put A into address $FF00 + register C. */
 void ld_cp_a(void)
 {
-    uint16_t addr = 0xff00 + g_cpu.reg.c;
+    uint16_t addr = (uint16_t)(0xff00 + g_cpu.reg.c);
     mmu_write_byte(addr, g_cpu.reg.a);
 }
 
@@ -1704,7 +1705,7 @@ void push_hl(void)
 /* 0xe6: Bitwise AND n against A. */
 void and_n(uint8_t val)
 {
-    and(val);
+    and8(val);
 }
 
 /* 0xe7: Call routine at address 0x0020. */
@@ -1717,13 +1718,13 @@ void rst_20(void)
 /* 0xe8: Add n to Stack Pointer (SP). */
 void add_sp_n(uint8_t val)
 {
-    int result = g_cpu.reg.sp + val;
+    uint32_t result = (uint32_t)(g_cpu.reg.sp + (int8_t)val);
     if (result & 0xffff0000) {
         FLAG_SET(FLAG_C);
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    g_cpu.reg.sp += result & 0xffff;
+    g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp + (result & 0xffff));
     if (((g_cpu.reg.sp & 0x0f) + (val & 0x0f)) > 0x0f) {
         FLAG_SET(FLAG_H);
     } else {
@@ -1747,7 +1748,7 @@ void ld_nnp_a(uint16_t addr)
 /* 0xee: Bitwise XOR n against A. */
 void xor_n(uint8_t val)
 {
-    xor(val);
+    xor8(val);
 }
 
 /* 0xef: Call routine at address 0x0028. */
@@ -1760,7 +1761,7 @@ void rst_28(void)
 /* 0xf0: Put memory address $FF00+n into A. */
 void ldh_a_n(uint8_t val)
 {
-    uint16_t addr = 0xff00 + val;
+    uint16_t addr = (uint16_t)(0xff00 + val);
     g_cpu.reg.a = mmu_read_byte(addr);
 }
 
@@ -1773,7 +1774,7 @@ void pop_af(void)
 /* 0xf2: Put value at address $FF00 + register C into A. */
 void ld_a_cp(void)
 {
-    uint16_t addr = 0xff00 + g_cpu.reg.c;
+    uint16_t addr = (uint16_t)(0xff00 + g_cpu.reg.c);
     g_cpu.reg.a = mmu_read_byte(addr);
 }
 
@@ -1794,7 +1795,7 @@ void push_af(void)
 /* 0xf6: Bitwise OR n against A. */
 void or_n(uint8_t val)
 {
-    or(val);
+    or8(val);
 }
 
 /* 0xf7: Call routine at address 0x0030. */
@@ -1807,7 +1808,7 @@ void rst_30(void)
 /* 0xf8: Put SP + n effective address into HL. */
 void ldhl_sp_n(uint8_t val)
 {
-    int result = g_cpu.reg.sp + (int8_t)val;
+    uint32_t result = (uint32_t)(g_cpu.reg.sp + (int8_t)val);
     if (result & 0xffff0000) {
         FLAG_SET(FLAG_C);
     } else {

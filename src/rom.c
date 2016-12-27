@@ -75,11 +75,11 @@ static int rom_load_header(FILE *file, size_t file_size)
     char rom_name[17];
     memset(rom_name, '\0', 17);
     for (int i = 0; i < 16; i++) {
-        char c = rom_header[i + ROM_OFFSET_NAME];
+        uint8_t c = rom_header[i + ROM_OFFSET_NAME];
         if (c == 0x80 || c == 0xc0)
             rom_name[i] = '\0';
         else
-            rom_name[i] = c;
+            rom_name[i] = (char)c;
     }
     printf("Internal ROM name: %s\n", rom_name);
     /* Get ROM type. */
@@ -95,11 +95,11 @@ static int rom_load_header(FILE *file, size_t file_size)
         return -1;
     }
     /* Get ROM size. */
-    int rom_size = rom_header[ROM_OFFSET_ROM_SIZE];
+    unsigned int rom_size = rom_header[ROM_OFFSET_ROM_SIZE];
     if ((rom_size & 0xF0) == 0x50)
-        rom_size = (int)pow(2.0, (double)(((0x52) & 0xF) + 1)) + 64;
+        rom_size = (unsigned int)pow(2.0, (double)(((0x52) & 0xF) + 1)) + 64;
     else
-        rom_size = (int)pow(2.0, (double)(rom_size + 1));
+        rom_size = (unsigned int)pow(2.0, (double)(rom_size + 1));
     printf("ROM size: %dKB\n", rom_size * 16);
     if (rom_size * 16 != 32) {
         fprintf(stderr, "Only 32KB games with no mappers are supported!\n");
@@ -125,7 +125,7 @@ int rom_load(const char *path, uint8_t *buffer, size_t bufsize)
     }
     /* Get file size. */
     fseek(file, 0, SEEK_END);
-    long size = ftell(file);
+    size_t size = (size_t)ftell(file);
     if (size > bufsize) {
         fclose(file);
         fprintf(stderr, "ERROR: rom too big!\n");

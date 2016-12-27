@@ -11,7 +11,8 @@ int main(int argc, char *argv[])
     const char *rom_path = argv[1];
     if (argc < 2) {
         fprintf(stderr, "Syntax: %s <rom path> [options]\n", argv[0]);
-        fprintf(stderr, "Options:\n -d\t\tenable debug\n -b <addr>\tadd breakpoint\n");
+        fprintf(stderr,
+                "Options:\n -d\t\tenable debug\n -b <addr>\tadd breakpoint\n");
         exit(EXIT_FAILURE);
     }
     if (argc > 2) {
@@ -19,11 +20,12 @@ int main(int argc, char *argv[])
             if (strcmp(argv[i], "-d") == 0) {
                 debug = true;
             } else if (strcmp(argv[i], "-b") == 0) {
-                breakpoint = strtoul(argv[++i], NULL, 16);
+                breakpoint = (uint16_t)strtoul(argv[++i], NULL, 16);
             }
         }
     }
-    printf("rom_path=%s, debug=%d, breakpoint=0x%04x\n", rom_path, debug, breakpoint);
+    printf("rom_path=%s, debug=%d, breakpoint=0x%04x\n", rom_path, debug,
+           breakpoint);
     int ret = gb_init(1024, 600, rom_path, debug, breakpoint);
     if (ret < 0) {
         fprintf(stderr, "ERROR: could not load ROM %s\n", rom_path);

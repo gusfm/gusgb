@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void nop();
+void nop(void);
 void ld_bc_nn(uint16_t value);
 void ld_bcp_a(void);
 void inc_bc(void);
@@ -67,11 +67,11 @@ void inc_a(void);
 void dec_a(void);
 void ld_a_n(uint8_t val);
 void ccf(void);
-void ld_b_c(uint8_t val);
-void ld_b_d(uint8_t val);
-void ld_b_e(uint8_t val);
-void ld_b_h(uint8_t val);
-void ld_b_l(uint8_t val);
+void ld_b_c(void);
+void ld_b_d(void);
+void ld_b_e(void);
+void ld_b_h(void);
+void ld_b_l(void);
 void ld_b_hlp(void);
 void ld_b_a(void);
 void ld_c_b(void);
@@ -240,6 +240,6 @@ void ld_a_nnp(uint16_t addr);
 void ei(void);
 void cp_n(uint8_t val);
 void rst_38(void);
-void undefined();
+void undefined(void);
 
 #endif /* __CPU_OPCODES_H__ */

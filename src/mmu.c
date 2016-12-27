@@ -2,10 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "gpu.h"
 #include "interrupt.h"
 #include "rom.h"
-#include "gpu.h"
-#include "utils.h"
 
 mmu_t g_mmu;
 
@@ -27,39 +26,39 @@ int mmu_init(const char *rom_path)
     return 0;
 }
 
-uint8_t mmu_read_byte_ffxx(uint16_t addr)
+static uint8_t mmu_read_byte_ffxx(uint16_t addr)
 {
-    int ret;
+    uint8_t ret;
     /* I/O Registers. */
     switch (addr) {
         case 0xff00:
-            /* P1 (R/W): Register for reading joy pad info. */
+        /* P1 (R/W): Register for reading joy pad info. */
         case 0xff01:
-            /* SB (R/W): Serial transfer data. */
+        /* SB (R/W): Serial transfer data. */
         case 0xff02:
             /* SC (R/W): SIO control. */
             /* Not implemented registers. */
-            PRINTD("ERROR: 0x%04x not implemented!\n", addr);
+            printf("ERROR: 0x%04x not implemented!\n", addr);
             exit(EXIT_FAILURE);
         case 0xff04:
             /* DIV (R/W): Divider Register. */
-            PRINTD("ERROR: DIV not implemented!\n");
+            printf("ERROR: DIV not implemented!\n");
             return 1;
         case 0xff05:
             /* TIMA (R/W): Timer counter. */
-            PRINTD("ERROR: TIMA not implemented!\n");
+            printf("ERROR: TIMA not implemented!\n");
             return 1;
         case 0xff06:
             /* TMA (R/W): Timer modulo. */
-            PRINTD("ERROR: TMA not implemented!\n");
+            printf("ERROR: TMA not implemented!\n");
             return 1;
         case 0xff07:
             /* TAC (R/W): Timer control. */
-            PRINTD("ERROR: TAC not implemented!\n");
+            printf("ERROR: TAC not implemented!\n");
             return 1;
         case 0xff0f:
             /* IF (R/W): Interrupt flag. */
-            PRINTD("ERROR: IF not implemented!\n");
+            printf("ERROR: IF not implemented!\n");
             return interrupt_flag_read();
         case 0xff10:
         case 0xff11:
@@ -82,16 +81,16 @@ uint8_t mmu_read_byte_ffxx(uint16_t addr)
         case 0xff24:
         case 0xff25:
         case 0xff26:
-            PRINTD("ERROR: sound register 0x%04x not implemented!\n", addr);
+            printf("ERROR: sound register 0x%04x not implemented!\n", addr);
             return 0;
     }
     if (addr >= 0xff30 && addr < 0xff3f) {
-        PRINTD("ERROR: Wave pattern RAM not implemented.\n");
+        printf("ERROR: Wave pattern RAM not implemented.\n");
         return 0;
     } else if (addr == 0xff40) {
         return gpu_get_lcd_control();
     } else if (addr == 0xff41) {
-        PRINTD("ERROR: LCDC status not implemented.\n");
+        printf("ERROR: LCDC status not implemented.\n");
         return 0;
     } else if (addr == 0xff42) {
         return gpu_get_scroll_y();
@@ -100,40 +99,40 @@ uint8_t mmu_read_byte_ffxx(uint16_t addr)
     } else if (addr == 0xff44) {
         return gpu_get_scanline();
     } else if (addr == 0xff45) {
-        PRINTD("ERROR: LY compare not implemented.\n");
+        printf("ERROR: LY compare not implemented.\n");
         return 0;
     } else if (addr == 0xff46) {
-        PRINTD("ERROR: DMA not implemented.\n");
+        printf("ERROR: DMA not implemented.\n");
         return 0;
     } else if (addr == 0xff47) {
-        PRINTD("ERROR: BG & window palette not implemented.\n");
+        printf("ERROR: BG & window palette not implemented.\n");
         return 0;
     } else if (addr == 0xff48) {
-        PRINTD("ERROR: OBP0 not implemented.\n");
+        printf("ERROR: OBP0 not implemented.\n");
         return 0;
     } else if (addr == 0xff49) {
-        PRINTD("ERROR: OBP1 not implemented.\n");
+        printf("ERROR: OBP1 not implemented.\n");
         return 0;
     } else if (addr == 0xff4a) {
-        PRINTD("ERROR: WY not implemented.\n");
+        printf("ERROR: WY not implemented.\n");
         return 0;
     } else if (addr == 0xff4b) {
-        PRINTD("ERROR: WX not implemented.\n");
+        printf("ERROR: WX not implemented.\n");
         return 0;
     } else if (addr < 0xff80) {
         /* I/O ports. */
-        PRINTD("ERROR: I/O not implemented!\n");
+        printf("ERROR: I/O not implemented!\n");
         // return g_mmu.io[addr & 0x7f];
         return 0;
     } else if (addr < 0xfffe) {
         /* Internal RAM. */
         ret = g_mmu.hram[addr - 0xff80];
-        PRINTD("HRAM: 0x%02x\n", ret);
+        printf("HRAM: 0x%02x\n", ret);
         return ret;
     } else {
         /* Interrupt Enable Register. */
         ret = interrupt_get_enable();
-        PRINTD("IE: 0x%02x\n", ret);
+        printf("IE: 0x%02x\n", ret);
         return ret;
     }
 }
@@ -142,17 +141,17 @@ uint8_t mmu_read_byte_ffxx(uint16_t addr)
 uint8_t mmu_read_byte(uint16_t addr)
 {
     uint8_t ret;
-    PRINTD("MMU: read byte 0x%04x: ", addr);
+    // printf("MMU: read byte 0x%04x: ", addr);
     switch (addr & 0xf000) {
         case 0x0000:
             /* 256 B Internal ROM accessed after reset. */
             if (g_mmu.read_internal_rom) {
                 if (addr < 0x0100) {
                     ret = rom_read_internal(addr);
-                    PRINTD("IROM: 0x%02x\n", ret);
+                    // printf("IROM: 0x%02x\n", ret);
                     return ret;
                 } else if (addr == 0x0100) {
-                    PRINTD("switching to external ROM!\n");
+                    printf("switching to external ROM!\n");
                     g_mmu.read_internal_rom = false;
                 }
             }
@@ -169,28 +168,28 @@ uint8_t mmu_read_byte(uint16_t addr)
         case 0x6000:
         case 0x7000:
             ret = g_mmu.cart[addr];
-            PRINTD("ROM: 0x%02x\n", ret);
+            // printf("ROM: 0x%02x\n", ret);
             return ret;
 
         /* 8kB Video RAM. */
         case 0x8000:
         case 0x9000:
             ret = g_mmu.vram[addr & 0x1fff];
-            PRINTD("VRAM: 0x%02x\n", ret);
+            // printf("VRAM: 0x%02x\n", ret);
             return ret;
 
         /* 8kB Switchable RAM bank. */
         case 0xa000:
         case 0xb000:
             ret = g_mmu.sram[addr & 0x1fff];
-            PRINTD("SRAM: 0x%02x\n", ret);
+            // printf("SRAM: 0x%02x\n", ret);
             return ret;
 
         /* 8kB Internal RAM. */
         case 0xc000:
         case 0xd000:
             ret = g_mmu.wram[addr & 0x1fff];
-            PRINTD("IRAM: 0x%02x\n", ret);
+            // printf("IRAM: 0x%02x\n", ret);
             return ret;
 
         case 0xe000:
@@ -198,7 +197,7 @@ uint8_t mmu_read_byte(uint16_t addr)
             /* Echo of 8kB Internal RAM; */
             if (addr < 0xfe00) {
                 ret = g_mmu.wram[addr & 0x1fff];
-                PRINTD("EIRAM: 0x%02x\n", ret);
+                // printf("EIRAM: 0x%02x\n", ret);
                 return ret;
             }
             switch (addr & 0x0f00) {
@@ -206,11 +205,11 @@ uint8_t mmu_read_byte(uint16_t addr)
                     /* Sprite Attrib Memory (OAM). */
                     if ((addr & 0xff) < 0xa0) {
                         ret = g_mmu.oam[addr & 0xff];
-                        PRINTD("OAM: 0x%02x\n", ret);
+                        printf("OAM: 0x%02x\n", ret);
                         return ret;
                     } else {
                         /* Remaining bytes read as 0. */
-                        PRINTD("??: 0x00\n");
+                        printf("??: 0x00\n");
                         return 0;
                     }
 
@@ -224,19 +223,20 @@ uint8_t mmu_read_byte(uint16_t addr)
 
 uint16_t mmu_read_word(uint16_t addr)
 {
-    uint16_t ret = mmu_read_byte(addr + 1) << 8 | mmu_read_byte(addr);
-    printf("MMU: read word: 0x%04x: 0x%04x\n", addr, ret);
+    uint16_t addrh = (uint16_t)(addr + 1);
+    uint16_t ret = (uint16_t)(mmu_read_byte(addrh) << 8 | mmu_read_byte(addr));
+    // printf("MMU: read word: 0x%04x: 0x%04x\n", addr, ret);
     return ret;
 }
 
 void mmu_write_byte(uint16_t addr, uint8_t value)
 {
-    PRINTD("MMU: write byte: addr=0x%04x: value=0x%02x\n", addr, value);
+    // printf("MMU: write byte: addr=0x%04x: value=0x%02x\n", addr, value);
     switch (addr & 0xf000) {
         /* 16kB ROM bank #0. */
         case 0x0000:
         case 0x1000:
-            /* MBC1: Turn external RAM on. */
+/* MBC1: Turn external RAM on. */
 #if 0
             switch (g_mmu.cart_type) {
                 case ROM_MBC1:
@@ -247,7 +247,7 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
             break;
         case 0x2000:
         case 0x3000:
-            /* MBC1: ROM bank switch. */
+/* MBC1: ROM bank switch. */
 #if 0
             switch (g_mmu.cart_type) {
                 case ROM_MBC1:
@@ -318,7 +318,8 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
 
 void mmu_write_word(uint16_t addr, uint16_t value)
 {
-    PRINTD("MMU: write byte: addr=0x%04x: value=0x%04x\n", addr, value);
+    // printf("MMU: write byte: addr=0x%04x: value=0x%04x\n", addr, value);
+    uint16_t addrh = (uint16_t)(addr + 1);
     mmu_write_byte(addr, (uint8_t)(value & 0x00ff));
-    mmu_write_byte(addr + 1, (uint8_t)((value & 0xff00) >> 8));
+    mmu_write_byte(addrh, (uint8_t)((value & 0xff00) >> 8));
 }

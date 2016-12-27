@@ -1,26 +1,26 @@
 #include "gpu.h"
-#include "utils.h"
+#include <stdio.h>
 
-uint8_t gpu_get_lcd_control()
+uint8_t gpu_get_lcd_control(void)
 {
-    PRINTD("ERROR: gpu_get_lcd_control not implemented.\n");
+    printf("ERROR: gpu_get_lcd_control not implemented.\n");
     return 0;
 }
 
-uint8_t gpu_get_scroll_y()
+uint8_t gpu_get_scroll_y(void)
 {
-    PRINTD("ERROR: gpu_get_scroll_y not implemented.\n");
+    printf("ERROR: gpu_get_scroll_y not implemented.\n");
     return 0;
 }
 
-uint8_t gpu_get_scroll_x()
+uint8_t gpu_get_scroll_x(void)
 {
-    PRINTD("ERROR: gpu_get_scroll_x not implemented.\n");
+    printf("ERROR: gpu_get_scroll_x not implemented.\n");
     return 0;
 }
 
-uint8_t gpu_get_scanline()
+uint8_t gpu_get_scanline(void)
 {
-    PRINTD("ERROR: gpu_get_scanline not implemented.\n");
+    printf("ERROR: gpu_get_scanline not implemented.\n");
     return 0;
 }

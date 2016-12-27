@@ -26,13 +26,15 @@ static game_boy_t game_boy;
 
 static void gb_error_callback(int error, const char *description)
 {
+    (void)error;
     fputs(description, stderr);
 }
 
 static void gb_update_debugs(void)
 {
     cpu_debug_flags(game_boy.debug_flags, sizeof(game_boy.debug_flags));
-    cpu_debug_instr(game_boy.debug_next_instr, sizeof(game_boy.debug_next_instr));
+    cpu_debug_instr(game_boy.debug_next_instr,
+                    sizeof(game_boy.debug_next_instr));
     cpu_debug_cycles(game_boy.debug_cycles, sizeof(game_boy.debug_cycles));
 }
 
@@ -45,6 +47,8 @@ static void gb_tick(void)
 static void gb_key_callback(GLFWwindow *window, int key, int scancode,
                             int action, int mods)
 {
+    (void)scancode;
+    (void)mods;
     switch (key) {
         case GLFW_KEY_Q:
         case GLFW_KEY_ESCAPE:
@@ -65,6 +69,7 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
 
 static void gb_resize_callback(GLFWwindow *window, int width, int height)
 {
+    (void)window;
     game_boy.width = width;
     game_boy.height = height;
     /* Setup our viewport to be the entire size of the window. */
@@ -87,28 +92,31 @@ void gb_finish(void)
     }
 }
 
-static void gb_render_help()
+static void gb_render_help(void)
 {
     glRasterPos2f(0, INFO_FONT_SIZE);
     ftglRenderFont(game_boy.font_info, "[Esc]Quit", FTGL_RENDER_ALL);
 }
 
-void gb_render_debug(void)
+static void gb_render_debug(void)
 {
     char str[100];
     glColor3f(1.0f, 1.0f, 1.0f);
     glRasterPos2f(500, INFO_FONT_SIZE);
     ftglRenderFont(game_boy.font_info, "Debug info", FTGL_RENDER_ALL);
-    int debug_y = 30;
-    const int debug_x = 500;
+    GLfloat debug_y = 30.0;
+    const GLfloat debug_x = 500.0;
     /* PC and SP. */
     glRasterPos2f(debug_x, debug_y);
-    snprintf(str, sizeof(str), "PC:0x%04x SP:0x%04x", game_boy.cpu->reg.pc, game_boy.cpu->reg.sp);
+    snprintf(str, sizeof(str), "PC:0x%04x SP:0x%04x", game_boy.cpu->reg.pc,
+             game_boy.cpu->reg.sp);
     ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
     debug_y += DEBUG_FONT_SIZE;
     /* Registers. */
     glRasterPos2f(debug_x, debug_y);
-    snprintf(str, sizeof(str), "AF:0x%04x BC:0x%04x DE:0x%04x HL:0x%04x", game_boy.cpu->reg.af, game_boy.cpu->reg.bc, game_boy.cpu->reg.de, game_boy.cpu->reg.hl);
+    snprintf(str, sizeof(str), "AF:0x%04x BC:0x%04x DE:0x%04x HL:0x%04x",
+             game_boy.cpu->reg.af, game_boy.cpu->reg.bc, game_boy.cpu->reg.de,
+             game_boy.cpu->reg.hl);
     ftglRenderFont(game_boy.font_debug, str, FTGL_RENDER_ALL);
     debug_y += DEBUG_FONT_SIZE;
     /* Flags. */
@@ -117,14 +125,15 @@ void gb_render_debug(void)
     debug_y += DEBUG_FONT_SIZE;
     /* Current instruction. */
     glRasterPos2f(debug_x, debug_y);
-    ftglRenderFont(game_boy.font_debug, game_boy.debug_next_instr, FTGL_RENDER_ALL);
+    ftglRenderFont(game_boy.font_debug, game_boy.debug_next_instr,
+                   FTGL_RENDER_ALL);
     debug_y += DEBUG_FONT_SIZE;
     /* Print cycle count. */
     glRasterPos2f(debug_x, debug_y);
     ftglRenderFont(game_boy.font_debug, game_boy.debug_cycles, FTGL_RENDER_ALL);
 }
 
-static void gb_render_info()
+static void gb_render_info(void)
 {
     glPushMatrix();
     glColor3f(1.0f, 1.0f, 0.0f);
@@ -145,13 +154,13 @@ static void gb_render(void)
     /* Render info before scale and translate. */
     gb_render_info();
     /* Draw stuff. */
-    //cpu_render(game_boy.cpu, game_boy.width, game_boy.height);
+    // cpu_render(game_boy.cpu, game_boy.width, game_boy.height);
     /* Do other glfw things. */
     glfwSwapBuffers(game_boy.window);
     glfwPollEvents();
 }
 
-static void gb_gl_init()
+static void gb_gl_init(void)
 {
     /* Setup our viewport to be the entire size of the window. */
     glViewport(0, 0, (GLsizei)game_boy.width, (GLsizei)game_boy.height);
@@ -191,7 +200,8 @@ static GLFWwindow *gb_create_window(const char *name)
     return window;
 }
 
-int gb_init(int width, int height, const char *rom_path, bool debug, uint16_t breakpoint)
+int gb_init(int width, int height, const char *rom_path, bool debug,
+            uint16_t breakpoint)
 {
     game_boy.width = width;
     game_boy.height = height;
