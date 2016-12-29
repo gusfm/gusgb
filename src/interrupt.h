@@ -18,13 +18,18 @@ typedef struct {
 
 void interrupt_init(void);
 
+uint8_t interrupt_is_enable(uint8_t bit);
 uint8_t interrupt_get_enable(void);
 void interrupt_set_enable(uint8_t value);
 
 uint8_t interrupt_get_master(void);
 void interrupt_set_master(bool value);
 
-uint8_t interrupt_flag_read(void);
-void interrupt_flag_write(uint8_t value);
+uint8_t interrupt_get_flag(void);
+void interrupt_set_flag(uint8_t value);
+void interrupt_set_flag_bit(uint8_t bit);
+void interrupt_clear_flag_bit(uint8_t bit);
+
+void interrupt_step(void);
 
 #endif /* __INTERRUPT_H__ */

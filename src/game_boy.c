@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
+#include "gpu.h"
 
 #define INFO_FONT_SIZE 16
 #define DEBUG_FONT_SIZE 14
@@ -41,12 +42,6 @@ static void gb_update_debugs(void)
     cpu_debug_cycles(game_boy.debug_cycles, sizeof(game_boy.debug_cycles));
 }
 
-static void gb_tick(void)
-{
-    cpu_emulate_cycle();
-    gb_update_debugs();
-}
-
 static void gb_key_callback(GLFWwindow *window, int key, int scancode,
                             int action, int mods)
 {
@@ -61,7 +56,8 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
 
         case GLFW_KEY_N:
             if (game_boy.debug == true && action == GLFW_PRESS) {
-                gb_tick();
+                cpu_emulate_cycle();
+                gb_update_debugs();
             }
             break;
 
@@ -146,7 +142,7 @@ static void gb_render_info(void)
     glPushMatrix();
     glColor3f(1.0f, 1.0f, 0.0f);
     gb_render_help();
-    if (game_boy.debug) {
+    if (game_boy.debug == true) {
         gb_render_debug();
     }
     glPopMatrix();
@@ -244,26 +240,25 @@ int gb_init(int width, int height, const char *rom_path, bool debug,
         fprintf(stderr, "Error: Cannot load rom: %s\n", rom_path);
         return -1;
     }
+    gpu_set_glfw_window(game_boy.window);
     game_boy.cpu = cpu_get_instance();
-    /* Execute until breakpoint. */
-    while (game_boy.cpu->reg.pc < breakpoint) {
-        cpu_emulate_cycle();
+    if (game_boy.debug == true) {
+        /* Execute until breakpoint. */
+        while (game_boy.cpu->reg.pc < breakpoint) {
+            cpu_emulate_cycle();
+        }
+        gb_update_debugs();
     }
-    gb_update_debugs();
     return 0;
-}
-
-static void gb_process(void)
-{
-    if (game_boy.debug == false) {
-        gb_tick();
-    }
 }
 
 void gb_main(void)
 {
     while (!glfwWindowShouldClose(game_boy.window)) {
-        gb_process();
-        gb_render();
+        if (game_boy.debug == false) {
+            cpu_emulate_cycle();
+        } else {
+            gb_render();
+        }
     }
 }

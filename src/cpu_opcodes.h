@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+void push(uint16_t val);
+uint16_t pop(void);
+
 void nop(void);
 void ld_bc_nn(uint16_t value);
 void ld_bcp_a(void);

@@ -235,14 +235,14 @@ static void cp(uint8_t val)
 }
 
 /* Push to stack. */
-static void push(uint16_t val)
+void push(uint16_t val)
 {
     g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp - 2);
     mmu_write_word(g_cpu.reg.sp, val);
 }
 
 /* Pop from stack. */
-static uint16_t pop(void)
+uint16_t pop(void)
 {
     uint16_t val = mmu_read_word(g_cpu.reg.sp);
     g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp + 2);

@@ -5,6 +5,8 @@
 #include "cpu_ext_ops.h"
 #include "cpu_opcodes.h"
 #include "mmu.h"
+#include "gpu.h"
+#include "interrupt.h"
 
 cpu_t g_cpu;
 
@@ -389,4 +391,6 @@ void cpu_emulate_cycle(void)
     uint8_t opcode = cpu_fetch_opcode();
     cpu_decode_opcode(opcode);
     g_cpu.ticks += instruction_ticks[opcode];
+    gpu_step(g_cpu.ticks);
+    interrupt_step();
 }

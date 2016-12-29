@@ -23,6 +23,7 @@ int mmu_init(const char *rom_path)
     g_mmu.read_internal_rom = true;
     g_mmu.cart_type = g_mmu.cart[ROM_OFFSET_TYPE];
     interrupt_init();
+    gpu_init(g_mmu.vram, g_mmu.oam);
     return 0;
 }
 
@@ -32,34 +33,45 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
     /* I/O Registers. */
     switch (addr) {
         case 0xff00:
-        /* P1 (R/W): Register for reading joy pad info. */
+            /* P1 (R/W): Register for reading joy pad info. */
+            if (!(g_mmu.io[0x00] & 0x20)) {
+                return (unsigned char)(0xc0 |0 /* keys.keys1 */ | 0x10);
+            }
+
+            else if (!(g_mmu.io[0x00] & 0x10)) {
+                return (unsigned char)(0xc0 | 0 /* keys.keys2 */ | 0x20);
+            }
+
+            else if (!(g_mmu.io[0x00] & 0x30))
+                return 0xff;
+            else
+                return 0;
         case 0xff01:
         /* SB (R/W): Serial transfer data. */
         case 0xff02:
             /* SC (R/W): SIO control. */
             /* Not implemented registers. */
-            printf("ERROR: 0x%04x not implemented!\n", addr);
-            exit(EXIT_FAILURE);
+            printf("ERROR: 0x%04x read not implemented!\n", addr);
+            return 0;
         case 0xff04:
             /* DIV (R/W): Divider Register. */
             printf("ERROR: DIV not implemented!\n");
-            return 1;
+            return 0;
         case 0xff05:
             /* TIMA (R/W): Timer counter. */
             printf("ERROR: TIMA not implemented!\n");
-            return 1;
+            return 0;
         case 0xff06:
             /* TMA (R/W): Timer modulo. */
             printf("ERROR: TMA not implemented!\n");
-            return 1;
+            return 0;
         case 0xff07:
             /* TAC (R/W): Timer control. */
             printf("ERROR: TAC not implemented!\n");
-            return 1;
+            return 0;
         case 0xff0f:
             /* IF (R/W): Interrupt flag. */
-            printf("ERROR: IF not implemented!\n");
-            return interrupt_flag_read();
+            return interrupt_get_flag();
         case 0xff10:
         case 0xff11:
         case 0xff12:
@@ -121,19 +133,110 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
         return 0;
     } else if (addr < 0xff80) {
         /* I/O ports. */
-        printf("ERROR: I/O not implemented!\n");
-        // return g_mmu.io[addr & 0x7f];
-        return 0;
-    } else if (addr < 0xfffe) {
+        return g_mmu.io[addr - 0xff00];
+    } else if (addr < 0xffff) {
         /* Internal RAM. */
-        ret = g_mmu.hram[addr - 0xff80];
-        printf("HRAM: 0x%02x\n", ret);
-        return ret;
+        return g_mmu.hram[addr - 0xff80];
     } else {
         /* Interrupt Enable Register. */
         ret = interrupt_get_enable();
         printf("IE: 0x%02x\n", ret);
         return ret;
+    }
+}
+
+static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
+{
+    /* I/O Registers. */
+    switch (addr) {
+        case 0xff00:
+        /* P1 (R/W): Register for reading joy pad info. */
+        case 0xff01:
+        /* SB (R/W): Serial transfer data. */
+        case 0xff02:
+            /* SC (R/W): SIO control. */
+            /* Not implemented registers. */
+            printf("ERROR: 0x%04x write not implemented!\n", addr);
+        case 0xff04:
+            /* DIV (R/W): Divider Register. */
+            printf("ERROR: DIV not implemented!\n");
+            break;
+        case 0xff05:
+            /* TIMA (R/W): Timer counter. */
+            printf("ERROR: TIMA not implemented!\n");
+            break;
+        case 0xff06:
+            /* TMA (R/W): Timer modulo. */
+            printf("ERROR: TMA not implemented!\n");
+            break;
+        case 0xff07:
+            /* TAC (R/W): Timer control. */
+            printf("ERROR: TAC not implemented!\n");
+            break;
+        case 0xff0f:
+            /* IF (R/W): Interrupt flag. */
+            interrupt_set_flag(value);
+            break;
+        case 0xff10:
+        case 0xff11:
+        case 0xff12:
+        case 0xff13:
+        case 0xff14:
+        case 0xff16:
+        case 0xff17:
+        case 0xff18:
+        case 0xff19:
+        case 0xff1a:
+        case 0xff1b:
+        case 0xff1c:
+        case 0xff1d:
+        case 0xff1e:
+        case 0xff20:
+        case 0xff21:
+        case 0xff22:
+        case 0xff23:
+        case 0xff24:
+        case 0xff25:
+        case 0xff26:
+            printf("ERROR: sound register 0x%04x not implemented!\n", addr);
+            break;
+    }
+    if (addr >= 0xff30 && addr < 0xff3f) {
+        printf("ERROR: Wave pattern RAM not implemented.\n");
+    } else if (addr == 0xff40) {
+        gpu_set_lcd_control(value);
+    } else if (addr == 0xff41) {
+        printf("ERROR: LCDC status not implemented.\n");
+    } else if (addr == 0xff42) {
+        gpu_set_scroll_y(value);
+    } else if (addr == 0xff43) {
+        gpu_set_scroll_x(value);
+    } else if (addr == 0xff44) {
+        printf("ERROR: scanline not implemented.\n");
+    } else if (addr == 0xff45) {
+        printf("ERROR: LY compare not implemented.\n");
+    } else if (addr == 0xff46) {
+        printf("ERROR: DMA not implemented.\n");
+    } else if (addr == 0xff47) {
+        printf("ERROR: BG & window palette not implemented.\n");
+    } else if (addr == 0xff48) {
+        printf("ERROR: OBP0 not implemented.\n");
+    } else if (addr == 0xff49) {
+        printf("ERROR: OBP1 not implemented.\n");
+    } else if (addr == 0xff4a) {
+        printf("ERROR: WY not implemented.\n");
+    } else if (addr == 0xff4b) {
+        printf("ERROR: WX not implemented.\n");
+    } else if (addr < 0xff80) {
+        /* I/O ports. */
+        printf("I0 W addr=%04x, i=%04x, value=%02x\n", addr, addr - 0xff00, value);
+        g_mmu.io[addr - 0xff00] = value;
+    } else if (addr < 0xffff) {
+        /* Internal RAM. */
+        g_mmu.hram[addr - 0xff80] = value;
+    } else {
+        /* Interrupt Enable Register. */
+        interrupt_set_enable(value);
     }
 }
 
@@ -263,13 +366,15 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
         case 0x5000:
         case 0x6000:
         case 0x7000:
-            /* TODO */
-            printf("not implemented!");
+            //printf("ROM write not implemented!\n");
+            break;
 
         /* 8kB Video RAM. */
         case 0x8000:
         case 0x9000:
             g_mmu.vram[addr & 0x1fff] = value;
+            if (addr < 0x9800)
+                gpu_update_tile(addr);
             break;
 
         /* 8kB Switchable RAM bank. */
@@ -300,17 +405,7 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
                     break;
 
                 case 0xf00:
-                    if (addr < 0xff80) {
-                        /* I/O ports. */
-                        printf("ERROR: I/O not implemented!\n");
-                        // return g_mmu.io[addr & 0x7f];
-                    } else if (addr < 0xfffe) {
-                        /* Internal RAM. */
-                        g_mmu.hram[addr - 0xff80] = value;
-                    } else {
-                        /* Interrupt Enable Register. */
-                        interrupt_set_enable(value);
-                    }
+                    mmu_write_byte_ffxx(addr, value);
                     break;
             }
     }
