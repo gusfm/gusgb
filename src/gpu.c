@@ -79,6 +79,27 @@ static void gpu_hblank(void)
     g_gpu.scanline++;
 }
 
+void gpu_set_bg_palette(uint8_t value)
+{
+    for (int i = 0; i < 4; ++i) {
+        g_gpu.bg_palette[i] = g_palette[(value >> (i * 2)) & 3];
+    }
+}
+
+void gpu_set_sprite_palette0(uint8_t value)
+{
+    for (int i = 0; i < 4; ++i) {
+        g_gpu.sprite_palette[0][i] = g_palette[(value >> (i * 2)) & 3];
+    }
+}
+
+void gpu_set_sprite_palette1(uint8_t value)
+{
+    for (int i = 0; i < 4; ++i) {
+        g_gpu.sprite_palette[1][i] = g_palette[(value >> (i * 2)) & 3];
+    }
+}
+
 static void gpu_render_sprites(uint8_t *scanline_row)
 {
     // if sprites enabled
@@ -142,6 +163,7 @@ static void gpu_render_scanline(void)
 
     uint8_t scanline_row[160];
 
+    printf("%s:%d: scanline\n", __func__, __LINE__);
     // if bg enabled
     for (int i = 0; i < 160; i++) {
         uint8_t colour = g_gpu.tiles[tile][y][x];
@@ -225,6 +247,7 @@ void gpu_update_tile(uint16_t addr)
         g_gpu.tiles[tile][y][x] =
             (uint8_t)(((g_gpu.vram[vram_index] & bit_index) ? 1u : 0u) +
                       ((g_gpu.vram[vram_index + 1] & bit_index) ? 2u : 0u));
+        //printf("%s:%d: tile=%hu, y=%hu, x=%hhu\n", __func__, __LINE__, tile, y, x);
     }
 }
 
@@ -242,4 +265,5 @@ void gpu_render_framebuffer(void)
     glPixelZoom(1, -1);
     glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, g_gpu.framebuffer);
     glfwSwapBuffers(g_gpu.window);
+    glfwPollEvents();
 }

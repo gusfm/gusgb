@@ -117,13 +117,13 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
         printf("ERROR: DMA not implemented.\n");
         return 0;
     } else if (addr == 0xff47) {
-        printf("ERROR: BG & window palette not implemented.\n");
+        printf("ERROR: BG & window palette read not implemented.\n");
         return 0;
     } else if (addr == 0xff48) {
-        printf("ERROR: OBP0 not implemented.\n");
+        printf("ERROR: OBP0 read not implemented.\n");
         return 0;
     } else if (addr == 0xff49) {
-        printf("ERROR: OBP1 not implemented.\n");
+        printf("ERROR: OBP1 read not implemented.\n");
         return 0;
     } else if (addr == 0xff4a) {
         printf("ERROR: WY not implemented.\n");
@@ -157,26 +157,27 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
             /* SC (R/W): SIO control. */
             /* Not implemented registers. */
             printf("ERROR: 0x%04x write not implemented!\n", addr);
+            return;
         case 0xff04:
             /* DIV (R/W): Divider Register. */
             printf("ERROR: DIV not implemented!\n");
-            break;
+            return;
         case 0xff05:
             /* TIMA (R/W): Timer counter. */
             printf("ERROR: TIMA not implemented!\n");
-            break;
+            return;
         case 0xff06:
             /* TMA (R/W): Timer modulo. */
             printf("ERROR: TMA not implemented!\n");
-            break;
+            return;
         case 0xff07:
             /* TAC (R/W): Timer control. */
             printf("ERROR: TAC not implemented!\n");
-            break;
+            return;
         case 0xff0f:
             /* IF (R/W): Interrupt flag. */
             interrupt_set_flag(value);
-            break;
+            return;
         case 0xff10:
         case 0xff11:
         case 0xff12:
@@ -199,7 +200,7 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
         case 0xff25:
         case 0xff26:
             printf("ERROR: sound register 0x%04x not implemented!\n", addr);
-            break;
+            return;
     }
     if (addr >= 0xff30 && addr < 0xff3f) {
         printf("ERROR: Wave pattern RAM not implemented.\n");
@@ -218,11 +219,11 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
     } else if (addr == 0xff46) {
         printf("ERROR: DMA not implemented.\n");
     } else if (addr == 0xff47) {
-        printf("ERROR: BG & window palette not implemented.\n");
+        gpu_set_bg_palette(value);
     } else if (addr == 0xff48) {
-        printf("ERROR: OBP0 not implemented.\n");
+        gpu_set_sprite_palette0(value);
     } else if (addr == 0xff49) {
-        printf("ERROR: OBP1 not implemented.\n");
+        gpu_set_sprite_palette1(value);
     } else if (addr == 0xff4a) {
         printf("ERROR: WY not implemented.\n");
     } else if (addr == 0xff4b) {
@@ -244,7 +245,7 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
 uint8_t mmu_read_byte(uint16_t addr)
 {
     uint8_t ret;
-    // printf("MMU: read byte 0x%04x: ", addr);
+    // printf("MMU: read byte 0x%04x\n", addr);
     switch (addr & 0xf000) {
         case 0x0000:
             /* 256 B Internal ROM accessed after reset. */
