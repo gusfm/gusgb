@@ -31,4 +31,6 @@ void mmu_write_byte(uint16_t addr, uint8_t value);
 /* Write word to a given address. */
 void mmu_write_word(uint16_t addr, uint16_t value);
 
+void mmu_enable_external_rom(void);
+
 #endif /* __MMU_H__ */

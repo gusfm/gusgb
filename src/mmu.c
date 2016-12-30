@@ -241,6 +241,12 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
     }
 }
 
+void mmu_enable_external_rom(void)
+{
+    printf("switching to external ROM!\n");
+    g_mmu.read_internal_rom = false;
+}
+
 /* Read 8-bit byte from a given address */
 uint8_t mmu_read_byte(uint16_t addr)
 {
@@ -250,14 +256,9 @@ uint8_t mmu_read_byte(uint16_t addr)
         case 0x0000:
             /* 256 B Internal ROM accessed after reset. */
             if (g_mmu.read_internal_rom) {
-                if (addr < 0x0100) {
-                    ret = rom_read_internal(addr);
-                    // printf("IROM: 0x%02x\n", ret);
-                    return ret;
-                } else if (addr == 0x0100) {
-                    printf("switching to external ROM!\n");
-                    g_mmu.read_internal_rom = false;
-                }
+                ret = rom_read_internal(addr);
+                // printf("IROM: 0x%02x\n", ret);
+                return ret;
             }
         /* Fall through! */
 

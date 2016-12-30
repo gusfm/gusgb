@@ -103,5 +103,6 @@ void cpu_debug_flags(char *str, size_t size);
 void cpu_debug_last_instr(char *str, size_t size);
 void cpu_debug_next_instr(char *str, size_t size);
 void cpu_debug_cycles(char *str, size_t size);
+void cpu_dump(void);
 
 #endif /* __CPU_H__ */

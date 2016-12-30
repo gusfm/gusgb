@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "cpu_ext_ops.h"
 #include "cpu.h"
 #include "cpu_utils.h"
@@ -287,6 +288,11 @@ const unsigned char ext_instr_ticks[256] = {
     8, 8, 8, 8, 8, 8, 12, 8, 8, 8, 8, 8, 8, 8, 12, 8,  // 0xe_
     8, 8, 8, 8, 8, 8, 12, 8, 8, 8, 8, 8, 8, 8, 12, 8   // 0xf_
 };
+
+void print_ext_ops(uint8_t opcode)
+{
+    printf("0xcb%02x: %s\n", opcode, g_ext_instr[opcode].asm);
+}
 
 /* 0xcb: Extended operations. */
 void cb_n(uint8_t opcode)
