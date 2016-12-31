@@ -20,7 +20,7 @@ int mmu_init(const char *rom_path)
     memset(g_mmu.oam, 0, sizeof(g_mmu.oam));
     memset(g_mmu.wram, 0, sizeof(g_mmu.wram));
     memset(g_mmu.hram, 0, sizeof(g_mmu.hram));
-    g_mmu.read_internal_rom = true;
+    g_mmu.read_ext_rom = 0;
     g_mmu.cart_type = g_mmu.cart[ROM_OFFSET_TYPE];
     interrupt_init();
     gpu_init(g_mmu.vram, g_mmu.oam);
@@ -141,6 +141,8 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
     } else if (addr == 0xff4b) {
         printf("ERROR: WX not implemented.\n");
         return 0;
+    } else if (addr == 0xff50) {
+        return g_mmu.read_ext_rom;
     } else {
         /* I/O ports. */
         return g_mmu.io[addr - 0xff00];
@@ -238,18 +240,15 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
             printf("ERROR: WY not implemented.\n");
         } else if (addr == 0xff4b) {
             printf("ERROR: WX not implemented.\n");
+        } else if (addr == 0xff50) {
+            printf("Switching to external ROM!\n");
+            g_mmu.read_ext_rom = value;
         } else if (addr < 0xff80) {
             /* I/O ports. */
             printf("I0 W addr=%04x, i=%04x, value=%02x\n", addr, addr - 0xff00, value);
             g_mmu.io[addr - 0xff00] = value;
         }
     }
-}
-
-void mmu_enable_external_rom(void)
-{
-    printf("switching to external ROM!\n");
-    g_mmu.read_internal_rom = false;
 }
 
 /* Read 8-bit byte from a given address */
@@ -260,7 +259,7 @@ uint8_t mmu_read_byte(uint16_t addr)
     switch (addr & 0xf000) {
         case 0x0000:
             /* 256 B Internal ROM accessed after reset. */
-            if (g_mmu.read_internal_rom) {
+            if (g_mmu.read_ext_rom == 0 && addr < 0x0100) {
                 ret = rom_read_internal(addr);
                 // printf("IROM: 0x%02x\n", ret);
                 return ret;

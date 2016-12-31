@@ -91,6 +91,7 @@ void gb_finish(void)
     }
 }
 
+#if 0
 static void gb_render_help(void)
 {
     glRasterPos2f(0, INFO_FONT_SIZE);
@@ -163,6 +164,7 @@ static void gb_render(void)
     glfwSwapBuffers(game_boy.window);
     glfwPollEvents();
 }
+#endif
 
 static void gb_gl_init(void)
 {
@@ -255,10 +257,6 @@ int gb_init(int width, int height, const char *rom_path, bool debug,
 void gb_main(void)
 {
     while (!glfwWindowShouldClose(game_boy.window)) {
-        if (game_boy.debug == false) {
-            cpu_emulate_cycle();
-        } else {
-            gb_render();
-        }
+        cpu_emulate_cycle();
     }
 }

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void print_ext_ops(uint8_t opcode);
+void print_ext_ops(char *str, uint8_t opcode);
 void cb_n(uint8_t val);
 
 void rlc_b(void);

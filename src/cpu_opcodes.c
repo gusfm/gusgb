@@ -72,24 +72,25 @@ static uint8_t dec_n(uint8_t value)
  */
 static uint8_t add8(uint8_t val1, uint8_t val2)
 {
-    uint32_t result = (uint32_t)(val1 + val2);
+    uint32_t result32 = (uint32_t)(val1 + val2);
+    uint8_t result8 = (uint8_t)(result32 & 0xff);
     FLAG_CLEAR(FLAG_N);
     if (((val1 & 0x0f) + (val2 & 0x0f)) > 0x0f) {
         FLAG_SET(FLAG_H);
     } else {
         FLAG_CLEAR(FLAG_H);
     }
-    if (result & 0xff00) {
+    if (result32 & 0xff00) {
         FLAG_SET(FLAG_C);
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    if (result == 0) {
+    if (result8 == 0) {
         FLAG_SET(FLAG_Z);
     } else {
         FLAG_CLEAR(FLAG_Z);
     }
-    return (uint8_t)(result & 0xff);
+    return result8;
 }
 
 /**

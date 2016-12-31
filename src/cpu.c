@@ -7,6 +7,7 @@
 #include "gpu.h"
 #include "interrupt.h"
 #include "mmu.h"
+#include "utils.h"
 
 cpu_t g_cpu;
 
@@ -334,6 +335,36 @@ static void cpu_debug_instr(uint16_t pc, char *str, size_t size)
     }
 }
 
+#ifdef DEBUG
+char debug_str[100];
+
+static char *cpu_debug_instr0(char *str, uint8_t opcode)
+{
+    sprintf(str, "0x%02x:   %s", opcode, g_instr[opcode].asm1);
+    return str;
+}
+
+static char *cpu_debug_instr1(char *str, uint8_t opcode, uint8_t operand)
+{
+    const char *asm1 = g_instr[opcode].asm1;
+    const char *asm2 = g_instr[opcode].asm2 ? g_instr[opcode].asm2 : "";
+    if (opcode == 0xcb) {
+        print_ext_ops(str, operand);
+    } else {
+        sprintf(str, "0x%02x:   %s%02x%s", opcode, asm1, operand, asm2);
+    }
+    return str;
+}
+
+static char *cpu_debug_instr2(char *str, uint8_t opcode, uint16_t operand)
+{
+    const char *asm1 = g_instr[opcode].asm1;
+    const char *asm2 = g_instr[opcode].asm2 ? g_instr[opcode].asm2 : "";
+    sprintf(str, "0x%02x:   %s%04x%s", opcode, asm1, operand, asm2);
+    return str;
+}
+#endif
+
 void cpu_debug_last_instr(char *str, size_t size)
 {
     snprintf(str, size, "Last: ");
@@ -357,6 +388,9 @@ void cpu_dump(void)
     printf("PC:0x%04x SP:0x%04x\n", g_cpu.reg.pc, g_cpu.reg.sp);
     printf("AF:0x%04x BC:0x%04x DE:0x%04x HL:0x%04x\n", g_cpu.reg.af,
            g_cpu.reg.bc, g_cpu.reg.de, g_cpu.reg.hl);
+    for (uint32_t reg = 0xff00; reg <= 0xffff; ++reg) {
+        printf("[0x%04x]=0x%02x\n", reg, mmu_read_byte((uint16_t)reg));
+    }
 }
 
 int cpu_init(const char *rom_path)
@@ -367,9 +401,6 @@ int cpu_init(const char *rom_path)
 
 static uint8_t cpu_fetch_opcode(void)
 {
-    if (g_cpu.reg.pc == 0x0100) {
-        mmu_enable_external_rom();
-    }
     if (g_cpu.reg.pc >= 0x0100) {
         cpu_dump();
         exit(EXIT_FAILURE);
@@ -379,43 +410,24 @@ static uint8_t cpu_fetch_opcode(void)
     return op;
 }
 
-static void cpu_print_asm(uint8_t opcode, uint8_t oper1, uint16_t oper2)
-{
-    uint8_t oper_length = g_instr[opcode].operand_length;
-    const char *asm1 = g_instr[opcode].asm1;
-    const char *asm2 = g_instr[opcode].asm2 ? g_instr[opcode].asm2 : "";
-    printf("PC:0x%04x SP:0x%04x AF:0x%04x BC:0x%04x DE:0x%04x HL:0x%04x: ",
-           g_cpu.last_pc, g_cpu.reg.sp, g_cpu.reg.af, g_cpu.reg.bc,
-           g_cpu.reg.de, g_cpu.reg.hl);
-    if (oper_length == 0) {
-        printf("0x%02x:   %s\n", opcode, asm1);
-    } else if (oper_length == 1) {
-        if (opcode == 0xcb) {
-            print_ext_ops(oper1);
-        } else {
-            printf("0x%02x:   %s%02x%s\n", opcode, asm1, oper1, asm2);
-        }
-    } else {
-        printf("0x%02x:   %s%04x%s\n", opcode, asm1, oper2, asm2);
-    }
-}
-
 static void cpu_decode_opcode(uint8_t opcode)
 {
     uint8_t oper_length = g_instr[opcode].operand_length;
-
+    printd("PC:0x%04x SP:0x%04x AF:0x%04x BC:0x%04x DE:0x%04x HL:0x%04x: ",
+           g_cpu.last_pc, g_cpu.reg.sp, g_cpu.reg.af, g_cpu.reg.bc,
+           g_cpu.reg.de, g_cpu.reg.hl);
     if (oper_length == 0) {
-        cpu_print_asm(opcode, 0, 0);
+        printd("%s\n", cpu_debug_instr0(debug_str, opcode));
         g_instr[opcode].exec0();
     } else if (oper_length == 1) {
         uint8_t operand = mmu_read_byte(g_cpu.reg.pc);
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + 1);
-        cpu_print_asm(opcode, operand, 0);
+        printd("%s\n", cpu_debug_instr1(debug_str, opcode, operand));
         g_instr[opcode].exec1(operand);
     } else if (oper_length == 2) {
         uint16_t operand = mmu_read_word(g_cpu.reg.pc);
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + 2);
-        cpu_print_asm(opcode, 0, operand);
+        printd("%s\n", cpu_debug_instr2(debug_str, opcode, operand));
         g_instr[opcode].exec2(operand);
     } else {
         fprintf(stderr, "ERROR: invalid operand length!\n");
