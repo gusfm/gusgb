@@ -8,8 +8,8 @@ extern cpu_t g_cpu;
 
 void interrupt_init(void)
 {
-    g_interrupt.master = true;
-    g_interrupt.enable = false;
+    g_interrupt.master = 1;
+    g_interrupt.enable = 0;
     g_interrupt.flags = 0;
 }
 
@@ -33,7 +33,7 @@ uint8_t interrupt_get_master(void)
     return g_interrupt.master;
 }
 
-void interrupt_set_master(bool value)
+void interrupt_set_master(uint8_t value)
 {
     g_interrupt.master = value;
 }

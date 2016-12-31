@@ -1638,7 +1638,7 @@ void ret_c(void)
 void reti(void)
 {
     g_cpu.reg.pc = pop();
-    interrupt_set_master(true);
+    interrupt_set_master(1);
 }
 
 /* 0xda: Jump to address. */
@@ -1784,7 +1784,7 @@ void ld_a_cp(void)
  */
 void di(void)
 {
-    interrupt_set_master(false);
+    interrupt_set_master(0);
 }
 
 /* 0xf5: Push AF to stack. */
@@ -1841,7 +1841,7 @@ void ld_a_nnp(uint16_t addr)
  */
 void ei(void)
 {
-    interrupt_set_master(true);
+    interrupt_set_master(1);
 }
 
 /* 0xfe: Compare A with n. */
