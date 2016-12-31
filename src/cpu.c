@@ -58,7 +58,7 @@ const instruction_t g_instr[256] = {
     {"RRA", NULL, 0, rra, NULL, NULL},                    // 0x1f
     {"JR NZ, $", NULL, 1, NULL, jr_nz_n, NULL},           // 0x20
     {"LD HL, $", NULL, 2, NULL, NULL, ld_hl_nn},          // 0x21
-    {"LDI (HL), A", NULL, 0, ldi_hlp_a, NULL, NULL},      // 0x22
+    {"LD (HL+), A", NULL, 0, ldi_hlp_a, NULL, NULL},      // 0x22
     {"INC HL", NULL, 0, inc_hl, NULL, NULL},              // 0x23
     {"INC H", NULL, 0, inc_h, NULL, NULL},                // 0x24
     {"DEC H", NULL, 0, dec_h, NULL, NULL},                // 0x25
@@ -66,7 +66,7 @@ const instruction_t g_instr[256] = {
     {"DAA", NULL, 0, daa, NULL, NULL},                    // 0x27
     {"JR Z, $", NULL, 1, NULL, jr_z_n, NULL},             // 0x28
     {"ADD HL, HL", NULL, 0, add_hl_hl, NULL, NULL},       // 0x29
-    {"LDI A, (HL)", NULL, 0, ldi_a_hlp, NULL, NULL},      // 0x2a
+    {"LD A, (HL+)", NULL, 0, ldi_a_hlp, NULL, NULL},      // 0x2a
     {"DEC HL", NULL, 0, dec_hl, NULL, NULL},              // 0x2b
     {"INC L", NULL, 0, inc_l, NULL, NULL},                // 0x2c
     {"DEC L", NULL, 0, dec_l, NULL, NULL},                // 0x2d
