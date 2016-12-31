@@ -52,7 +52,7 @@ static uint8_t dec_n(uint8_t value)
     } else {
         FLAG_SET(FLAG_H);
     }
-    ++value;
+    --value;
     if (value == 0) {
         FLAG_SET(FLAG_Z);
     } else {
