@@ -10,18 +10,17 @@ mmu_t g_mmu;
 
 int mmu_init(const char *rom_path)
 {
-    int ret = rom_load(rom_path, g_mmu.cart, sizeof(g_mmu.cart));
+    int ret = rom_load(rom_path, g_mmu.rom, sizeof(g_mmu.rom));
     if (ret < 0) {
         return -1;
     }
-    memset(g_mmu.sram, 0, sizeof(g_mmu.sram));
-    // memcpy(g_mmu.io, io_reset, sizeof(g_mmu.io));
+    memset(g_mmu.eram, 0, sizeof(g_mmu.eram));
     memset(g_mmu.vram, 0, sizeof(g_mmu.vram));
     memset(g_mmu.oam, 0, sizeof(g_mmu.oam));
     memset(g_mmu.wram, 0, sizeof(g_mmu.wram));
-    memset(g_mmu.hram, 0, sizeof(g_mmu.hram));
+    memset(g_mmu.zram, 0, sizeof(g_mmu.zram));
     g_mmu.read_ext_rom = 0;
-    g_mmu.cart_type = g_mmu.cart[ROM_OFFSET_TYPE];
+    g_mmu.cart_type = g_mmu.rom[ROM_OFFSET_TYPE];
     interrupt_init();
     gpu_init(g_mmu.vram, g_mmu.oam);
     return 0;
@@ -37,15 +36,14 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
         return ret;
     } else if (addr > 0xff7f) {
         /* Internal RAM. */
-        printf("r hram[0x%02x]=0x%02x\n", addr & 0x007f, g_mmu.hram[addr & 0x007f]);
-        return g_mmu.hram[addr & 0x007f];
+        return g_mmu.zram[addr & 0x007f];
     }
     /* I/O Registers. */
     switch (addr) {
         case 0xff00:
             /* P1 (R/W): Register for reading joy pad info. */
             if (!(g_mmu.io[0x00] & 0x20)) {
-                return (unsigned char)(0xc0 |0 /* keys.keys1 */ | 0x10);
+                return (unsigned char)(0xc0 | 0 /* keys.keys1 */ | 0x10);
             }
 
             else if (!(g_mmu.io[0x00] & 0x10)) {
@@ -156,8 +154,7 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
         interrupt_set_enable(value);
     } else if (addr > 0xff7f) {
         /* Internal RAM. */
-        g_mmu.hram[addr & 0x007f] = value;
-        printf("w hram[0x%02x]=0x%02x\n", addr & 0x007f, value);
+        g_mmu.zram[addr & 0x007f] = value;
     } else {
         /* I/O Registers. */
         switch (addr) {
@@ -245,7 +242,8 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
             g_mmu.read_ext_rom = value;
         } else if (addr < 0xff80) {
             /* I/O ports. */
-            printf("I0 W addr=%04x, i=%04x, value=%02x\n", addr, addr - 0xff00, value);
+            printf("I0 W addr=%04x, i=%04x, value=%02x\n", addr, addr - 0xff00,
+                   value);
             g_mmu.io[addr - 0xff00] = value;
         }
     }
@@ -276,7 +274,7 @@ uint8_t mmu_read_byte(uint16_t addr)
         case 0x5000:
         case 0x6000:
         case 0x7000:
-            ret = g_mmu.cart[addr];
+            ret = g_mmu.rom[addr];
             // printf("ROM: 0x%02x\n", ret);
             return ret;
 
@@ -290,7 +288,7 @@ uint8_t mmu_read_byte(uint16_t addr)
         /* 8kB Switchable RAM bank. */
         case 0xa000:
         case 0xb000:
-            ret = g_mmu.sram[addr & 0x1fff];
+            ret = g_mmu.eram[addr & 0x1fff];
             // printf("SRAM: 0x%02x\n", ret);
             return ret;
 
@@ -372,7 +370,7 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
         case 0x5000:
         case 0x6000:
         case 0x7000:
-            //printf("ROM write not implemented!\n");
+            // printf("ROM write not implemented!\n");
             break;
 
         /* 8kB Video RAM. */
@@ -386,7 +384,7 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
         /* 8kB Switchable RAM bank. */
         case 0xa000:
         case 0xb000:
-            g_mmu.sram[addr & 0x1fff] = value;
+            g_mmu.eram[addr & 0x1fff] = value;
             break;
 
         /* 8kB Internal RAM. */
