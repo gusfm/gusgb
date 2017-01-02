@@ -16,7 +16,7 @@ const rgb_t g_palette[4] = {
 void gpu_init(void)
 {
     memset(&GPU, 0, sizeof(GPU));
-    GPU.linemode = GPU_MODE_OAM;
+    GPU.linemode = GPU_MODE_HBLANK;
     /* Init background palette. */
     GPU.bg_palette[0] = g_palette[0];
     GPU.bg_palette[1] = g_palette[1];
@@ -137,6 +137,7 @@ uint8_t gpu_read_byte(uint16_t addr)
         case 0x05:
             return GPU.raster;
         default:
+            printf("gpu_read_byte: not implemented: 0x%04x\n", gaddr);
             return GPU.reg[gaddr];
     }
 }
@@ -185,6 +186,9 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 9:
             /* OBJ1 palette mapping. */
             gpu_set_sprite_palette1(val);
+            break;
+        default:
+            printf("gpu_write_byte: not implemented: 0x%04x\n", gaddr);
             break;
     }
 }

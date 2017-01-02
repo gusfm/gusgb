@@ -7,6 +7,7 @@
 #include "gpu.h"
 #include "interrupt.h"
 #include "mmu.h"
+#include "timer.h"
 #include "utils.h"
 
 cpu_t g_cpu;
@@ -398,6 +399,7 @@ void cpu_dump(void)
 int cpu_init(const char *rom_path)
 {
     memset(&g_cpu, 0x0, sizeof(g_cpu));
+    timer_init();
     return mmu_init(rom_path);
 }
 
@@ -440,6 +442,7 @@ void cpu_emulate_cycle(void)
     uint8_t opcode = cpu_fetch_opcode();
     cpu_decode_opcode(opcode);
     g_cpu.ticks += instruction_ticks[opcode];
-    gpu_step(g_cpu.ticks);
     interrupt_step();
+    gpu_step(g_cpu.ticks);
+    timer_step(g_cpu.ticks);
 }

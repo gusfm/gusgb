@@ -5,6 +5,7 @@
 #include "gpu.h"
 #include "interrupt.h"
 #include "rom.h"
+#include "timer.h"
 
 mmu_t g_mmu;
 
@@ -35,6 +36,9 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
     } else if (addr > 0xff7f) {
         /* Internal RAM. */
         return g_mmu.zram[addr & 0x007f];
+    } else if (addr >= 0xff04 && addr <= 0xff07) {
+        /* Timer. */
+        return timer_read_byte(addr);
     }
     /* I/O Registers. */
     switch (addr) {
@@ -58,22 +62,6 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
             /* SC (R/W): SIO control. */
             /* Not implemented registers. */
             printf("ERROR: 0x%04x read not implemented!\n", addr);
-            return 0;
-        case 0xff04:
-            /* DIV (R/W): Divider Register. */
-            printf("ERROR: DIV not implemented!\n");
-            return 0;
-        case 0xff05:
-            /* TIMA (R/W): Timer counter. */
-            printf("ERROR: TIMA not implemented!\n");
-            return 0;
-        case 0xff06:
-            /* TMA (R/W): Timer modulo. */
-            printf("ERROR: TMA not implemented!\n");
-            return 0;
-        case 0xff07:
-            /* TAC (R/W): Timer control. */
-            printf("ERROR: TAC not implemented!\n");
             return 0;
         case 0xff0f:
             /* IF (R/W): Interrupt flag. */
@@ -123,6 +111,9 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
     } else if (addr > 0xff7f) {
         /* Internal RAM. */
         g_mmu.zram[addr & 0x007f] = value;
+    } else if (addr >= 0xff04 && addr <= 0xff07) {
+        /* Timer. */
+        timer_write_byte(addr, value);
     } else {
         /* I/O Registers. */
         switch (addr) {
@@ -134,22 +125,6 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
                 /* SC (R/W): SIO control. */
                 /* Not implemented registers. */
                 printf("ERROR: 0x%04x write not implemented!\n", addr);
-                return;
-            case 0xff04:
-                /* DIV (R/W): Divider Register. */
-                printf("ERROR: DIV not implemented!\n");
-                return;
-            case 0xff05:
-                /* TIMA (R/W): Timer counter. */
-                printf("ERROR: TIMA not implemented!\n");
-                return;
-            case 0xff06:
-                /* TMA (R/W): Timer modulo. */
-                printf("ERROR: TMA not implemented!\n");
-                return;
-            case 0xff07:
-                /* TAC (R/W): Timer control. */
-                printf("ERROR: TAC not implemented!\n");
                 return;
             case 0xff0f:
                 /* IF (R/W): Interrupt flag. */
