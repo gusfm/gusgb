@@ -388,9 +388,11 @@ void cpu_dump(void)
     printf("PC:0x%04x SP:0x%04x\n", g_cpu.reg.pc, g_cpu.reg.sp);
     printf("AF:0x%04x BC:0x%04x DE:0x%04x HL:0x%04x\n", g_cpu.reg.af,
            g_cpu.reg.bc, g_cpu.reg.de, g_cpu.reg.hl);
+#if 0
     for (uint32_t reg = 0xff00; reg <= 0xffff; ++reg) {
         printf("[0x%04x]=0x%02x\n", reg, mmu_read_byte((uint16_t)reg));
     }
+#endif
 }
 
 int cpu_init(const char *rom_path)
@@ -401,10 +403,6 @@ int cpu_init(const char *rom_path)
 
 static uint8_t cpu_fetch_opcode(void)
 {
-    if (g_cpu.reg.pc >= 0x0100) {
-        cpu_dump();
-        exit(EXIT_FAILURE);
-    }
     uint8_t op = mmu_read_byte(g_cpu.reg.pc);
     g_cpu.last_pc = g_cpu.reg.pc++;
     return op;

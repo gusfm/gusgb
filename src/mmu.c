@@ -15,14 +15,12 @@ int mmu_init(const char *rom_path)
         return -1;
     }
     memset(g_mmu.eram, 0, sizeof(g_mmu.eram));
-    memset(g_mmu.vram, 0, sizeof(g_mmu.vram));
-    memset(g_mmu.oam, 0, sizeof(g_mmu.oam));
     memset(g_mmu.wram, 0, sizeof(g_mmu.wram));
     memset(g_mmu.zram, 0, sizeof(g_mmu.zram));
     g_mmu.read_ext_rom = 0;
     g_mmu.cart_type = g_mmu.rom[ROM_OFFSET_TYPE];
     interrupt_init();
-    gpu_init(g_mmu.vram, g_mmu.oam);
+    gpu_init();
     return 0;
 }
 
@@ -107,40 +105,10 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
     if (addr >= 0xff30 && addr < 0xff3f) {
         printf("ERROR: Wave pattern RAM not implemented.\n");
         return 0;
-    } else if (addr == 0xff40) {
-        return gpu_get_lcd_control();
-    } else if (addr == 0xff41) {
-        printf("ERROR: LCDC status not implemented.\n");
-        return 0;
-    } else if (addr == 0xff42) {
-        return gpu_get_scroll_y();
-    } else if (addr == 0xff43) {
-        return gpu_get_scroll_x();
-    } else if (addr == 0xff44) {
-        return gpu_get_scanline();
-    } else if (addr == 0xff45) {
-        printf("ERROR: LY compare not implemented.\n");
-        return 0;
-    } else if (addr == 0xff46) {
-        printf("ERROR: DMA not implemented.\n");
-        return 0;
-    } else if (addr == 0xff47) {
-        printf("ERROR: BG & window palette read not implemented.\n");
-        return 0;
-    } else if (addr == 0xff48) {
-        printf("ERROR: OBP0 read not implemented.\n");
-        return 0;
-    } else if (addr == 0xff49) {
-        printf("ERROR: OBP1 read not implemented.\n");
-        return 0;
-    } else if (addr == 0xff4a) {
-        printf("ERROR: WY not implemented.\n");
-        return 0;
-    } else if (addr == 0xff4b) {
-        printf("ERROR: WX not implemented.\n");
-        return 0;
     } else if (addr == 0xff50) {
         return g_mmu.read_ext_rom;
+    } else if (addr >= 0xff40 && addr < 0xff80) {
+        return gpu_read_byte(addr);
     } else {
         /* I/O ports. */
         return g_mmu.io[addr - 0xff00];
@@ -213,34 +181,12 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
         }
         if (addr >= 0xff30 && addr < 0xff3f) {
             printf("ERROR: Wave pattern RAM not implemented.\n");
-        } else if (addr == 0xff40) {
-            gpu_set_lcd_control(value);
-        } else if (addr == 0xff41) {
-            printf("ERROR: LCDC status not implemented.\n");
-        } else if (addr == 0xff42) {
-            gpu_set_scroll_y(value);
-        } else if (addr == 0xff43) {
-            gpu_set_scroll_x(value);
-        } else if (addr == 0xff44) {
-            printf("ERROR: scanline not implemented.\n");
-        } else if (addr == 0xff45) {
-            printf("ERROR: LY compare not implemented.\n");
-        } else if (addr == 0xff46) {
-            printf("ERROR: DMA not implemented.\n");
-        } else if (addr == 0xff47) {
-            gpu_set_bg_palette(value);
-        } else if (addr == 0xff48) {
-            gpu_set_sprite_palette0(value);
-        } else if (addr == 0xff49) {
-            gpu_set_sprite_palette1(value);
-        } else if (addr == 0xff4a) {
-            printf("ERROR: WY not implemented.\n");
-        } else if (addr == 0xff4b) {
-            printf("ERROR: WX not implemented.\n");
         } else if (addr == 0xff50) {
             printf("Switching to external ROM!\n");
             g_mmu.read_ext_rom = value;
-        } else if (addr < 0xff80) {
+        } else if (addr >= 0xff40 && addr < 0xff80) {
+            gpu_write_byte(addr, value);
+        } else {
             /* I/O ports. */
             printf("I0 W addr=%04x, i=%04x, value=%02x\n", addr, addr - 0xff00,
                    value);
@@ -281,9 +227,7 @@ uint8_t mmu_read_byte(uint16_t addr)
         /* 8kB Video RAM. */
         case 0x8000:
         case 0x9000:
-            ret = g_mmu.vram[addr & 0x1fff];
-            // printf("VRAM: 0x%02x\n", ret);
-            return ret;
+            return gpu_read_vram(addr);
 
         /* 8kB Switchable RAM bank. */
         case 0xa000:
@@ -311,9 +255,7 @@ uint8_t mmu_read_byte(uint16_t addr)
                 case 0xe00:
                     /* Sprite Attrib Memory (OAM). */
                     if ((addr & 0xff) < 0xa0) {
-                        ret = g_mmu.oam[addr & 0xff];
-                        printf("OAM: 0x%02x\n", ret);
-                        return ret;
+                        return gpu_read_oam(addr);
                     } else {
                         /* Remaining bytes read as 0. */
                         printf("??: 0x00\n");
@@ -376,7 +318,7 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
         /* 8kB Video RAM. */
         case 0x8000:
         case 0x9000:
-            g_mmu.vram[addr & 0x1fff] = value;
+            gpu_write_vram(addr, value);
             if (addr < 0x9800)
                 gpu_update_tile(addr);
             break;
@@ -404,7 +346,7 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
                 case 0xe00:
                     /* Sprite Attrib Memory (OAM). */
                     if ((addr & 0xff) < 0xa0) {
-                        g_mmu.oam[addr & 0xff] = value;
+                        gpu_write_oam(addr, value);
                     }
                     break;
 

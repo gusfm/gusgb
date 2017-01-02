@@ -25,16 +25,32 @@ typedef struct {
 } rgb_t;
 
 typedef struct {
-    uint8_t control;
+    uint8_t reg[0x100];
+    union {
+        struct {
+            uint8_t bgon : 1;
+            uint8_t sprites_on : 1;
+            uint8_t sprites_size : 1;
+            uint8_t bg_tile_map : 1;
+            uint8_t bg_tile_set : 1;
+            uint8_t window_on : 1;
+            uint8_t window_tile_map : 1;
+            uint8_t display_on : 1;
+        };
+        uint8_t control;
+    };
     uint8_t scroll_x;
     uint8_t scroll_y;
+    uint8_t window_x;
+    uint8_t window_y;
     uint8_t scanline;
+    uint8_t raster;
     uint32_t tick;
     uint32_t last_tick;
     uint8_t tiles[384][8][8];
-    gpu_mode_e gpu_mode;
-    uint8_t *vram;
-    uint8_t *oam;
+    gpu_mode_e linemode;
+    uint8_t vram[0x2000]; /* Video RAM. */
+    uint8_t oam[0x100];   /* Sprite info. */
     rgb_t framebuffer[160 * 144];
     rgb_t bg_palette[4];
     rgb_t sprite_palette[2][4];
@@ -51,18 +67,14 @@ typedef struct {
     uint8_t palette : 1;
 } sprite_t;
 
-void gpu_init(uint8_t *vram, uint8_t *oam);
+void gpu_init(void);
 void gpu_set_glfw_window(GLFWwindow *window);
-uint8_t gpu_get_lcd_control(void);
-void gpu_set_lcd_control(uint8_t value);
-uint8_t gpu_get_scroll_y(void);
-void gpu_set_scroll_y(uint8_t value);
-uint8_t gpu_get_scroll_x(void);
-void gpu_set_scroll_x(uint8_t value);
-uint8_t gpu_get_scanline(void);
-void gpu_set_bg_palette(uint8_t value);
-void gpu_set_sprite_palette0(uint8_t value);
-void gpu_set_sprite_palette1(uint8_t value);
+uint8_t gpu_read_byte(uint16_t addr);
+void gpu_write_byte(uint16_t addr, uint8_t val);
+uint8_t gpu_read_vram(uint16_t addr);
+void gpu_write_vram(uint16_t addr, uint8_t val);
+uint8_t gpu_read_oam(uint16_t addr);
+void gpu_write_oam(uint16_t addr, uint8_t val);
 void gpu_step(uint32_t cpu_tick);
 void gpu_update_tile(uint16_t addr);
 void gpu_render_framebuffer(void);

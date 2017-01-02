@@ -6,10 +6,8 @@
 
 typedef struct {
     uint8_t rom[0x8000];  /* Cartridge ROM. */
-    uint8_t vram[0x2000]; /* Video RAM. */
     uint8_t eram[0x2000]; /* External RAM. */
     uint8_t wram[0x2000]; /* Working RAM. */
-    uint8_t oam[0x100];   /* Sprite info. */
     uint8_t zram[0x80];   /* Zero-page RAM. */
     uint8_t io[0x100];    /* Memory-mapped I/O. */
     uint8_t read_ext_rom;

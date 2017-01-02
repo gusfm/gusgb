@@ -172,15 +172,18 @@ static void gb_gl_init(void)
     glViewport(0, 0, (GLsizei)game_boy.width, (GLsizei)game_boy.height);
     /* Change to the projection matrix, reset the matrix and set up orthagonal
      * projection. */
-    glMatrixMode(GL_PROJECTION);
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     /* Paramters: left, right, bottom, top, near, far. */
     glOrtho(0.0f, game_boy.width, game_boy.height, 0.0, -1.0f, 1.0f);
-    /* ----- OpenGL settings ----- */
-    /* Enable (gouraud) shading. */
-    glEnable(GL_SMOOTH);
-    /* Disable depth testing. */
+    glClearColor(0, 0, 0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glShadeModel(GL_FLAT);
+    glEnable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DITHER);
+    glDisable(GL_BLEND);
 }
 
 static GLFWwindow *gb_create_window(const char *name)
