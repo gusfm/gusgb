@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "interrupt.h"
 #include "cpu.h"
 #include "cpu_opcodes.h"
@@ -25,6 +26,7 @@ uint8_t interrupt_get_enable(void)
 
 void interrupt_set_enable(uint8_t value)
 {
+    printf("%s:%d: value=0x%02x\n", __func__, __LINE__, value);
     g_interrupt.enable = value;
 }
 
@@ -35,6 +37,7 @@ uint8_t interrupt_get_master(void)
 
 void interrupt_set_master(uint8_t value)
 {
+    printf("%s:%d: value=0x%02x\n", __func__, __LINE__, value);
     g_interrupt.master = value;
 }
 
@@ -45,6 +48,7 @@ uint8_t interrupt_get_flag(void)
 
 void interrupt_set_flag(uint8_t value)
 {
+    printf("%s:%d: value=0x%02x\n", __func__, __LINE__, value);
     g_interrupt.flags = value;
 }
 
@@ -60,43 +64,48 @@ void interrupt_clear_flag_bit(uint8_t bit)
 
 static void vblank(void)
 {
+    printf("%s:%d\n", __func__, __LINE__);
     gpu_render_framebuffer();
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x40;
-    g_cpu.ticks += 12;
+    g_cpu.clock += 12;
 }
 
 static void lcd_stat(void)
 {
+    printf("%s:%d\n", __func__, __LINE__);
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x48;
-    g_cpu.ticks += 12;
+    g_cpu.clock += 12;
 }
 
 static void timer(void)
 {
+    printf("%s:%d\n", __func__, __LINE__);
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x50;
-    g_cpu.ticks += 12;
+    g_cpu.clock += 12;
 }
 
 static void serial(void)
 {
+    printf("%s:%d\n", __func__, __LINE__);
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x58;
-    g_cpu.ticks += 12;
+    g_cpu.clock += 12;
 }
 
 static void joypad(void)
 {
+    printf("%s:%d\n", __func__, __LINE__);
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x60;
-    g_cpu.ticks += 12;
+    g_cpu.clock += 12;
 }
 
 void interrupt_step(void)

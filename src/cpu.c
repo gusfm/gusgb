@@ -441,8 +441,8 @@ void cpu_emulate_cycle(void)
 {
     uint8_t opcode = cpu_fetch_opcode();
     cpu_decode_opcode(opcode);
-    g_cpu.ticks += instruction_ticks[opcode];
+    g_cpu.clock += instruction_ticks[opcode];
     interrupt_step();
-    gpu_step(g_cpu.ticks);
-    timer_step(g_cpu.ticks);
+    gpu_step(g_cpu.clock);
+    timer_step(g_cpu.clock);
 }
