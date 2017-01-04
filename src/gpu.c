@@ -255,7 +255,6 @@ static void gpu_render_scanline(void)
 
     uint8_t scanline_row[160];
 
-    // printf("%s:%d: scanline\n", __func__, __LINE__);
     // if bg enabled
     for (int i = 0; i < 160; i++) {
         uint8_t colour = GPU.tiles[tile][y][x];
@@ -297,17 +296,14 @@ static void gpu_render_framebuffer(void)
 void gpu_step(uint32_t clock_step)
 {
     GPU.modeclock += clock_step;
-    printf("step=%u, modeclock=%u", clock_step, GPU.modeclock);
     switch (GPU.linemode) {
         case GPU_MODE_OAM:
-            printf(" OAM\n");
             if (GPU.modeclock >= 20) {
                 GPU.modeclock -= 20;
                 GPU.linemode = GPU_MODE_VRAM;
             }
             break;
         case GPU_MODE_VRAM:
-            printf(" VRAM\n");
             if (GPU.modeclock >= 43) {
                 GPU.modeclock -= 43;
                 GPU.linemode = GPU_MODE_HBLANK;
@@ -316,7 +312,6 @@ void gpu_step(uint32_t clock_step)
             }
             break;
         case GPU_MODE_HBLANK:
-            printf(" HBLANK\n");
             if (GPU.modeclock >= 51) {
                 GPU.modeclock -= 51;
                 GPU.scanline++;
@@ -332,7 +327,6 @@ void gpu_step(uint32_t clock_step)
             }
             break;
         case GPU_MODE_VBLANK:
-            printf(" VBLANK\n");
             if (GPU.modeclock >= 114) {
                 GPU.modeclock -= 114;
                 GPU.scanline++;
@@ -355,7 +349,5 @@ void gpu_update_tile(uint16_t addr)
         GPU.tiles[tile][y][x] =
             (uint8_t)(((GPU.vram[vram_index] & bit_index) ? 1u : 0u) +
                       ((GPU.vram[vram_index + 1] & bit_index) ? 2u : 0u));
-        // printf("%s:%d: tile=%hu, y=%hu, x=%hhu\n", __func__, __LINE__, tile,
-        // y, x);
     }
 }
