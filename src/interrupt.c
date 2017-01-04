@@ -2,7 +2,6 @@
 #include "interrupt.h"
 #include "cpu.h"
 #include "cpu_opcodes.h"
-#include "gpu.h"
 
 interrupt_t g_interrupt;
 extern cpu_t g_cpu;
@@ -65,7 +64,6 @@ void interrupt_clear_flag_bit(uint8_t bit)
 static void vblank(void)
 {
     printf("%s:%d\n", __func__, __LINE__);
-    gpu_render_framebuffer();
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x40;

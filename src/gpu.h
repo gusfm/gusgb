@@ -45,8 +45,7 @@ typedef struct {
     uint8_t window_y;
     uint8_t scanline;
     uint8_t raster;
-    uint32_t tick;
-    uint32_t last_tick;
+    uint32_t modeclock;
     uint8_t tiles[384][8][8];
     gpu_mode_e linemode;
     uint8_t vram[0x2000]; /* Video RAM. */
@@ -77,6 +76,5 @@ uint8_t gpu_read_oam(uint16_t addr);
 void gpu_write_oam(uint16_t addr, uint8_t val);
 void gpu_step(uint32_t cpu_tick);
 void gpu_update_tile(uint16_t addr);
-void gpu_render_framebuffer(void);
 
 #endif /* __GPU_H__ */

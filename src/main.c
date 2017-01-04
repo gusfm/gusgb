@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     }
     printf("rom_path=%s, debug=%d, breakpoint=0x%04x\n", rom_path, debug,
            breakpoint);
-    int ret = gb_init(1024, 600, rom_path, debug, breakpoint);
+    int ret = gb_init(160, 144, rom_path, debug, breakpoint);
     if (ret < 0) {
         fprintf(stderr, "ERROR: could not load ROM %s\n", rom_path);
         exit(EXIT_FAILURE);

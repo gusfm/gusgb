@@ -16,7 +16,7 @@ const rgb_t g_palette[4] = {
 void gpu_init(void)
 {
     memset(&GPU, 0, sizeof(GPU));
-    GPU.linemode = GPU_MODE_HBLANK;
+    GPU.linemode = GPU_MODE_OAM;
     /* Init background palette. */
     GPU.bg_palette[0] = g_palette[0];
     GPU.bg_palette[1] = g_palette[1];
@@ -236,6 +236,7 @@ static void gpu_render_sprites(uint8_t *scanline_row)
     }
 }
 
+/* TODO: fixme! */
 static void gpu_render_scanline(void)
 {
     int mapoffs = (GPU.control & GPU_CONTROL_TILEMAP) ? 0x1c00 : 0x1800;
@@ -279,50 +280,66 @@ static void gpu_render_scanline(void)
     gpu_render_sprites(scanline_row);
 }
 
-void gpu_step(uint32_t cpu_tick)
+static void gpu_render_framebuffer(void)
 {
-    GPU.tick += cpu_tick - GPU.last_tick;
-    GPU.last_tick = cpu_tick;
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
+    glRasterPos2i(-1, 1);
+    glPixelZoom(1, -1);
+    glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, GPU.framebuffer);
+    glfwSwapBuffers(GPU.window);
+    glfwPollEvents();
+}
 
+/* Check GPU FSM.
+ * Note: All clock values are divided by 4.
+ */
+void gpu_step(uint32_t clock_step)
+{
+    GPU.modeclock += clock_step;
+    printf("step=%u, modeclock=%u", clock_step, GPU.modeclock);
     switch (GPU.linemode) {
+        case GPU_MODE_OAM:
+            printf(" OAM\n");
+            if (GPU.modeclock >= 20) {
+                GPU.modeclock -= 20;
+                GPU.linemode = GPU_MODE_VRAM;
+            }
+            break;
+        case GPU_MODE_VRAM:
+            printf(" VRAM\n");
+            if (GPU.modeclock >= 43) {
+                GPU.modeclock -= 43;
+                GPU.linemode = GPU_MODE_HBLANK;
+                /* End of scanline. Write a scanline to framebuffer. */
+                gpu_render_scanline();
+            }
+            break;
         case GPU_MODE_HBLANK:
-            if (GPU.tick >= 204) {
+            printf(" HBLANK\n");
+            if (GPU.modeclock >= 51) {
+                GPU.modeclock -= 51;
                 GPU.scanline++;
                 if (GPU.scanline == 143) {
+                    GPU.linemode = GPU_MODE_VBLANK;
                     if (interrupt_is_enable(INTERRUPTS_VBLANK)) {
                         interrupt_set_flag_bit(INTERRUPTS_VBLANK);
                     }
-                    GPU.linemode = GPU_MODE_VBLANK;
+                    gpu_render_framebuffer();
                 } else {
                     GPU.linemode = GPU_MODE_OAM;
                 }
-                GPU.tick -= 204;
             }
             break;
-
         case GPU_MODE_VBLANK:
-            if (GPU.tick >= 456) {
+            printf(" VBLANK\n");
+            if (GPU.modeclock >= 114) {
+                GPU.modeclock -= 114;
                 GPU.scanline++;
                 if (GPU.scanline > 153) {
                     GPU.scanline = 0;
                     GPU.linemode = GPU_MODE_OAM;
                 }
-                GPU.tick -= 456;
-            }
-            break;
-
-        case GPU_MODE_OAM:
-            if (GPU.tick >= 80) {
-                GPU.linemode = GPU_MODE_VRAM;
-                GPU.tick -= 80;
-            }
-            break;
-
-        case GPU_MODE_VRAM:
-            if (GPU.tick >= 172) {
-                GPU.linemode = GPU_MODE_HBLANK;
-                gpu_render_scanline();
-                GPU.tick -= 172;
             }
             break;
     }
@@ -341,15 +358,4 @@ void gpu_update_tile(uint16_t addr)
         // printf("%s:%d: tile=%hu, y=%hu, x=%hhu\n", __func__, __LINE__, tile,
         // y, x);
     }
-}
-
-void gpu_render_framebuffer(void)
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-    glRasterPos2i(-1, 1);
-    glPixelZoom(1, -1);
-    glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, GPU.framebuffer);
-    glfwSwapBuffers(GPU.window);
-    glfwPollEvents();
 }
