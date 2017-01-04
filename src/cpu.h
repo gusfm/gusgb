@@ -87,11 +87,16 @@ typedef struct {
 
     uint16_t sp;
     uint16_t pc;
-} registers_t;
+} cpu_registers_t;
 
 typedef struct {
-    registers_t reg;
-    uint32_t clock;
+    uint32_t main;
+    uint32_t step;
+} cpu_clock_t;
+
+typedef struct {
+    cpu_registers_t reg;
+    cpu_clock_t clock;
     uint32_t cycle;
     uint16_t last_pc;
 } cpu_t;

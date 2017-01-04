@@ -303,7 +303,7 @@ void print_ext_ops(char *str, uint8_t opcode)
 void cb_n(uint8_t opcode)
 {
     g_ext_instr[opcode].execute();
-    g_cpu.clock += ext_instr_ticks[opcode];
+    g_cpu.clock.step += ext_instr_ticks[opcode];
 }
 
 /* 0x00: Rotate B with carry. */

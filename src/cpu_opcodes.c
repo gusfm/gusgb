@@ -465,10 +465,10 @@ void rra(void)
 void jr_nz_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.clock += 2;
+        g_cpu.clock.step += 2;
     } else {
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     }
 }
 
@@ -542,9 +542,9 @@ void jr_z_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     } else {
-        g_cpu.clock += 2;
+        g_cpu.clock.step += 2;
     }
 }
 
@@ -595,10 +595,10 @@ void cpl(void)
 void jr_nc_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        g_cpu.clock += 2;
+        g_cpu.clock.step += 2;
     } else {
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     }
 }
 
@@ -652,9 +652,9 @@ void jr_c_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     } else {
-        g_cpu.clock += 2;
+        g_cpu.clock.step += 2;
     }
 }
 
@@ -1441,10 +1441,10 @@ void cp_a(void)
 void ret_nz(void)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.clock += 2;
+        g_cpu.clock.step += 2;
     } else {
         g_cpu.reg.pc = pop();
-        g_cpu.clock += 5;
+        g_cpu.clock.step += 5;
     }
 }
 
@@ -1458,10 +1458,10 @@ void pop_bc(void)
 void jp_nz_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     } else {
         g_cpu.reg.pc = addr;
-        g_cpu.clock += 4;
+        g_cpu.clock.step += 4;
     }
 }
 
@@ -1475,11 +1475,11 @@ void jp_nn(uint16_t addr)
 void call_nz_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     } else {
         push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
-        g_cpu.clock += 6;
+        g_cpu.clock.step += 6;
     }
 }
 
@@ -1507,9 +1507,9 @@ void ret_z(void)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.reg.pc = pop();
-        g_cpu.clock += 5;
+        g_cpu.clock.step += 5;
     } else {
-        g_cpu.clock += 2;
+        g_cpu.clock.step += 2;
     }
 }
 
@@ -1524,9 +1524,9 @@ void jp_z_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.reg.pc = addr;
-        g_cpu.clock += 4;
+        g_cpu.clock.step += 4;
     } else {
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     }
 }
 
@@ -1536,9 +1536,9 @@ void call_z_nn(uint16_t addr)
     if (FLAG_IS_SET(FLAG_Z)) {
         push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
-        g_cpu.clock += 6;
+        g_cpu.clock.step += 6;
     } else {
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     }
 }
 
@@ -1567,10 +1567,10 @@ void rst_08(void)
 void ret_nc(void)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        g_cpu.clock += 2;
+        g_cpu.clock.step += 2;
     } else {
         g_cpu.reg.pc = pop();
-        g_cpu.clock += 5;
+        g_cpu.clock.step += 5;
     }
 }
 
@@ -1584,10 +1584,10 @@ void pop_de(void)
 void jp_nc_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     } else {
         g_cpu.reg.pc = addr;
-        g_cpu.clock += 4;
+        g_cpu.clock.step += 4;
     }
 }
 
@@ -1595,11 +1595,11 @@ void jp_nc_nn(uint16_t addr)
 void call_nc_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     } else {
         push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
-        g_cpu.clock += 6;
+        g_cpu.clock.step += 6;
     }
 }
 
@@ -1627,9 +1627,9 @@ void ret_c(void)
 {
     if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.reg.pc = pop();
-        g_cpu.clock += 5;
+        g_cpu.clock.step += 5;
     } else {
-        g_cpu.clock += 2;
+        g_cpu.clock.step += 2;
     }
 }
 
@@ -1646,9 +1646,9 @@ void jp_c_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.reg.pc = addr;
-        g_cpu.clock += 4;
+        g_cpu.clock.step += 4;
     } else {
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     }
 }
 
@@ -1658,9 +1658,9 @@ void call_c_nn(uint16_t addr)
     if (FLAG_IS_SET(FLAG_C)) {
         push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
-        g_cpu.clock += 6;
+        g_cpu.clock.step += 6;
     } else {
-        g_cpu.clock += 3;
+        g_cpu.clock.step += 3;
     }
 }
 

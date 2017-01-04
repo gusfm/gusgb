@@ -69,7 +69,7 @@ static void vblank(void)
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x40;
-    g_cpu.clock += 12;
+    g_cpu.clock.step += 3;
 }
 
 static void lcd_stat(void)
@@ -78,7 +78,7 @@ static void lcd_stat(void)
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x48;
-    g_cpu.clock += 12;
+    g_cpu.clock.step += 3;
 }
 
 static void timer(void)
@@ -87,7 +87,7 @@ static void timer(void)
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x50;
-    g_cpu.clock += 12;
+    g_cpu.clock.step += 3;
 }
 
 static void serial(void)
@@ -96,7 +96,7 @@ static void serial(void)
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x58;
-    g_cpu.clock += 12;
+    g_cpu.clock.step += 3;
 }
 
 static void joypad(void)
@@ -105,7 +105,7 @@ static void joypad(void)
     g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x60;
-    g_cpu.clock += 12;
+    g_cpu.clock.step += 3;
 }
 
 void interrupt_step(void)

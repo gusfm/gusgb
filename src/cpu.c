@@ -438,7 +438,7 @@ static void cpu_decode_opcode(uint8_t opcode)
         fprintf(stderr, "ERROR: invalid operand length!\n");
         exit(EXIT_FAILURE);
     }
-
+    g_cpu.clock.step += instruction_ticks[opcode];
     g_cpu.cycle++;
 }
 
@@ -446,8 +446,8 @@ void cpu_emulate_cycle(void)
 {
     uint8_t opcode = cpu_fetch_opcode();
     cpu_decode_opcode(opcode);
-    g_cpu.clock += instruction_ticks[opcode];
     interrupt_step();
-    gpu_step(g_cpu.clock);
-    timer_step(g_cpu.clock);
+    gpu_step(g_cpu.clock.step);
+    timer_step(g_cpu.clock.step);
+    g_cpu.clock.main += g_cpu.clock.step;
 }

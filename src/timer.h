@@ -4,9 +4,9 @@
 #include <stdint.h>
 
 typedef struct {
-    uint32_t main;
-    uint32_t sub;
-    uint32_t div;
+    uint32_t main; /* Internal timer clock. 1/4 of cpu main clock. */
+    uint32_t sub;  /* Variable to help internal clock count. */
+    uint32_t div;  /* Variable to help div timer count. */
 } clock_t;
 
 typedef struct {
@@ -18,7 +18,7 @@ typedef struct {
 } timer_t;
 
 void timer_init(void);
-void timer_step(uint32_t cpu_tick);
+void timer_step(uint32_t clock_step);
 uint8_t timer_read_byte(uint16_t addr);
 void timer_write_byte(uint16_t addr, uint8_t val);
 
