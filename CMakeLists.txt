@@ -22,6 +22,7 @@ add_library(libgusgb SHARED
     src/timer.c
     src/rom.c
     src/gpu.c
+    src/keys.c
     src/mmu.c
     src/cpu_utils.c
     src/cpu_opcodes.c

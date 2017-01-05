@@ -20,40 +20,44 @@ uint8_t interrupt_is_enable(uint8_t bit)
 
 uint8_t interrupt_get_enable(void)
 {
+    printf("%s:%d: enable=0x%02x\n", __func__, __LINE__, g_interrupt.enable);
     return g_interrupt.enable;
 }
 
 void interrupt_set_enable(uint8_t value)
 {
-    printf("%s:%d: value=0x%02x\n", __func__, __LINE__, value);
+    printf("%s:%d: enable=0x%02x\n", __func__, __LINE__, value);
     g_interrupt.enable = value;
 }
 
 uint8_t interrupt_get_master(void)
 {
+    printf("%s:%d: master=0x%02x\n", __func__, __LINE__, g_interrupt.master);
     return g_interrupt.master;
 }
 
 void interrupt_set_master(uint8_t value)
 {
-    printf("%s:%d: value=0x%02x\n", __func__, __LINE__, value);
+    printf("%s:%d: master=0x%02x\n", __func__, __LINE__, value);
     g_interrupt.master = value;
 }
 
 uint8_t interrupt_get_flag(void)
 {
+    printf("%s:%d: value=0x%02x\n", __func__, __LINE__, g_interrupt.flags);
     return g_interrupt.flags;
 }
 
 void interrupt_set_flag(uint8_t value)
 {
-    printf("%s:%d: value=0x%02x\n", __func__, __LINE__, value);
     g_interrupt.flags = value;
+    printf("%s:%d: flags=0x%02x\n", __func__, __LINE__, g_interrupt.flags);
 }
 
 void interrupt_set_flag_bit(uint8_t bit)
 {
     g_interrupt.flags |= bit;
+    printf("%s:%d: flags=0x%02x\n", __func__, __LINE__, g_interrupt.flags);
 }
 
 void interrupt_clear_flag_bit(uint8_t bit)

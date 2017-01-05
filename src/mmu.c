@@ -4,6 +4,7 @@
 #include <string.h>
 #include "gpu.h"
 #include "interrupt.h"
+#include "keys.h"
 #include "rom.h"
 #include "timer.h"
 
@@ -21,18 +22,16 @@ int mmu_init(const char *rom_path)
     g_mmu.read_ext_rom = 0;
     g_mmu.cart_type = g_mmu.rom[ROM_OFFSET_TYPE];
     interrupt_init();
+    keys_init();
     gpu_init();
     return 0;
 }
 
 static uint8_t mmu_read_byte_ffxx(uint16_t addr)
 {
-    uint8_t ret;
     if (addr == 0xffff) {
         /* Interrupt Enable Register. */
-        ret = interrupt_get_enable();
-        printf("IE: 0x%02x\n", ret);
-        return ret;
+        return interrupt_get_enable();
     } else if (addr > 0xff7f) {
         /* Internal RAM. */
         return g_mmu.zram[addr & 0x007f];
@@ -44,18 +43,7 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
     switch (addr) {
         case 0xff00:
             /* P1 (R/W): Register for reading joy pad info. */
-            if (!(g_mmu.io[0x00] & 0x20)) {
-                return (unsigned char)(0xc0 | 0 /* keys.keys1 */ | 0x10);
-            }
-
-            else if (!(g_mmu.io[0x00] & 0x10)) {
-                return (unsigned char)(0xc0 | 0 /* keys.keys2 */ | 0x20);
-            }
-
-            else if (!(g_mmu.io[0x00] & 0x30))
-                return 0xff;
-            else
-                return 0;
+            return keys_read();
         case 0xff01:
         /* SB (R/W): Serial transfer data. */
         case 0xff02:
@@ -118,7 +106,9 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
         /* I/O Registers. */
         switch (addr) {
             case 0xff00:
-            /* P1 (R/W): Register for reading joy pad info. */
+                /* P1 (R/W): Register for reading joy pad info. */
+                keys_write(value);
+                break;
             case 0xff01:
             /* SB (R/W): Serial transfer data. */
             case 0xff02:

@@ -157,11 +157,9 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             break;
         case 0x02:
             GPU.scroll_y = val;
-            printf("GPU.scroll_y=0x%02x\n", val);
             break;
         case 0x03:
             GPU.scroll_x = val;
-            printf("GPU.scroll_x=0x%02x\n", val);
             break;
         case 0x05:
             GPU.raster = val;

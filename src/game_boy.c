@@ -6,6 +6,7 @@
 #include <string.h>
 #include "cpu.h"
 #include "gpu.h"
+#include "keys.h"
 
 #define INFO_FONT_SIZE 16
 #define DEBUG_FONT_SIZE 14
@@ -48,6 +49,56 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
             if (game_boy.debug == true && action == GLFW_PRESS) {
                 cpu_emulate_cycle();
             }
+            break;
+
+        /* Game keys. */
+        case GLFW_KEY_A:
+            if (action == GLFW_PRESS)
+                key_press(KEY_A);
+            else if (action == GLFW_RELEASE)
+                key_release(KEY_A);
+            break;
+        case GLFW_KEY_S:
+            if (action == GLFW_PRESS)
+                key_press(KEY_B);
+            else if (action == GLFW_RELEASE)
+                key_release(KEY_B);
+            break;
+        case GLFW_KEY_ENTER:
+            if (action == GLFW_PRESS)
+                key_press(KEY_START);
+            else if (action == GLFW_RELEASE)
+                key_release(KEY_START);
+            break;
+        case GLFW_KEY_SPACE:
+            if (action == GLFW_PRESS)
+                key_press(KEY_SELECT);
+            else if (action == GLFW_RELEASE)
+                key_release(KEY_SELECT);
+            break;
+        case GLFW_KEY_UP:
+            if (action == GLFW_PRESS)
+                key_press(KEY_UP);
+            else if (action == GLFW_RELEASE)
+                key_release(KEY_UP);
+            break;
+        case GLFW_KEY_DOWN:
+            if (action == GLFW_PRESS)
+                key_press(KEY_DOWN);
+            else if (action == GLFW_RELEASE)
+                key_release(KEY_DOWN);
+            break;
+        case GLFW_KEY_LEFT:
+            if (action == GLFW_PRESS)
+                key_press(KEY_LEFT);
+            else if (action == GLFW_RELEASE)
+                key_release(KEY_LEFT);
+            break;
+        case GLFW_KEY_RIGHT:
+            if (action == GLFW_PRESS)
+                key_press(KEY_RIGHT);
+            else if (action == GLFW_RELEASE)
+                key_release(KEY_RIGHT);
             break;
 
         default:
