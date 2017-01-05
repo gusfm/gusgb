@@ -157,9 +157,11 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             break;
         case 0x02:
             GPU.scroll_y = val;
+            printf("GPU.scroll_y=0x%02x\n", val);
             break;
         case 0x03:
             GPU.scroll_x = val;
+            printf("GPU.scroll_x=0x%02x\n", val);
             break;
         case 0x05:
             GPU.raster = val;
@@ -198,61 +200,68 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
     }
 }
 
-/* TODO: improve this code! */
-static void gpu_render_background(uint8_t *scanline_row)
+static uint32_t gpu_get_tile_id(int mapoffs, int map_row, int map_col)
 {
-    bool window_enabled;
-    int y;
-    int mapoffs;
+    uint32_t tile_id;
+    if (GPU.bg_tile_set) {
+        /* Unsigned tile region: 0 to 255. */
+        tile_id = (uint32_t)GPU.vram[mapoffs + map_row + map_col];
+    } else {
+        /* Signed tile region: -128 to 127. */
+        int tile_signed_id = (int)GPU.vram[mapoffs + map_row + map_col];
+        /* Adjust id for the 0x8000 - 0x97ff range. */
+        tile_id = (uint32_t)(256 + tile_signed_id);
+    }
+    /* Each tile is 16 bytes long. */
+    return tile_id * 16;
+}
+
+static void gpu_update_fb_bg(uint8_t *scanline_row)
+{
+    int mapoffs, bg_x, bg_y;
+    /* Get background xy coordinate, and Get map offset relative to vram array. */
     if (GPU.window_on && GPU.window_y <= GPU.scanline) {
-        window_enabled = true;
-        y = (GPU.scanline - GPU.window_y);
+        bg_x = -GPU.window_x;
+        bg_y = GPU.scanline - GPU.window_y;
         mapoffs = (GPU.window_tile_map) ? 0x1c00 : 0x1800;
     } else {
-        window_enabled = false;
-        y = GPU.scroll_y + GPU.scanline;
+        bg_x = GPU.scroll_x;
+        bg_y = GPU.scanline + GPU.scroll_y;
         mapoffs = (GPU.bg_tile_map) ? 0x1c00 : 0x1800;
     }
-    int tile_row = (y / 8) * 32;
-    int pixeloffs = GPU.scanline * 160;
-    for (int pixel = 0; pixel < 160; pixel++) {
-        int x = pixel + GPU.scroll_x;
-        if (window_enabled) {
-            if (pixel >= GPU.window_x) {
-                x = pixel - GPU.window_x;
-            }
+    /* Map row offset. */
+    int map_row = (bg_y / 8) * 32;
+    uint32_t screen_x = 0;
+    uint32_t pixeloffs = (uint32_t)GPU.scanline * 160;
+    while (screen_x < 160) {
+        int map_col = (bg_x / 8);
+        /* Get tile index ajusted for the 0x8000 - 0x97ff range. */
+        uint32_t tile_id = gpu_get_tile_id(mapoffs, map_row, map_col);
+        /* Get tile index for the correct line of the tile. */
+        uint32_t tile_line_id = tile_id + (uint32_t)((bg_y % 8) * 2);
+        /* Get tile line data: Each tile line takes 2 bytes. */
+        uint8_t tile_l = GPU.vram[tile_line_id];
+        uint8_t tile_h = GPU.vram[tile_line_id + 1];
+        /* Iterate over remaining pixels of the tile. */
+        for (int tile_x = screen_x % 8; tile_x < 8; ++tile_x) {
+            /* Get bit index for pixel. */
+            uint32_t color_bit = (uint32_t)(7 - tile_x);
+            /* Get color number. */
+            uint32_t color_num = (tile_h & (1 << color_bit)) ? 2 : 0;
+            color_num |= (tile_l & (1 << color_bit)) ? 1 : 0;
+            scanline_row[screen_x] = (uint8_t)color_num;
+            /* Copy color to frame buffer. */
+            GPU.framebuffer[pixeloffs].r = GPU.bg_palette[color_num].r;
+            GPU.framebuffer[pixeloffs].g = GPU.bg_palette[color_num].g;
+            GPU.framebuffer[pixeloffs].b = GPU.bg_palette[color_num].b;
+            ++pixeloffs;
+            ++screen_x;
+            ++bg_x;
         }
-        int tile_col = (x / 8);
-        int tile_location;
-        int tile_num;
-        if (GPU.bg_tile_set) {
-            /* Unsigned tile region: 0 to 255. */
-            tile_num = (uint32_t)GPU.vram[mapoffs + tile_row + tile_col];
-            tile_location = 0x0000 + (tile_num * 16);
-        } else {
-            /* Signed tile region: -128 to 127. */
-            tile_num = (int)GPU.vram[mapoffs + tile_row + tile_col];
-            tile_location = 0x0800 + ((tile_num + 128) * 16);
-        }
-
-        int line = (y % 8) * 2;
-        uint8_t data1 = GPU.vram[tile_location + line];
-        uint8_t data2 = GPU.vram[tile_location + line + 1];
-
-        int color_bit = ((x % 8) - 7) * -1;
-        int color_num = (data2 & (1 << color_bit)) ? 2 : 0;
-        color_num |= (data1 & (1 << color_bit)) ? 1 : 0;
-
-        scanline_row[pixel] = (uint8_t)color_num;
-
-        GPU.framebuffer[pixeloffs].r = GPU.bg_palette[color_num].r;
-        GPU.framebuffer[pixeloffs].g = GPU.bg_palette[color_num].g;
-        GPU.framebuffer[pixeloffs].b = GPU.bg_palette[color_num].b;
-        pixeloffs++;
     }
 }
 
-static void gpu_render_sprites(uint8_t *scanline_row)
+static void gpu_update_fb_spr(uint8_t *scanline_row)
 {
     int ysize = GPU.sprites_size ? 16 : 8;
     for (int i = 0; i < 40; i++) {
@@ -301,9 +310,9 @@ static void gpu_render_scanline(void)
 	if (GPU.display_on) {
         uint8_t scanline_row[160];
         if (GPU.bg_on)
-            gpu_render_background(scanline_row);
+            gpu_update_fb_bg(scanline_row);
         if (GPU.sprites_on)
-            gpu_render_sprites(scanline_row);
+            gpu_update_fb_spr(scanline_row);
 	}
 }
 
