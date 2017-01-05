@@ -45,12 +45,14 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
             /* P1 (R/W): Register for reading joy pad info. */
             return keys_read();
         case 0xff01:
-        /* SB (R/W): Serial transfer data. */
+            /* SB (R/W): Serial transfer data. */
+            printf("NOTE: Serial transfer not implemented!\n");
+            break;
         case 0xff02:
             /* SC (R/W): SIO control. */
             /* Not implemented registers. */
-            printf("ERROR: 0x%04x read not implemented!\n", addr);
-            return 0;
+            printf("NOTE: Serial control not implemented!\n");
+            break;
         case 0xff0f:
             /* IF (R/W): Interrupt flag. */
             return interrupt_get_flag();
@@ -78,7 +80,7 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
             printf("ERROR: sound register 0x%04x not implemented!\n", addr);
             return 0;
     }
-    if (addr >= 0xff30 && addr < 0xff3f) {
+    if (addr >= 0xff30 && addr <= 0xff3f) {
         printf("ERROR: Wave pattern RAM not implemented.\n");
         return 0;
     } else if (addr == 0xff50) {
@@ -87,6 +89,8 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
         return gpu_read_byte(addr);
     } else {
         /* I/O ports. */
+        printf("IO R addr=0x%04x, i=0x%04x, value=0x%02x\n", addr,
+               addr - 0xff00, g_mmu.io[addr - 0xff00]);
         return g_mmu.io[addr - 0xff00];
     }
 }
@@ -108,14 +112,16 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
             case 0xff00:
                 /* P1 (R/W): Register for reading joy pad info. */
                 keys_write(value);
-                break;
+                return;
             case 0xff01:
-            /* SB (R/W): Serial transfer data. */
+                /* SB (R/W): Serial transfer data. */
+                printf("NOTE: Serial transfer not implemented!\n");
+                break;
             case 0xff02:
                 /* SC (R/W): SIO control. */
                 /* Not implemented registers. */
-                printf("ERROR: 0x%04x write not implemented!\n", addr);
-                return;
+                printf("NOTE: Serial control not implemented!\n");
+                break;
             case 0xff0f:
                 /* IF (R/W): Interrupt flag. */
                 interrupt_set_flag(value);
@@ -144,7 +150,7 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
                 printf("ERROR: sound register 0x%04x not implemented!\n", addr);
                 return;
         }
-        if (addr >= 0xff30 && addr < 0xff3f) {
+        if (addr >= 0xff30 && addr <= 0xff3f) {
             printf("ERROR: Wave pattern RAM not implemented.\n");
         } else if (addr == 0xff50) {
             printf("Switching to external ROM!\n");
@@ -153,8 +159,8 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
             gpu_write_byte(addr, value);
         } else {
             /* I/O ports. */
-            printf("I0 W addr=%04x, i=%04x, value=%02x\n", addr, addr - 0xff00,
-                   value);
+            printf("IO W addr=0x%04x, i=0x%04x, value=0x%02x\n", addr,
+                   addr - 0xff00, value);
             g_mmu.io[addr - 0xff00] = value;
         }
     }

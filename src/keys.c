@@ -20,10 +20,8 @@ uint8_t keys_read(void)
 {
     switch (KEY.column) {
         case 0x10:
-            printf("KEY.rows[0]=0x%02x\n", KEY.rows[0]);
             return KEY.rows[0];
         case 0x20:
-            printf("KEY.rows[1]=0x%02x\n", KEY.rows[1]);
             return KEY.rows[1];
         default:
             return 0;
@@ -32,7 +30,6 @@ uint8_t keys_read(void)
 
 void keys_write(uint8_t value)
 {
-    printf("KEY.column=0x%02x\n", value & 0x30);
     KEY.column = value & 0x30;
 }
 
