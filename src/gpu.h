@@ -54,6 +54,7 @@ typedef struct {
     rgb_t bg_palette[4];
     rgb_t sprite_palette[2][4];
     GLFWwindow *window;
+    float zoom;
 } gpu_t;
 
 typedef struct {
@@ -72,7 +73,7 @@ typedef struct {
     };
 } sprite_t;
 
-void gpu_init(void);
+void gpu_init(float zoom);
 void gpu_set_glfw_window(GLFWwindow *window);
 uint8_t gpu_read_byte(uint16_t addr);
 void gpu_write_byte(uint16_t addr, uint8_t val);

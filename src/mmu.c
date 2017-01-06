@@ -23,7 +23,6 @@ int mmu_init(const char *rom_path)
     g_mmu.cart_type = g_mmu.rom[ROM_OFFSET_TYPE];
     interrupt_init();
     keys_init();
-    gpu_init();
     return 0;
 }
 

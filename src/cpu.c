@@ -401,10 +401,11 @@ void cpu_dump(void)
 #endif
 }
 
-int cpu_init(const char *rom_path)
+int cpu_init(const char *rom_path, float screen_zoom)
 {
     memset(&g_cpu, 0x0, sizeof(g_cpu));
     timer_init();
+    gpu_init(screen_zoom);
     return mmu_init(rom_path);
 }
 

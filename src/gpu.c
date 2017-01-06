@@ -13,7 +13,7 @@ const rgb_t g_palette[4] = {
     {0, 0, 0},        // on
 };
 
-void gpu_init(void)
+void gpu_init(float zoom)
 {
     memset(&GPU, 0, sizeof(GPU));
     GPU.linemode = GPU_MODE_OAM;
@@ -32,6 +32,7 @@ void gpu_init(void)
     GPU.sprite_palette[1][1] = g_palette[1];
     GPU.sprite_palette[1][2] = g_palette[2];
     GPU.sprite_palette[1][3] = g_palette[3];
+    GPU.zoom = zoom;
 }
 
 void gpu_set_glfw_window(GLFWwindow *window)
@@ -319,7 +320,7 @@ static void gpu_render_framebuffer(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     glRasterPos2i(-1, 1);
-    glPixelZoom(1, -1);
+    glPixelZoom(GPU.zoom, -GPU.zoom);
     glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, GPU.framebuffer);
     glfwSwapBuffers(GPU.window);
     glfwPollEvents();
