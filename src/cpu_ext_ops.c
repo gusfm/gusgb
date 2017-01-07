@@ -296,7 +296,7 @@ const uint8_t ext_instr_ticks[256] = {
 
 void print_ext_ops(char *str, uint8_t opcode)
 {
-    sprintf(str, "0xcb%02x: %s\n", opcode, g_ext_instr[opcode].asm);
+    sprintf(str, "0xcb%02x: %s", opcode, g_ext_instr[opcode].asm);
 }
 
 /* 0xcb: Extended operations. */

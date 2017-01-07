@@ -49,7 +49,7 @@ typedef struct {
     uint8_t tiles[384][8][8];
     gpu_mode_e linemode;
     uint8_t vram[0x2000]; /* Video RAM. */
-    uint8_t oam[0x100];   /* Sprite info. */
+    uint8_t oam[0xa0];   /* Sprite info. */
     rgb_t framebuffer[160 * 144];
     rgb_t bg_palette[4];
     rgb_t sprite_palette[2][4];
@@ -58,16 +58,16 @@ typedef struct {
 } gpu_t;
 
 typedef struct {
-    uint8_t y;
-    uint8_t x;
-    uint8_t tile;
+    uint8_t y;    /* Y-coordinate minus 16. */
+    uint8_t x;    /* X-coordinate minus 8. */
+    uint8_t tile; /* Tile number. */
     union {
         uint8_t options;
         struct {
             uint8_t unused : 4;
             uint8_t palette : 1;
-            uint8_t x_flip : 1;
-            uint8_t y_flip : 1;
+            uint8_t xflip : 1;
+            uint8_t yflip : 1;
             uint8_t priority : 1;
         };
     };

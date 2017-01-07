@@ -259,7 +259,7 @@ void undefined(void)
     exit(EXIT_FAILURE);
 }
 
-/*************** Opcodes implementaion. ***************/
+/*************** Opcodes implementation. ***************/
 
 /* 0x00: No operation. */
 void nop(void)
@@ -627,7 +627,7 @@ void inc_hlp(void)
     mmu_write_byte(g_cpu.reg.hl, inc_n(val));
 }
 
-/* 0x35: Increment value pointed by HL. */
+/* 0x35: Decrement value pointed by HL. */
 void dec_hlp(void)
 {
     uint8_t val = mmu_read_byte(g_cpu.reg.hl);

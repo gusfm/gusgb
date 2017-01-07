@@ -60,45 +60,6 @@ void gpu_write_oam(uint16_t addr, uint8_t val)
     GPU.oam[addr & 0xff] = val;
 }
 
-static void gpu_update_oam(uint16_t addr, uint8_t val)
-{
-    (void)addr;
-    (void)val;
-#if 0
-    addr -= 0xFE00;
-    uint16_t obj = addr >> 2;
-    if (obj < 40) {
-        switch (addr & 3) {
-            case 0:
-                GPU.objdata[obj].y = val - 16;
-                break;
-            case 1:
-                GPU.objdata[obj].x = val - 8;
-                break;
-            case 2:
-                if (GPU.objsize)
-                    GPU.objdata[obj].tile = (val & 0xFE);
-                else
-                    GPU.objdata[obj].tile = val;
-                break;
-            case 3:
-                GPU.objdata[obj].palette = (val & 0x10) ? 1 : 0;
-                GPU.objdata[obj].xflip = (val & 0x20) ? 1 : 0;
-                GPU.objdata[obj].yflip = (val & 0x40) ? 1 : 0;
-                GPU.objdata[obj].prio = (val & 0x80) ? 1 : 0;
-                break;
-        }
-    }
-    GPU._objdatasorted = GPU.objdata;
-    GPU._objdatasorted.sort(function(a, b) {
-        if (a.x > b.x)
-            return -1;
-        if (a.num > b.num)
-            return -1;
-    });
-#endif
-}
-
 static void gpu_set_bg_palette(uint8_t value)
 {
     for (int i = 0; i < 4; ++i) {
@@ -142,7 +103,7 @@ uint8_t gpu_read_byte(uint16_t addr)
         case 0xb:
             return GPU.window_x;
         default:
-            printf("gpu_read_byte: not implemented: 0x%04x\n", gaddr);
+            printf("gpu_read_byte: not implemented: 0x%04x\n", addr);
             return GPU.reg[gaddr];
     }
 }
@@ -153,7 +114,6 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
     GPU.reg[gaddr] = val;
     switch (gaddr) {
         case 0x00:
-            printf("GPU.control=0x%02x\n", val);
             GPU.control = val;
             break;
         case 0x02:
@@ -168,9 +128,9 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 0x06:
             /* OAM DMA. */
             for (int i = 0; i < 160; i++) {
-                uint8_t v = mmu_read_byte((uint8_t)((val << 8) + i));
+                uint16_t dma_addr = (uint16_t)((val << 8) + i);
+                uint8_t v = mmu_read_byte(dma_addr);
                 GPU.oam[i] = v;
-                gpu_update_oam((uint8_t)(0xFE00 + i), v);
             }
             break;
         case 0x7:
@@ -194,7 +154,7 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             GPU.window_x = val;
             break;
         default:
-            printf("gpu_write_byte: not implemented: 0x%04x\n", gaddr);
+            printf("gpu_write_byte: not implemented: 0x%04x\n", addr);
             break;
     }
 }
@@ -211,14 +171,56 @@ static uint32_t gpu_get_tile_id(int mapoffs, int map_row, int map_col)
         /* Adjust id for the 0x8000 - 0x97ff range. */
         tile_id = (uint32_t)(256 + tile_signed_id);
     }
-    /* Each tile is 16 bytes long. */
-    return tile_id * 16;
+    return tile_id;
+}
+
+typedef struct {
+    uint8_t data_h;
+    uint8_t data_l;
+} tile_line_t;
+
+static tile_line_t get_tile_line(uint32_t tile_id, int y)
+{
+    tile_line_t tile_line;
+    /* Get tile index for the correct line of the tile. Each tile is 16 bytes
+     * long. */
+    uint32_t tile_line_id = tile_id * 16 + (uint32_t)((y % 8) * 2);
+    /* Get tile line data: Each tile line takes 2 bytes. */
+    tile_line.data_l = GPU.vram[tile_line_id];
+    tile_line.data_h = GPU.vram[tile_line_id + 1];
+    return tile_line;
+}
+
+static tile_line_t get_tile_line_sprite(uint32_t tile_id, int sy, bool yflip,
+                                        uint32_t ysize)
+{
+    tile_line_t tile_line;
+    uint32_t tile_y = (uint32_t)(GPU.scanline - sy);
+    if (yflip) {
+        tile_y = ysize - tile_y;
+    }
+    uint32_t tile_line_id = tile_id * 16 + tile_y * 2;
+    /* Get tile line data: Each tile line takes 2 bytes. */
+    tile_line.data_l = GPU.vram[tile_line_id];
+    tile_line.data_h = GPU.vram[tile_line_id + 1];
+    return tile_line;
+}
+
+static uint32_t gpu_get_tile_color(tile_line_t tile_line, int tile_x)
+{
+    /* Get bit index for pixel. */
+    uint32_t color_bit = (uint32_t)(7 - tile_x);
+    /* Get color number. */
+    uint32_t color_num = (tile_line.data_h & (1 << color_bit)) ? 2 : 0;
+    color_num |= (tile_line.data_l & (1 << color_bit)) ? 1 : 0;
+    return color_num;
 }
 
 static void gpu_update_fb_bg(uint8_t *scanline_row)
 {
     int mapoffs, bg_x, bg_y;
-    /* Get background xy coordinate, and Get map offset relative to vram array. */
+    /* Get background xy coordinate, and Get map offset relative to vram array.
+     */
     if (GPU.window_on && GPU.window_y <= GPU.scanline) {
         bg_x = -GPU.window_x;
         bg_y = GPU.scanline - GPU.window_y;
@@ -234,20 +236,14 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
     uint32_t pixeloffs = (uint32_t)GPU.scanline * 160;
     while (screen_x < 160) {
         int map_col = (bg_x / 8);
-        /* Get tile index ajusted for the 0x8000 - 0x97ff range. */
+        /* Get tile index adjusted for the 0x8000 - 0x97ff range. */
         uint32_t tile_id = gpu_get_tile_id(mapoffs, map_row, map_col);
-        /* Get tile index for the correct line of the tile. */
-        uint32_t tile_line_id = tile_id + (uint32_t)((bg_y % 8) * 2);
-        /* Get tile line data: Each tile line takes 2 bytes. */
-        uint8_t tile_l = GPU.vram[tile_line_id];
-        uint8_t tile_h = GPU.vram[tile_line_id + 1];
+        /* Get tile line data. */
+        tile_line_t tile_line = get_tile_line(tile_id, bg_y);
         /* Iterate over remaining pixels of the tile. */
         for (int tile_x = screen_x % 8; tile_x < 8; ++tile_x) {
-            /* Get bit index for pixel. */
-            uint32_t color_bit = (uint32_t)(7 - tile_x);
-            /* Get color number. */
-            uint32_t color_num = (tile_h & (1 << color_bit)) ? 2 : 0;
-            color_num |= (tile_l & (1 << color_bit)) ? 1 : 0;
+            /* Get tile color number for coordinate. */
+            uint32_t color_num = gpu_get_tile_color(tile_line, tile_x);
             scanline_row[screen_x] = (uint8_t)color_num;
             /* Copy color to frame buffer. */
             GPU.framebuffer[pixeloffs].r = GPU.bg_palette[color_num].r;
@@ -260,43 +256,41 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
     }
 }
 
-static void gpu_update_fb_spr(uint8_t *scanline_row)
+static void gpu_update_fb_sprite(uint8_t *scanline_row)
 {
-    int ysize = GPU.sprites_size ? 16 : 8;
-    for (int i = 0; i < 40; i++) {
+    uint32_t ysize = GPU.sprites_size ? 16 : 8;
+    /* Iterate over all sprites. */
+    for (uint32_t i = 0; i < 40; i++) {
         sprite_t sprite = ((sprite_t *)GPU.oam)[i];
-
-        int sx = sprite.x - 8;
-        int sy = sprite.y - 16;
-
-        if (sy <= GPU.scanline && (sy + ysize) > GPU.scanline) {
+        int sx = (int)sprite.x - 8;
+        int sy = (int)sprite.y - 16;
+        /* If sprite is on scanline. */
+        if (sy <= GPU.scanline && (sy + (int)ysize) > GPU.scanline) {
+            /* Get palette for this sprite. */
             rgb_t *pal = GPU.sprite_palette[sprite.palette];
-
-            int pixel_offset = GPU.scanline * 160 + sx;
-
-            uint8_t tile_row;
-            if (sprite.y_flip)
-                tile_row = (uint8_t)(7 - (GPU.scanline - sy - ysize));
-            else
-                tile_row = (uint8_t)(GPU.scanline - sy);
-
-            for (int x = 0; x < 8; x++) {
-                if (sx + x >= 0 && sx + x < 160 &&
-                    (~sprite.priority || !scanline_row[sx + x])) {
-                    uint8_t colour;
-
-                    if (sprite.x_flip)
-                        colour = GPU.tiles[sprite.tile][tile_row][7 - x];
-                    else
-                        colour = GPU.tiles[sprite.tile][tile_row][x];
-
-                    if (colour) {
-                        GPU.framebuffer[pixel_offset].r = pal[colour].r;
-                        GPU.framebuffer[pixel_offset].g = pal[colour].g;
-                        GPU.framebuffer[pixel_offset].b = pal[colour].b;
+            /* Get frame buffer pixel offset. */
+            uint32_t pixeloffs = (uint32_t)(GPU.scanline * 160 + sx);
+            tile_line_t tile_line =
+                get_tile_line_sprite(sprite.tile, sy, sprite.yflip, ysize);
+            /* Iterate over all tile pixels in the X-axis. */
+            for (int tile_x = 0; tile_x < 8; tile_x++) {
+                /* Calculate pixel x coordinate. */
+                int px = sx + tile_x;
+                /* If pixel is on screen. */
+                if (px >= 0 && px < 160) {
+                    /* Check if pixel is hidden. */
+                    if (sprite.priority == 1 && scanline_row[px] != 0)
+                        continue;
+                    /* Check if sprite is x-flipped. */
+                    int tile_x_flip = sprite.xflip ? 7 - tile_x : tile_x;
+                    uint32_t color = gpu_get_tile_color(tile_line, tile_x_flip);
+                    if (color != 0) {
+                        /* Only show sprite of color not 0. */
+                        GPU.framebuffer[pixeloffs].r = pal[color].r;
+                        GPU.framebuffer[pixeloffs].g = pal[color].g;
+                        GPU.framebuffer[pixeloffs].b = pal[color].b;
                     }
-
-                    pixel_offset++;
+                    pixeloffs++;
                 }
             }
         }
@@ -306,13 +300,13 @@ static void gpu_update_fb_spr(uint8_t *scanline_row)
 static void gpu_render_scanline(void)
 {
     /* Only render if display is on. */
-	if (GPU.display_on) {
+    if (GPU.display_on) {
         uint8_t scanline_row[160];
         if (GPU.bg_on)
             gpu_update_fb_bg(scanline_row);
         if (GPU.sprites_on)
-            gpu_update_fb_spr(scanline_row);
-	}
+            gpu_update_fb_sprite(scanline_row);
+    }
 }
 
 static void gpu_render_framebuffer(void)

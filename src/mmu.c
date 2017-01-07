@@ -210,7 +210,7 @@ uint8_t mmu_read_byte(uint16_t addr)
         case 0xc000:
         case 0xd000:
             ret = g_mmu.wram[addr & 0x1fff];
-            // printf("IRAM: 0x%02x\n", ret);
+            // printf("WRAM: 0x%04x 0x%02x\n", addr, ret);
             return ret;
 
         case 0xe000:
@@ -224,7 +224,7 @@ uint8_t mmu_read_byte(uint16_t addr)
             switch (addr & 0x0f00) {
                 case 0xe00:
                     /* Sprite Attrib Memory (OAM). */
-                    if ((addr & 0xff) < 0xa0) {
+                    if (addr < 0xfea0) {
                         return gpu_read_oam(addr);
                     } else {
                         /* Remaining bytes read as 0. */
@@ -289,8 +289,6 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
         case 0x8000:
         case 0x9000:
             gpu_write_vram(addr, value);
-            if (addr < 0x9800)
-                gpu_update_tile(addr);
             break;
 
         /* 8kB Switchable RAM bank. */
@@ -303,6 +301,7 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
         case 0xc000:
         case 0xd000:
             g_mmu.wram[addr & 0x1fff] = value;
+            // printf("WRAM: 0x%04x 0x%02x\n", addr, value);
             break;
 
         case 0xe000:
@@ -315,9 +314,10 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
             switch (addr & 0x0f00) {
                 case 0xe00:
                     /* Sprite Attrib Memory (OAM). */
-                    if ((addr & 0xff) < 0xa0) {
+                    if (addr < 0xfea0) {
                         gpu_write_oam(addr, value);
                     }
+                    /* Don't change 0xfea0 - 0xfeff. */
                     break;
 
                 case 0xf00:
