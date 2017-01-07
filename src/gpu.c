@@ -83,49 +83,47 @@ static void gpu_set_sprite_palette1(uint8_t value)
 
 uint8_t gpu_read_byte(uint16_t addr)
 {
-    uint16_t gaddr = (uint16_t)(addr - 0xff40);
-    switch (gaddr) {
-        case 0x00:
+    switch (addr) {
+        case 0xff40:
             return GPU.control;
-        case 0x01:
+        case 0xff41:
             return (uint8_t)((GPU.scanline == GPU.raster ? 4 : 0) |
                              GPU.linemode);
-        case 0x02:
+        case 0xff42:
             return GPU.scroll_y;
-        case 0x03:
+        case 0xff43:
             return GPU.scroll_x;
-        case 0x04:
+        case 0xff44:
             return GPU.scanline;
-        case 0x05:
+        case 0xff45:
             return GPU.raster;
-        case 0xa:
+        case 0xff4a:
             return GPU.window_y;
-        case 0xb:
+        case 0xff4b:
             return GPU.window_x;
         default:
             printf("gpu_read_byte: not implemented: 0x%04x\n", addr);
-            return GPU.reg[gaddr];
+            return GPU.reg[addr - 0xff40];
     }
 }
 
 void gpu_write_byte(uint16_t addr, uint8_t val)
 {
-    uint16_t gaddr = (uint16_t)(addr - 0xff40);
-    GPU.reg[gaddr] = val;
-    switch (gaddr) {
-        case 0x00:
+    GPU.reg[addr - 0xff40] = val;
+    switch (addr) {
+        case 0xff40:
             GPU.control = val;
             break;
-        case 0x02:
+        case 0xff42:
             GPU.scroll_y = val;
             break;
-        case 0x03:
+        case 0xff43:
             GPU.scroll_x = val;
             break;
-        case 0x05:
+        case 0xff45:
             GPU.raster = val;
             break;
-        case 0x06:
+        case 0xff46:
             /* OAM DMA. */
             for (int i = 0; i < 160; i++) {
                 uint16_t dma_addr = (uint16_t)((val << 8) + i);
@@ -133,23 +131,23 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
                 GPU.oam[i] = v;
             }
             break;
-        case 0x7:
+        case 0xff47:
             /* BG palette mapping. */
             gpu_set_bg_palette(val);
             break;
-        case 0x8:
+        case 0xff48:
             /* OBJ0 palette mapping. */
             gpu_set_sprite_palette0(val);
             break;
-        case 0x9:
+        case 0xff49:
             /* OBJ1 palette mapping. */
             gpu_set_sprite_palette1(val);
             break;
-        case 0xa:
+        case 0xff4a:
             /* Window Y position. */
             GPU.window_y = val;
             break;
-        case 0xb:
+        case 0xff4b:
             /* Window X position. */
             GPU.window_x = val;
             break;
