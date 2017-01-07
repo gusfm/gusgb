@@ -255,7 +255,7 @@ void undefined(void)
 {
     g_cpu.reg.pc--;
     uint8_t opcode = mmu_read_byte(g_cpu.reg.pc);
-    printf("ERROR: undefined instruction %hhu!\n", opcode);
+    printf("ERROR: undefined instruction 0x%02x!\n", opcode);
     exit(EXIT_FAILURE);
 }
 
