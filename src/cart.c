@@ -1,4 +1,4 @@
-#include "rom.h"
+#include "cart.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,7 +57,7 @@ const char *g_rom_types[256] = {
         [ROM_HUDSON_HUC1] = "ROM_HUDSON_HUC1",
 };
 
-static int rom_load_header(FILE *file, size_t file_size)
+static int cart_load_header(FILE *file, size_t file_size)
 {
     if (file_size < ROM_HEADER_SIZE) {
         fprintf(stderr, "ERROR: rom too small!\n");
@@ -117,7 +117,7 @@ static int rom_load_header(FILE *file, size_t file_size)
     return 0;
 }
 
-int rom_load(const char *path, uint8_t *buffer, size_t bufsize)
+int cart_load(const char *path, uint8_t *buffer, size_t bufsize)
 {
     FILE *file = fopen(path, "rb");
     if (file == NULL) {
@@ -133,10 +133,10 @@ int rom_load(const char *path, uint8_t *buffer, size_t bufsize)
     }
     rewind(file);
     /* Read ROM header. */
-    int ret = rom_load_header(file, size);
+    int ret = cart_load_header(file, size);
     if (ret < 0) {
         fclose(file);
-        fprintf(stderr, "ERROR: rom_load_header\n");
+        fprintf(stderr, "ERROR: cart_load_header\n");
         return -1;
     }
     /* Read rom to memory. */
@@ -149,7 +149,7 @@ int rom_load(const char *path, uint8_t *buffer, size_t bufsize)
     return 0;
 }
 
-uint8_t rom_read_internal(uint16_t addr)
+uint8_t read_internal_rom(uint16_t addr)
 {
     return g_internal_rom[addr];
 }

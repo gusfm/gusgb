@@ -39,7 +39,7 @@ enum rom_type_e {
     ROM_HUDSON_HUC1 = 0xFF,
 };
 
-int rom_load(const char *path, uint8_t *buffer, size_t bufsize);
-uint8_t rom_read_internal(uint16_t addr);
+int cart_load(const char *path, uint8_t *buffer, size_t bufsize);
+uint8_t read_internal_rom(uint16_t addr);
 
 #endif /* __ROM_H__ */

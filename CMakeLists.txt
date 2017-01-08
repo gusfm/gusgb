@@ -21,7 +21,7 @@ include_directories(SYSTEM "/usr/include/freetype2")
 add_library(libgusgb SHARED
     src/interrupt.c
     src/timer.c
-    src/rom.c
+    src/cart.c
     src/gpu.c
     src/keys.c
     src/mmu.c

@@ -2,17 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cart.h"
 #include "gpu.h"
 #include "interrupt.h"
 #include "keys.h"
-#include "rom.h"
 #include "timer.h"
 
 mmu_t g_mmu;
 
 int mmu_init(const char *rom_path)
 {
-    int ret = rom_load(rom_path, g_mmu.rom, sizeof(g_mmu.rom));
+    int ret = cart_load(rom_path, g_mmu.rom, sizeof(g_mmu.rom));
     if (ret < 0) {
         return -1;
     }
@@ -174,7 +174,7 @@ uint8_t mmu_read_byte(uint16_t addr)
         case 0x0000:
             /* 256 B Internal ROM accessed after reset. */
             if (g_mmu.read_ext_rom == 0 && addr < 0x0100) {
-                ret = rom_read_internal(addr);
+                ret = read_internal_rom(addr);
                 // printf("IROM: 0x%02x\n", ret);
                 return ret;
             }
