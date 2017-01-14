@@ -1,6 +1,7 @@
 #ifndef __ROM_H__
 #define __ROM_H__
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -22,14 +23,37 @@ typedef struct {
 } cart_header_t;
 
 typedef struct {
-    uint8_t *rom;
-    size_t rom_size;
+    uint8_t rom_bank;
+    uint8_t ram_bank;
+    bool ram_on;
+    uint8_t mode;
+} cart_mbc_t;
+
+typedef struct {
+    uint8_t *bytes;
+    size_t size;
     cart_header_t *header;
+    unsigned int offset;
+} cart_rom_t;
+
+typedef struct {
+    uint8_t *bytes;
+    size_t size;
+    unsigned int offset;
+} cart_ram_t;
+
+typedef struct {
+    cart_rom_t rom;
+    cart_ram_t ram;
+    cart_mbc_t mbc;
 } cart_t;
 
 int cart_load(const char *path);
 void cart_unload(void);
-uint8_t cart_read_rom(uint16_t addr);
-uint8_t read_internal_rom(uint16_t addr);
+uint8_t cart_read_rom0(uint16_t addr);
+uint8_t cart_read_rom1(uint16_t addr);
+void cart_write_mbc(uint16_t addr, uint8_t val);
+uint8_t cart_read_ram(uint16_t addr);
+void cart_write_ram(uint16_t addr, uint8_t val);
 
 #endif /* __ROM_H__ */

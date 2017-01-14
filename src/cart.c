@@ -8,30 +8,6 @@
 
 cart_t CART;
 
-const uint8_t g_internal_rom[0x100] = {
-    0x31, 0xfe, 0xff, 0xaf, 0x21, 0xff, 0x9f, 0x32, 0xcb, 0x7c, 0x20, 0xfb,
-    0x21, 0x26, 0xff, 0x0e, 0x11, 0x3e, 0x80, 0x32, 0xe2, 0x0c, 0x3e, 0xf3,
-    0xe2, 0x32, 0x3e, 0x77, 0x77, 0x3e, 0xfc, 0xe0, 0x47, 0x11, 0x04, 0x01,
-    0x21, 0x10, 0x80, 0x1a, 0xcd, 0x95, 0x00, 0xcd, 0x96, 0x00, 0x13, 0x7b,
-    0xfe, 0x34, 0x20, 0xf3, 0x11, 0xd8, 0x00, 0x06, 0x08, 0x1a, 0x13, 0x22,
-    0x23, 0x05, 0x20, 0xf9, 0x3e, 0x19, 0xea, 0x10, 0x99, 0x21, 0x2f, 0x99,
-    0x0e, 0x0c, 0x3d, 0x28, 0x08, 0x32, 0x0d, 0x20, 0xf9, 0x2e, 0x0f, 0x18,
-    0xf3, 0x67, 0x3e, 0x64, 0x57, 0xe0, 0x42, 0x3e, 0x91, 0xe0, 0x40, 0x04,
-    0x1e, 0x02, 0x0e, 0x0c, 0xf0, 0x44, 0xfe, 0x90, 0x20, 0xfa, 0x0d, 0x20,
-    0xf7, 0x1d, 0x20, 0xf2, 0x0e, 0x13, 0x24, 0x7c, 0x1e, 0x83, 0xfe, 0x62,
-    0x28, 0x06, 0x1e, 0xc1, 0xfe, 0x64, 0x20, 0x06, 0x7b, 0xe2, 0x0c, 0x3e,
-    0x87, 0xf2, 0xf0, 0x42, 0x90, 0xe0, 0x42, 0x15, 0x20, 0xd2, 0x05, 0x20,
-    0x4f, 0x16, 0x20, 0x18, 0xcb, 0x4f, 0x06, 0x04, 0xc5, 0xcb, 0x11, 0x17,
-    0xc1, 0xcb, 0x11, 0x17, 0x05, 0x20, 0xf5, 0x22, 0x23, 0x22, 0x23, 0xc9,
-    0xce, 0xed, 0x66, 0x66, 0xcc, 0x0d, 0x00, 0x0b, 0x03, 0x73, 0x00, 0x83,
-    0x00, 0x0c, 0x00, 0x0d, 0x00, 0x08, 0x11, 0x1f, 0x88, 0x89, 0x00, 0x0e,
-    0xdc, 0xcc, 0x6e, 0xe6, 0xdd, 0xdd, 0xd9, 0x99, 0xbb, 0xbb, 0x67, 0x63,
-    0x6e, 0x0e, 0xec, 0xcc, 0xdd, 0xdc, 0x99, 0x9f, 0xbb, 0xb9, 0x33, 0x3e,
-    0x3c, 0x42, 0xb9, 0xa5, 0xb9, 0xa5, 0x42, 0x4c, 0x21, 0x04, 0x01, 0x11,
-    0xa8, 0x00, 0x1a, 0x13, 0xbe, 0x20, 0xfe, 0x23, 0x7d, 0xfe, 0x34, 0x20,
-    0xf5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xfb, 0x86, 0x20, 0xfe,
-    0x3e, 0x01, 0xe0, 0x50};
-
 enum rom_type_e {
     ROM_PLAIN = 0x00,
     ROM_MBC1 = 0x01,
@@ -92,36 +68,39 @@ const char *g_rom_types[256] = {
 
 static int cart_load_header(void)
 {
-    if (CART.rom_size < sizeof(cart_header_t)) {
+    if (CART.rom.size < sizeof(cart_header_t)) {
         fprintf(stderr, "ERROR: rom too small!\n");
         return -1;
     }
     /* Copy header pointer. */
-    CART.header = (cart_header_t *)&CART.rom[ROM_OFFSET_TITLE];
-    printf("Game title: %s\n", CART.header->title);
+    cart_header_t *header = (cart_header_t *)&CART.rom.bytes[ROM_OFFSET_TITLE];
+    CART.rom.header = header;
+    printf("Game title: %s\n", header->title);
     /* Get cart type. */
-    printf("Cartridge type: %s\n", g_rom_types[CART.header->cart_type]);
-    if (CART.header->cart_type != ROM_PLAIN) {
+    printf("Cartridge type: %s\n", g_rom_types[header->cart_type]);
+    if (header->cart_type != ROM_PLAIN) {
         fprintf(stderr, "Only 32KB games with no mappers are supported!\n");
         return -1;
     }
     /* Get ROM size. */
-    unsigned int rom_size_tmp = (unsigned int)powf(2.0, (float)(5 + (0xf & CART.header->rom_size)));
-    printf("ROM size: %hhu = %uKB\n", CART.header->rom_size, rom_size_tmp);
-    if (CART.header->rom_size != 0) {
+    unsigned int rom_size_tmp =
+        (unsigned int)powf(2.0, (float)(5 + (0xf & header->rom_size)));
+    printf("ROM size: %hhu = %uKB\n", header->rom_size, rom_size_tmp);
+    if (header->rom_size != 0) {
         fprintf(stderr, "Only 32KB games with no mappers are supported!\n");
         return -1;
     }
-    if (CART.rom_size != rom_size_tmp * 1024) {
+    if (CART.rom.size != rom_size_tmp * 1024) {
         fprintf(stderr, "ROM file size does not equal header ROM size!\n");
         return -1;
     }
     /* Get RAM size. */
-    unsigned int ram_size_tmp = CART.header->ram_size;
+    unsigned int ram_size_tmp = header->ram_size;
     if (ram_size_tmp > 0) {
         ram_size_tmp = (unsigned int)powf(4.0, (float)(ram_size_tmp)) / 2;
     }
-    printf("RAM size: %hhu = %uKB\n", CART.header->ram_size, ram_size_tmp);
+    CART.ram.size = ram_size_tmp;
+    printf("RAM size: %hhu = %uKB\n", header->ram_size, ram_size_tmp);
     return 0;
 }
 
@@ -135,11 +114,12 @@ int cart_load(const char *path)
     fseek(file, 0, SEEK_END);
     size_t size = (size_t)ftell(file);
     rewind(file);
-    /* Create cart. */
-    CART.rom_size = size;
-    CART.rom = malloc(size);
+    /* Init ROM. */
+    CART.rom.size = size;
+    CART.rom.bytes = malloc(size);
+    CART.rom.offset = 0x4000;
     /* Read rom to memory. */
-    size_t read_size = fread(CART.rom, 1, size, file);
+    size_t read_size = fread(CART.rom.bytes, 1, size, file);
     fclose(file);
     if (read_size != size) {
         fprintf(stderr, "ERROR: fread\n");
@@ -152,20 +132,67 @@ int cart_load(const char *path)
         cart_unload();
         return -1;
     }
+    /* Init RAM. */
+    CART.ram.bytes = malloc(CART.ram.size);
+    CART.ram.offset = 0x0000;
+    /* Init MBC. */
+    CART.mbc.rom_bank = 0;
+    CART.mbc.ram_bank = 0;
+    CART.mbc.ram_on = false;
+    CART.mbc.mode = 0;
     return 0;
 }
 
 void cart_unload(void)
 {
-    free(CART.rom);
+    free(CART.rom.bytes);
+    free(CART.ram.bytes);
 }
 
-uint8_t cart_read_rom(uint16_t addr)
+uint8_t cart_read_rom0(uint16_t addr)
 {
-    return CART.rom[addr];
+    return CART.rom.bytes[addr];
 }
 
-uint8_t read_internal_rom(uint16_t addr)
+uint8_t cart_read_rom1(uint16_t addr)
 {
-    return g_internal_rom[addr];
+    return CART.rom.bytes[CART.rom.offset + (addr & 0x3fff)];
+}
+
+void cart_write_mbc(uint16_t addr, uint8_t val)
+{
+    if (addr <= 0x1fff) {
+        /* Enable/disable external RAM. */
+        CART.mbc.ram_on = (val & 0x0f) == 0x0a ? true : false;
+    } else if (addr <= 0x3fff) {
+        /* Switch between banks 1-31 (value 0 is seen as 1). */
+        val &= 0x1f;
+        if (val == 0)
+            val = 1;
+        CART.mbc.rom_bank = (uint8_t)((CART.mbc.rom_bank & 0x60) + val);
+        CART.rom.offset = (unsigned int)(CART.mbc.rom_bank * 0x4000);
+    } else if (addr <= 0x5fff) {
+        if (CART.mbc.mode) {
+            /* RAM mode: switch RAM bank 0-3. */
+            CART.mbc.ram_bank = val & 3;
+            CART.ram.offset = (unsigned int)(CART.mbc.ram_bank * 0x2000);
+        } else {
+            /* ROM mode (high 2 bits): switch ROM bank "set" {1-31}-{97-127}. */
+            CART.mbc.rom_bank =
+                (uint8_t)((CART.mbc.rom_bank & 0x1f) + ((val & 3) << 5));
+            CART.rom.offset = (unsigned int)(CART.mbc.rom_bank * 0x4000);
+        }
+    } else {
+        CART.mbc.mode = val & 1;
+    }
+}
+
+uint8_t cart_read_ram(uint16_t addr)
+{
+    return CART.ram.bytes[CART.ram.offset + (addr & 0x1fff)];
+}
+
+void cart_write_ram(uint16_t addr, uint8_t val)
+{
+    CART.ram.bytes[CART.ram.offset + (addr & 0x1fff)] = val;
 }

@@ -8,7 +8,31 @@
 #include "keys.h"
 #include "timer.h"
 
-mmu_t g_mmu;
+const uint8_t g_internal_rom[0x100] = {
+    0x31, 0xfe, 0xff, 0xaf, 0x21, 0xff, 0x9f, 0x32, 0xcb, 0x7c, 0x20, 0xfb,
+    0x21, 0x26, 0xff, 0x0e, 0x11, 0x3e, 0x80, 0x32, 0xe2, 0x0c, 0x3e, 0xf3,
+    0xe2, 0x32, 0x3e, 0x77, 0x77, 0x3e, 0xfc, 0xe0, 0x47, 0x11, 0x04, 0x01,
+    0x21, 0x10, 0x80, 0x1a, 0xcd, 0x95, 0x00, 0xcd, 0x96, 0x00, 0x13, 0x7b,
+    0xfe, 0x34, 0x20, 0xf3, 0x11, 0xd8, 0x00, 0x06, 0x08, 0x1a, 0x13, 0x22,
+    0x23, 0x05, 0x20, 0xf9, 0x3e, 0x19, 0xea, 0x10, 0x99, 0x21, 0x2f, 0x99,
+    0x0e, 0x0c, 0x3d, 0x28, 0x08, 0x32, 0x0d, 0x20, 0xf9, 0x2e, 0x0f, 0x18,
+    0xf3, 0x67, 0x3e, 0x64, 0x57, 0xe0, 0x42, 0x3e, 0x91, 0xe0, 0x40, 0x04,
+    0x1e, 0x02, 0x0e, 0x0c, 0xf0, 0x44, 0xfe, 0x90, 0x20, 0xfa, 0x0d, 0x20,
+    0xf7, 0x1d, 0x20, 0xf2, 0x0e, 0x13, 0x24, 0x7c, 0x1e, 0x83, 0xfe, 0x62,
+    0x28, 0x06, 0x1e, 0xc1, 0xfe, 0x64, 0x20, 0x06, 0x7b, 0xe2, 0x0c, 0x3e,
+    0x87, 0xf2, 0xf0, 0x42, 0x90, 0xe0, 0x42, 0x15, 0x20, 0xd2, 0x05, 0x20,
+    0x4f, 0x16, 0x20, 0x18, 0xcb, 0x4f, 0x06, 0x04, 0xc5, 0xcb, 0x11, 0x17,
+    0xc1, 0xcb, 0x11, 0x17, 0x05, 0x20, 0xf5, 0x22, 0x23, 0x22, 0x23, 0xc9,
+    0xce, 0xed, 0x66, 0x66, 0xcc, 0x0d, 0x00, 0x0b, 0x03, 0x73, 0x00, 0x83,
+    0x00, 0x0c, 0x00, 0x0d, 0x00, 0x08, 0x11, 0x1f, 0x88, 0x89, 0x00, 0x0e,
+    0xdc, 0xcc, 0x6e, 0xe6, 0xdd, 0xdd, 0xd9, 0x99, 0xbb, 0xbb, 0x67, 0x63,
+    0x6e, 0x0e, 0xec, 0xcc, 0xdd, 0xdc, 0x99, 0x9f, 0xbb, 0xb9, 0x33, 0x3e,
+    0x3c, 0x42, 0xb9, 0xa5, 0xb9, 0xa5, 0x42, 0x4c, 0x21, 0x04, 0x01, 0x11,
+    0xa8, 0x00, 0x1a, 0x13, 0xbe, 0x20, 0xfe, 0x23, 0x7d, 0xfe, 0x34, 0x20,
+    0xf5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xfb, 0x86, 0x20, 0xfe,
+    0x3e, 0x01, 0xe0, 0x50};
+
+mmu_t MMU;
 
 int mmu_init(const char *rom_path)
 {
@@ -16,10 +40,9 @@ int mmu_init(const char *rom_path)
     if (ret < 0) {
         return -1;
     }
-    memset(g_mmu.eram, 0, sizeof(g_mmu.eram));
-    memset(g_mmu.wram, 0, sizeof(g_mmu.wram));
-    memset(g_mmu.zram, 0, sizeof(g_mmu.zram));
-    g_mmu.read_ext_rom = 0;
+    memset(MMU.wram, 0, sizeof(MMU.wram));
+    memset(MMU.zram, 0, sizeof(MMU.zram));
+    MMU.read_ext_rom = 0;
     interrupt_init();
     keys_init();
     return 0;
@@ -32,7 +55,7 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
         return interrupt_get_enable();
     } else if (addr > 0xff7f) {
         /* Internal RAM. */
-        return g_mmu.zram[addr & 0x007f];
+        return MMU.zram[addr & 0x007f];
     } else if (addr >= 0xff04 && addr <= 0xff07) {
         /* Timer. */
         return timer_read_byte(addr);
@@ -82,14 +105,14 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
         printf("ERROR: Wave pattern RAM not implemented.\n");
         return 0;
     } else if (addr == 0xff50) {
-        return g_mmu.read_ext_rom;
+        return MMU.read_ext_rom;
     } else if (addr >= 0xff40 && addr < 0xff80) {
         return gpu_read_byte(addr);
     } else {
         /* I/O ports. */
         printf("IO R addr=0x%04x, i=0x%04x, value=0x%02x\n", addr,
-               addr - 0xff00, g_mmu.io[addr - 0xff00]);
-        return g_mmu.io[addr - 0xff00];
+               addr - 0xff00, MMU.io[addr - 0xff00]);
+        return MMU.io[addr - 0xff00];
     }
 }
 
@@ -100,7 +123,7 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
         interrupt_set_enable(value);
     } else if (addr > 0xff7f) {
         /* Internal RAM. */
-        g_mmu.zram[addr & 0x007f] = value;
+        MMU.zram[addr & 0x007f] = value;
     } else if (addr >= 0xff04 && addr <= 0xff07) {
         /* Timer. */
         timer_write_byte(addr, value);
@@ -152,14 +175,14 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
             printf("ERROR: Wave pattern RAM not implemented.\n");
         } else if (addr == 0xff50) {
             printf("Switching to external ROM!\n");
-            g_mmu.read_ext_rom = value;
+            MMU.read_ext_rom = value;
         } else if (addr >= 0xff40 && addr < 0xff80) {
             gpu_write_byte(addr, value);
         } else {
             /* I/O ports. */
             printf("IO W addr=0x%04x, i=0x%04x, value=0x%02x\n", addr,
                    addr - 0xff00, value);
-            g_mmu.io[addr - 0xff00] = value;
+            MMU.io[addr - 0xff00] = value;
         }
     }
 }
@@ -167,168 +190,78 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
 /* Read 8-bit byte from a given address */
 uint8_t mmu_read_byte(uint16_t addr)
 {
-    uint8_t ret;
-    // printf("MMU: read byte 0x%04x\n", addr);
-    switch (addr & 0xf000) {
-        case 0x0000:
-            /* 256 B Internal ROM accessed after reset. */
-            if (g_mmu.read_ext_rom == 0 && addr < 0x0100) {
-                ret = read_internal_rom(addr);
-                // printf("IROM: 0x%02x\n", ret);
-                return ret;
-            }
-        /* Fall through! */
-
-        /* 16kB ROM bank #0. */
-        case 0x1000:
-        case 0x2000:
-        case 0x3000:
-
-        /* 16kB Switchable ROM bank. */
-        case 0x4000:
-        case 0x5000:
-        case 0x6000:
-        case 0x7000:
-            ret = cart_read_rom(addr);
-            // printf("ROM: 0x%02x\n", ret);
-            return ret;
-
+    if (addr < 0x4000) {
+        /* 256B Internal ROM accessed after reset. */
+        if (MMU.read_ext_rom == 0 && addr < 0x0100) {
+            return g_internal_rom[addr];
+        }
+        /* 16kB ROM bank 0. */
+        return cart_read_rom0(addr);
+    } else if (addr < 0x8000) {
+        /* 16kB switchable ROM bank. */
+        return cart_read_rom1(addr);
+    } else if (addr < 0xa000) {
         /* 8kB Video RAM. */
-        case 0x8000:
-        case 0x9000:
-            return gpu_read_vram(addr);
-
+        return gpu_read_vram(addr);
+    } else if (addr < 0xc000) {
         /* 8kB Switchable RAM bank. */
-        case 0xa000:
-        case 0xb000:
-            ret = g_mmu.eram[addr & 0x1fff];
-            // printf("SRAM: 0x%02x\n", ret);
-            return ret;
-
+        return cart_read_ram(addr);
+    } else if (addr < 0xe000) {
         /* 8kB Internal RAM. */
-        case 0xc000:
-        case 0xd000:
-            ret = g_mmu.wram[addr & 0x1fff];
-            // printf("WRAM: 0x%04x 0x%02x\n", addr, ret);
-            return ret;
-
-        case 0xe000:
-        case 0xf000:
-            /* Echo of 8kB Internal RAM; */
-            if (addr < 0xfe00) {
-                ret = g_mmu.wram[addr & 0x1fff];
-                // printf("EIRAM: 0x%02x\n", ret);
-                return ret;
-            }
-            switch (addr & 0x0f00) {
-                case 0xe00:
-                    /* Sprite Attrib Memory (OAM). */
-                    if (addr < 0xfea0) {
-                        return gpu_read_oam(addr);
-                    } else {
-                        /* Remaining bytes read as 0. */
-                        printf("??: 0x00\n");
-                        return 0;
-                    }
-
-                case 0xf00:
-                    return mmu_read_byte_ffxx(addr);
-            }
+        return MMU.wram[addr & 0x1fff];
+    } else if (addr < 0xfe00) {
+        /* Echo of 8kB Internal RAM; */
+        return MMU.wram[addr & 0x1fff];
+    } else if (addr < 0xff00) {
+        /* Sprite Attrib Memory (OAM). */
+        if (addr < 0xfea0) {
+            return gpu_read_oam(addr);
+        } else {
+            /* Remaining bytes read as 0. */
+            printf("??: 0x00\n");
+            return 0;
+        }
+    } else {
+        return mmu_read_byte_ffxx(addr);
     }
-    fprintf(stderr, "ERROR: shouldn't execute this!\n");
-    return 0;
 }
 
 uint16_t mmu_read_word(uint16_t addr)
 {
     uint16_t addrh = (uint16_t)(addr + 1);
-    uint16_t ret = (uint16_t)(mmu_read_byte(addrh) << 8 | mmu_read_byte(addr));
-    // printf("MMU: read word: 0x%04x: 0x%04x\n", addr, ret);
-    return ret;
+    return (uint16_t)(mmu_read_byte(addrh) << 8 | mmu_read_byte(addr));
 }
 
 void mmu_write_byte(uint16_t addr, uint8_t value)
 {
-    // printf("MMU: write byte: addr=0x%04x: value=0x%02x\n", addr, value);
-    switch (addr & 0xf000) {
-        /* 16kB ROM bank #0. */
-        case 0x0000:
-        case 0x1000:
-/* MBC1: Turn external RAM on. */
-#if 0
-            switch (g_mmu.cart_type) {
-                case ROM_MBC1:
-                    g_mmu.ram_on = ((value & 0x0f) == 0x0a) ? true : false;
-                    break;
-            }
-#endif
-            break;
-        case 0x2000:
-        case 0x3000:
-/* MBC1: ROM bank switch. */
-#if 0
-            switch (g_mmu.cart_type) {
-                case ROM_MBC1:
-                    /* TODO */
-                    printf("not implemented!");
-                    break;
-            }
-#endif
-            break;
-
-        /* 16kB ROM bank #1. */
-        case 0x4000:
-        case 0x5000:
-        case 0x6000:
-        case 0x7000:
-            // printf("ROM write not implemented!\n");
-            break;
-
+    if (addr < 0x8000) {
+        /* 16kB ROM bank 0 and 16kB switchable ROM bank. */
+        cart_write_mbc(addr, value);
+    } else if (addr < 0xa000) {
         /* 8kB Video RAM. */
-        case 0x8000:
-        case 0x9000:
-            gpu_write_vram(addr, value);
-            break;
-
+        gpu_write_vram(addr, value);
+    } else if (addr < 0xc000) {
         /* 8kB Switchable RAM bank. */
-        case 0xa000:
-        case 0xb000:
-            g_mmu.eram[addr & 0x1fff] = value;
-            break;
-
+        cart_write_ram(addr, value);
+    } else if (addr < 0xe000) {
         /* 8kB Internal RAM. */
-        case 0xc000:
-        case 0xd000:
-            g_mmu.wram[addr & 0x1fff] = value;
-            // printf("WRAM: 0x%04x 0x%02x\n", addr, value);
-            break;
-
-        case 0xe000:
-        case 0xf000:
-            /* Echo of 8kB Internal RAM; */
-            if (addr < 0xfe00) {
-                g_mmu.wram[addr & 0x1fff] = value;
-                break;
-            }
-            switch (addr & 0x0f00) {
-                case 0xe00:
-                    /* Sprite Attrib Memory (OAM). */
-                    if (addr < 0xfea0) {
-                        gpu_write_oam(addr, value);
-                    }
-                    /* Don't change 0xfea0 - 0xfeff. */
-                    break;
-
-                case 0xf00:
-                    mmu_write_byte_ffxx(addr, value);
-                    break;
-            }
+        MMU.wram[addr & 0x1fff] = value;
+    } else if (addr < 0xfe00) {
+        /* Echo of 8kB Internal RAM; */
+        MMU.wram[addr & 0x1fff] = value;
+    } else if (addr < 0xff00) {
+        /* Sprite Attrib Memory (OAM). */
+        if (addr < 0xfea0) {
+            gpu_write_oam(addr, value);
+        }
+        /* Don't change 0xfea0 - 0xfeff. */
+    } else {
+        mmu_write_byte_ffxx(addr, value);
     }
 }
 
 void mmu_write_word(uint16_t addr, uint16_t value)
 {
-    // printf("MMU: write byte: addr=0x%04x: value=0x%04x\n", addr, value);
     uint16_t addrh = (uint16_t)(addr + 1);
     mmu_write_byte(addr, (uint8_t)(value & 0x00ff));
     mmu_write_byte(addrh, (uint8_t)((value & 0xff00) >> 8));
