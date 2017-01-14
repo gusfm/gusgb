@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ROM_OFFSET_TITLE 0x134
+
+cart_t CART;
+
 const uint8_t g_internal_rom[0x100] = {
     0x31, 0xfe, 0xff, 0xaf, 0x21, 0xff, 0x9f, 0x32, 0xcb, 0x7c, 0x20, 0xfb,
     0x21, 0x26, 0xff, 0x0e, 0x11, 0x3e, 0x80, 0x32, 0xe2, 0x0c, 0x3e, 0xf3,
@@ -27,6 +31,35 @@ const uint8_t g_internal_rom[0x100] = {
     0xa8, 0x00, 0x1a, 0x13, 0xbe, 0x20, 0xfe, 0x23, 0x7d, 0xfe, 0x34, 0x20,
     0xf5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xfb, 0x86, 0x20, 0xfe,
     0x3e, 0x01, 0xe0, 0x50};
+
+enum rom_type_e {
+    ROM_PLAIN = 0x00,
+    ROM_MBC1 = 0x01,
+    ROM_MBC1_RAM = 0x02,
+    ROM_MBC1_RAM_BATT = 0x03,
+    ROM_MBC2 = 0x05,
+    ROM_MBC2_BATTERY = 0x06,
+    ROM_RAM = 0x08,
+    ROM_RAM_BATTERY = 0x09,
+    ROM_MMM01 = 0x0B,
+    ROM_MMM01_SRAM = 0x0C,
+    ROM_MMM01_SRAM_BATT = 0x0D,
+    ROM_MBC3_TIMER_BATT = 0x0F,
+    ROM_MBC3_TIMER_RAM_BATT = 0x10,
+    ROM_MBC3 = 0x11,
+    ROM_MBC3_RAM = 0x12,
+    ROM_MBC3_RAM_BATT = 0x13,
+    ROM_MBC5 = 0x19,
+    ROM_MBC5_RAM = 0x1A,
+    ROM_MBC5_RAM_BATT = 0x1B,
+    ROM_MBC5_RUMBLE = 0x1C,
+    ROM_MBC5_RUMBLE_SRAM = 0x1D,
+    ROM_MBC5_RUMBLE_SRAM_BATT = 0x1E,
+    ROM_POCKET_CAMERA = 0x1F,
+    ROM_BANDAI_TAMA5 = 0xFD,
+    ROM_HUDSON_HUC3 = 0xFE,
+    ROM_HUDSON_HUC1 = 0xFF,
+};
 
 const char *g_rom_types[256] = {
         [ROM_PLAIN] = "ROM_PLAIN",
@@ -57,67 +90,42 @@ const char *g_rom_types[256] = {
         [ROM_HUDSON_HUC1] = "ROM_HUDSON_HUC1",
 };
 
-static int cart_load_header(FILE *file, size_t file_size)
+static int cart_load_header(void)
 {
-    if (file_size < ROM_HEADER_SIZE) {
+    if (CART.rom_size < sizeof(cart_header_t)) {
         fprintf(stderr, "ERROR: rom too small!\n");
         return -1;
     }
-    /* Read ROM header. */
-    uint8_t rom_header[ROM_HEADER_SIZE];
-    size_t read_size = fread(rom_header, 1, ROM_HEADER_SIZE, file);
-    if (read_size != ROM_HEADER_SIZE) {
-        fclose(file);
-        fprintf(stderr, "ERROR: fread rom header\n");
-        return -1;
-    }
-    /* Get ROM name. */
-    char rom_name[17];
-    memset(rom_name, '\0', 17);
-    for (int i = 0; i < 16; i++) {
-        uint8_t c = rom_header[i + ROM_OFFSET_NAME];
-        if (c == 0x80 || c == 0xc0)
-            rom_name[i] = '\0';
-        else
-            rom_name[i] = (char)c;
-    }
-    printf("Internal ROM name: %s\n", rom_name);
-    /* Get ROM type. */
-    enum rom_type_e rom_type;
-    rom_type = rom_header[ROM_OFFSET_TYPE];
-    if (!g_rom_types[rom_type]) {
-        fprintf(stderr, "Unknown ROM type: %#02x\n", rom_type);
-        return -1;
-    }
-    printf("ROM type: %s\n", g_rom_types[rom_type]);
-    if (rom_type != ROM_PLAIN) {
+    /* Copy header pointer. */
+    CART.header = (cart_header_t *)&CART.rom[ROM_OFFSET_TITLE];
+    printf("Game title: %s\n", CART.header->title);
+    /* Get cart type. */
+    printf("Cartridge type: %s\n", g_rom_types[CART.header->cart_type]);
+    if (CART.header->cart_type != ROM_PLAIN) {
         fprintf(stderr, "Only 32KB games with no mappers are supported!\n");
         return -1;
     }
     /* Get ROM size. */
-    unsigned int rom_size = rom_header[ROM_OFFSET_ROM_SIZE];
-    if ((rom_size & 0xF0) == 0x50)
-        rom_size = (unsigned int)pow(2.0, (double)(((0x52) & 0xF) + 1)) + 64;
-    else
-        rom_size = (unsigned int)pow(2.0, (double)(rom_size + 1));
-    printf("ROM size: %dKB\n", rom_size * 16);
-    if (rom_size * 16 != 32) {
+    unsigned int rom_size_tmp = (unsigned int)powf(2.0, (float)(5 + (0xf & CART.header->rom_size)));
+    printf("ROM size: %hhu = %uKB\n", CART.header->rom_size, rom_size_tmp);
+    if (CART.header->rom_size != 0) {
         fprintf(stderr, "Only 32KB games with no mappers are supported!\n");
         return -1;
     }
-    if (file_size != rom_size * 16 * 1024) {
-        fprintf(stderr, "ROM filesize does not equal ROM size!\n");
+    if (CART.rom_size != rom_size_tmp * 1024) {
+        fprintf(stderr, "ROM file size does not equal header ROM size!\n");
         return -1;
     }
     /* Get RAM size. */
-    int ram_size = rom_header[ROM_OFFSET_RAM_SIZE];
-    ram_size = (int)pow(4.0, (double)(ram_size)) / 2;
-    printf("RAM size: %dKB\n", ram_size);
-    rewind(file);
+    unsigned int ram_size_tmp = CART.header->ram_size;
+    if (ram_size_tmp > 0) {
+        ram_size_tmp = (unsigned int)powf(4.0, (float)(ram_size_tmp)) / 2;
+    }
+    printf("RAM size: %hhu = %uKB\n", CART.header->ram_size, ram_size_tmp);
     return 0;
 }
 
-int cart_load(const char *path, uint8_t *buffer, size_t bufsize)
+int cart_load(const char *path)
 {
     FILE *file = fopen(path, "rb");
     if (file == NULL) {
@@ -126,27 +134,35 @@ int cart_load(const char *path, uint8_t *buffer, size_t bufsize)
     /* Get file size. */
     fseek(file, 0, SEEK_END);
     size_t size = (size_t)ftell(file);
-    if (size > bufsize) {
-        fclose(file);
-        fprintf(stderr, "ERROR: rom too big!\n");
-        return -1;
-    }
     rewind(file);
-    /* Read ROM header. */
-    int ret = cart_load_header(file, size);
-    if (ret < 0) {
-        fclose(file);
-        fprintf(stderr, "ERROR: cart_load_header\n");
-        return -1;
-    }
+    /* Create cart. */
+    CART.rom_size = size;
+    CART.rom = malloc(size);
     /* Read rom to memory. */
-    size_t read_size = fread(buffer, 1, size, file);
+    size_t read_size = fread(CART.rom, 1, size, file);
     fclose(file);
     if (read_size != size) {
         fprintf(stderr, "ERROR: fread\n");
         return -1;
     }
+    /* Read ROM header. */
+    int ret = cart_load_header();
+    if (ret < 0) {
+        fprintf(stderr, "ERROR: cart_load_header\n");
+        cart_unload();
+        return -1;
+    }
     return 0;
+}
+
+void cart_unload(void)
+{
+    free(CART.rom);
+}
+
+uint8_t cart_read_rom(uint16_t addr)
+{
+    return CART.rom[addr];
 }
 
 uint8_t read_internal_rom(uint16_t addr)

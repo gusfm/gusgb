@@ -12,7 +12,7 @@ mmu_t g_mmu;
 
 int mmu_init(const char *rom_path)
 {
-    int ret = cart_load(rom_path, g_mmu.rom, sizeof(g_mmu.rom));
+    int ret = cart_load(rom_path);
     if (ret < 0) {
         return -1;
     }
@@ -20,7 +20,6 @@ int mmu_init(const char *rom_path)
     memset(g_mmu.wram, 0, sizeof(g_mmu.wram));
     memset(g_mmu.zram, 0, sizeof(g_mmu.zram));
     g_mmu.read_ext_rom = 0;
-    g_mmu.cart_type = g_mmu.rom[ROM_OFFSET_TYPE];
     interrupt_init();
     keys_init();
     return 0;
@@ -190,7 +189,7 @@ uint8_t mmu_read_byte(uint16_t addr)
         case 0x5000:
         case 0x6000:
         case 0x7000:
-            ret = g_mmu.rom[addr];
+            ret = cart_read_rom(addr);
             // printf("ROM: 0x%02x\n", ret);
             return ret;
 

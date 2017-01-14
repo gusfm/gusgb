@@ -4,42 +4,32 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ROM_HEADER_SIZE 0x180
-#define ROM_OFFSET_NAME 0x134
-#define ROM_OFFSET_TYPE 0x147
-#define ROM_OFFSET_ROM_SIZE 0x148
-#define ROM_OFFSET_RAM_SIZE 0x149
+typedef struct {
+    uint8_t title[15];    /* 0x134-0x142: Title */
+    uint8_t cgb;          /* 0x143: $80 = GBC, other = not GBC */
+    uint8_t lcode_new_h;  /* 0x144: licensee code (new) high */
+    uint8_t lcode_new_l;  /* 0x145: licensee code (new) low */
+    uint8_t sgb;          /* 0x146: GB/SGB Indicator */
+    uint8_t cart_type;    /* 0x147: Cartridge type */
+    uint8_t rom_size;     /* 0x148: ROM size */
+    uint8_t ram_size;     /* 0x149: RAM size */
+    uint8_t country_code; /* 0x14a: Country destination Code */
+    uint8_t licensee_old; /* 0x14b: licensee code (old) */
+    uint8_t mask_rom;     /* 0x14c: Mask ROM Version number */
+    uint8_t compl_check;  /* 0x14d: Complement check */
+    uint8_t checksum_h;   /* 0x14e: checksum high */
+    uint8_t checksum_l;   /* 0x14f: checksum low */
+} cart_header_t;
 
-enum rom_type_e {
-    ROM_PLAIN = 0x00,
-    ROM_MBC1 = 0x01,
-    ROM_MBC1_RAM = 0x02,
-    ROM_MBC1_RAM_BATT = 0x03,
-    ROM_MBC2 = 0x05,
-    ROM_MBC2_BATTERY = 0x06,
-    ROM_RAM = 0x08,
-    ROM_RAM_BATTERY = 0x09,
-    ROM_MMM01 = 0x0B,
-    ROM_MMM01_SRAM = 0x0C,
-    ROM_MMM01_SRAM_BATT = 0x0D,
-    ROM_MBC3_TIMER_BATT = 0x0F,
-    ROM_MBC3_TIMER_RAM_BATT = 0x10,
-    ROM_MBC3 = 0x11,
-    ROM_MBC3_RAM = 0x12,
-    ROM_MBC3_RAM_BATT = 0x13,
-    ROM_MBC5 = 0x19,
-    ROM_MBC5_RAM = 0x1A,
-    ROM_MBC5_RAM_BATT = 0x1B,
-    ROM_MBC5_RUMBLE = 0x1C,
-    ROM_MBC5_RUMBLE_SRAM = 0x1D,
-    ROM_MBC5_RUMBLE_SRAM_BATT = 0x1E,
-    ROM_POCKET_CAMERA = 0x1F,
-    ROM_BANDAI_TAMA5 = 0xFD,
-    ROM_HUDSON_HUC3 = 0xFE,
-    ROM_HUDSON_HUC1 = 0xFF,
-};
+typedef struct {
+    uint8_t *rom;
+    size_t rom_size;
+    cart_header_t *header;
+} cart_t;
 
-int cart_load(const char *path, uint8_t *buffer, size_t bufsize);
+int cart_load(const char *path);
+void cart_unload(void);
+uint8_t cart_read_rom(uint16_t addr);
 uint8_t read_internal_rom(uint16_t addr);
 
 #endif /* __ROM_H__ */

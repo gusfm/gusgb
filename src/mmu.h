@@ -5,7 +5,6 @@
 #include <stdint.h>
 
 typedef struct {
-    uint8_t rom[0x8000];  /* Cartridge ROM. */
     uint8_t eram[0x2000]; /* External RAM. */
     uint8_t wram[0x2000]; /* Working RAM. */
     uint8_t zram[0x80];   /* Zero-page RAM. */
