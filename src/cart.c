@@ -38,32 +38,32 @@ enum rom_type_e {
 };
 
 const char *g_rom_types[256] = {
-        [ROM_PLAIN] = "ROM_PLAIN",
-        [ROM_MBC1] = "ROM_MBC1",
-        [ROM_MBC1_RAM] = "ROM_MBC1",
-        [ROM_MBC1_RAM_BATT] = "ROM_MBC1_RAM_BATT",
-        [ROM_MBC2] = "ROM_MBC2",
-        [ROM_MBC2_BATTERY] = "ROM_MBC2_BATTERY",
-        [ROM_RAM] = "ROM_RAM",
-        [ROM_RAM_BATTERY] = "ROM_RAM_BATTERY",
-        [ROM_MMM01] = "ROM_MMM01",
-        [ROM_MMM01_SRAM] = "ROM_MMM01_SRAM",
-        [ROM_MMM01_SRAM_BATT] = "ROM_MMM01_SRAM_BATT",
-        [ROM_MBC3_TIMER_BATT] = "ROM_MBC3_TIMER_BATT",
-        [ROM_MBC3_TIMER_RAM_BATT] = "ROM_MBC3_TIMER_RAM_BATT",
-        [ROM_MBC3] = "ROM_MBC3",
-        [ROM_MBC3_RAM] = "ROM_MBC3_RAM",
-        [ROM_MBC3_RAM_BATT] = "ROM_MBC3_RAM_BATT",
-        [ROM_MBC5] = "ROM_MBC5",
-        [ROM_MBC5_RAM] = "ROM_MBC5_RAM",
-        [ROM_MBC5_RAM_BATT] = "ROM_MBC5_RAM_BATT",
-        [ROM_MBC5_RUMBLE] = "ROM_MBC5_RUMBLE",
-        [ROM_MBC5_RUMBLE_SRAM] = "ROM_MBC5_RUMBLE_SRAM",
-        [ROM_MBC5_RUMBLE_SRAM_BATT] = "ROM_MBC5_RUMBLE_SRAM_BATT",
-        [ROM_POCKET_CAMERA] = "ROM_POCKET_CAMERA",
-        [ROM_BANDAI_TAMA5] = "ROM_BANDAI_TAMA5",
-        [ROM_HUDSON_HUC3] = "ROM_HUDSON_HUC3",
-        [ROM_HUDSON_HUC1] = "ROM_HUDSON_HUC1",
+        [ROM_PLAIN] = "ROM PLAIN",
+        [ROM_MBC1] = "ROM+MBC1",
+        [ROM_MBC1_RAM] = "ROM+MBC1+RAM",
+        [ROM_MBC1_RAM_BATT] = "ROM+MBC1+RAM+BATT",
+        [ROM_MBC2] = "ROM+MBC2",
+        [ROM_MBC2_BATTERY] = "ROM+MBC2+BATTERY",
+        [ROM_RAM] = "ROM+RAM",
+        [ROM_RAM_BATTERY] = "ROM+RAM+BATTERY",
+        [ROM_MMM01] = "ROM+MMM01",
+        [ROM_MMM01_SRAM] = "ROM+MMM01+SRAM",
+        [ROM_MMM01_SRAM_BATT] = "ROM+MMM01+SRAM+BATT",
+        [ROM_MBC3_TIMER_BATT] = "ROM+MBC3+TIMER+BATT",
+        [ROM_MBC3_TIMER_RAM_BATT] = "ROM+MBC3+TIMER+RAM+BATT",
+        [ROM_MBC3] = "ROM+MBC3",
+        [ROM_MBC3_RAM] = "ROM+MBC3+RAM",
+        [ROM_MBC3_RAM_BATT] = "ROM+MBC3+RAM+BATT",
+        [ROM_MBC5] = "ROM+MBC5",
+        [ROM_MBC5_RAM] = "ROM+MBC5+RAM",
+        [ROM_MBC5_RAM_BATT] = "ROM+MBC5+RAM+BATT",
+        [ROM_MBC5_RUMBLE] = "ROM+MBC5+RUMBLE",
+        [ROM_MBC5_RUMBLE_SRAM] = "ROM+MBC5+RUMBLE+SRAM",
+        [ROM_MBC5_RUMBLE_SRAM_BATT] = "ROM+MBC5+RUMBLE+SRAM+BATT",
+        [ROM_POCKET_CAMERA] = "ROM+POCKET+CAMERA",
+        [ROM_BANDAI_TAMA5] = "ROM+BANDAI+TAMA5",
+        [ROM_HUDSON_HUC3] = "ROM+HUDSON+HUC3",
+        [ROM_HUDSON_HUC1] = "ROM+HUDSON+HUC1",
 };
 
 static int cart_load_header(void)
@@ -78,7 +78,7 @@ static int cart_load_header(void)
     printf("Game title: %s\n", header->title);
     /* Get cart type. */
     printf("Cartridge type: %s\n", g_rom_types[header->cart_type]);
-    if (header->cart_type != ROM_PLAIN) {
+    if (header->cart_type != ROM_PLAIN && header->cart_type != ROM_MBC1) {
         fprintf(stderr, "Only 32KB games with no mappers are supported!\n");
         return -1;
     }
@@ -86,10 +86,6 @@ static int cart_load_header(void)
     unsigned int rom_size_tmp =
         (unsigned int)powf(2.0, (float)(5 + (0xf & header->rom_size)));
     printf("ROM size: %hhu = %uKB\n", header->rom_size, rom_size_tmp);
-    if (header->rom_size != 0) {
-        fprintf(stderr, "Only 32KB games with no mappers are supported!\n");
-        return -1;
-    }
     if (CART.rom.size != rom_size_tmp * 1024) {
         fprintf(stderr, "ROM file size does not equal header ROM size!\n");
         return -1;
@@ -133,7 +129,7 @@ int cart_load(const char *path)
         return -1;
     }
     /* Init RAM. */
-    CART.ram.bytes = malloc(CART.ram.size);
+    CART.ram.bytes = malloc(CART.ram.size * 1024);
     CART.ram.offset = 0x0000;
     /* Init MBC. */
     CART.mbc.rom_bank = 0;
@@ -189,10 +185,18 @@ void cart_write_mbc(uint16_t addr, uint8_t val)
 
 uint8_t cart_read_ram(uint16_t addr)
 {
-    return CART.ram.bytes[CART.ram.offset + (addr & 0x1fff)];
+    size_t pos = CART.ram.offset + (addr & 0x1fff);
+    if (pos < CART.ram.size) {
+        return CART.ram.bytes[CART.ram.offset + (addr & 0x1fff)];
+    } else {
+        return 0xff;
+    }
 }
 
 void cart_write_ram(uint16_t addr, uint8_t val)
 {
-    CART.ram.bytes[CART.ram.offset + (addr & 0x1fff)] = val;
+    size_t pos = CART.ram.offset + (addr & 0x1fff);
+    if (pos < CART.ram.size) {
+        CART.ram.bytes[pos] = val;
+    }
 }
