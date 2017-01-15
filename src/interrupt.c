@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include "interrupt.h"
+#include <stdio.h>
 #include "cpu.h"
 #include "cpu_opcodes.h"
 
@@ -60,7 +60,6 @@ void interrupt_clear_flag_bit(uint8_t bit)
 
 static void vblank(void)
 {
-    g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x40;
     g_cpu.clock.step += 3;
@@ -68,7 +67,6 @@ static void vblank(void)
 
 static void lcd_stat(void)
 {
-    g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x48;
     g_cpu.clock.step += 3;
@@ -76,7 +74,6 @@ static void lcd_stat(void)
 
 static void timer(void)
 {
-    g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x50;
     g_cpu.clock.step += 3;
@@ -84,7 +81,6 @@ static void timer(void)
 
 static void serial(void)
 {
-    g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x58;
     g_cpu.clock.step += 3;
@@ -92,7 +88,6 @@ static void serial(void)
 
 static void joypad(void)
 {
-    g_interrupt.master = 0;
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x60;
     g_cpu.clock.step += 3;
@@ -100,32 +95,31 @@ static void joypad(void)
 
 void interrupt_step(void)
 {
-    if (g_interrupt.master && g_interrupt.enable && g_interrupt.flags) {
+    if (g_interrupt.master) {
         unsigned char fire = g_interrupt.enable & g_interrupt.flags;
-
-        if (fire & INTERRUPTS_VBLANK) {
-            interrupt_clear_flag_bit(INTERRUPTS_VBLANK);
-            vblank();
-        }
-
-        if (fire & INTERRUPTS_LCDSTAT) {
-            interrupt_clear_flag_bit(INTERRUPTS_LCDSTAT);
-            lcd_stat();
-        }
-
-        if (fire & INTERRUPTS_TIMER) {
-            interrupt_clear_flag_bit(INTERRUPTS_TIMER);
-            timer();
-        }
-
-        if (fire & INTERRUPTS_SERIAL) {
-            interrupt_clear_flag_bit(INTERRUPTS_SERIAL);
-            serial();
-        }
-
-        if (fire & INTERRUPTS_JOYPAD) {
-            interrupt_clear_flag_bit(INTERRUPTS_JOYPAD);
-            joypad();
+        if (fire) {
+            g_cpu.halt = false;
+            g_interrupt.master = 0;
+            if (fire & INTERRUPTS_VBLANK) {
+                interrupt_clear_flag_bit(INTERRUPTS_VBLANK);
+                vblank();
+            }
+            if (fire & INTERRUPTS_LCDSTAT) {
+                interrupt_clear_flag_bit(INTERRUPTS_LCDSTAT);
+                lcd_stat();
+            }
+            if (fire & INTERRUPTS_TIMER) {
+                interrupt_clear_flag_bit(INTERRUPTS_TIMER);
+                timer();
+            }
+            if (fire & INTERRUPTS_SERIAL) {
+                interrupt_clear_flag_bit(INTERRUPTS_SERIAL);
+                serial();
+            }
+            if (fire & INTERRUPTS_JOYPAD) {
+                interrupt_clear_flag_bit(INTERRUPTS_JOYPAD);
+                joypad();
+            }
         }
     }
 }

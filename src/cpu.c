@@ -419,7 +419,6 @@ static uint8_t cpu_fetch_opcode(void)
 static void cpu_decode_opcode(uint8_t opcode)
 {
     uint8_t oper_length = g_instr[opcode].operand_length;
-    g_cpu.clock.step = 0;
     printd("PC:0x%04x SP:0x%04x AF:0x%04x BC:0x%04x DE:0x%04x HL:0x%04x: ",
            g_cpu.last_pc, g_cpu.reg.sp, g_cpu.reg.af, g_cpu.reg.bc,
            g_cpu.reg.de, g_cpu.reg.hl);
@@ -446,8 +445,14 @@ static void cpu_decode_opcode(uint8_t opcode)
 
 void cpu_emulate_cycle(void)
 {
-    uint8_t opcode = cpu_fetch_opcode();
-    cpu_decode_opcode(opcode);
+    g_cpu.clock.step = 0;
+    if (g_cpu.halt) {
+        /* Tick clock while halted. */
+        g_cpu.clock.step += instruction_ticks[0x76];
+    } else {
+        uint8_t opcode = cpu_fetch_opcode();
+        cpu_decode_opcode(opcode);
+    }
     interrupt_step();
     gpu_step(g_cpu.clock.step);
     timer_step(g_cpu.clock.step);

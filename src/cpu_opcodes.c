@@ -992,7 +992,7 @@ void ld_hlp_l(void)
 /* 0x76: Power down CPU until an interrupt occurs. */
 void halt(void)
 {
-    printf("HALT is not implemented.\n");
+    g_cpu.halt = true;
 }
 
 /* 0x77: Save A to address pointed by HL. */

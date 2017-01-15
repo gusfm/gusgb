@@ -1,6 +1,7 @@
 #ifndef __CPU_H__
 #define __CPU_H__
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -99,6 +100,7 @@ typedef struct {
     cpu_clock_t clock;
     uint32_t cycle;
     uint16_t last_pc;
+    bool halt;
 } cpu_t;
 
 int cpu_init(const char *rom_path, float screen_zoom);
