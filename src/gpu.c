@@ -63,21 +63,21 @@ void gpu_write_oam(uint16_t addr, uint8_t val)
 static void gpu_set_bg_palette(uint8_t value)
 {
     for (int i = 0; i < 4; ++i) {
-        GPU.bg_palette[i] = g_palette[(value >> (i * 2)) & 3];
+        GPU.bg_palette[i] = g_palette[(value >> (i << 1)) & 3];
     }
 }
 
 static void gpu_set_sprite_palette0(uint8_t value)
 {
     for (int i = 0; i < 4; ++i) {
-        GPU.sprite_palette[0][i] = g_palette[(value >> (i * 2)) & 3];
+        GPU.sprite_palette[0][i] = g_palette[(value >> (i << 1)) & 3];
     }
 }
 
 static void gpu_set_sprite_palette1(uint8_t value)
 {
     for (int i = 0; i < 4; ++i) {
-        GPU.sprite_palette[1][i] = g_palette[(value >> (i * 2)) & 3];
+        GPU.sprite_palette[1][i] = g_palette[(value >> (i << 1)) & 3];
     }
 }
 
@@ -87,7 +87,8 @@ uint8_t gpu_read_byte(uint16_t addr)
         case 0xff40:
             return GPU.control;
         case 0xff41:
-            return (uint8_t)((GPU.scanline == GPU.raster ? 4 : 0) |
+            return (uint8_t)(GPU.lcd_status |
+                             (GPU.scanline == GPU.raster ? 4u : 0u) |
                              GPU.linemode);
         case 0xff42:
             return GPU.scroll_y;
@@ -113,6 +114,9 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
     switch (addr) {
         case 0xff40:
             GPU.control = val;
+            break;
+        case 0xff41:
+            GPU.lcd_status = (uint8_t)((val & 0xf8u) | (GPU.lcd_status & 0x07u));
             break;
         case 0xff42:
             GPU.scroll_y = val;
@@ -152,22 +156,19 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             GPU.window_x = val;
             break;
         default:
-            printf("gpu_write_byte: not implemented: 0x%04x\n", addr);
+            printf("gpu_write_byte: not implemented: 0x%04x=0x%02x\n", addr, val);
             break;
     }
 }
 
 static uint32_t gpu_get_tile_id(int mapoffs, int map_row, int map_col)
 {
-    uint32_t tile_id;
-    if (GPU.bg_tile_set) {
-        /* Unsigned tile region: 0 to 255. */
-        tile_id = (uint32_t)GPU.vram[mapoffs + map_row + map_col];
-    } else {
+    /* Unsigned tile region: 0 to 255. */
+    uint32_t tile_id = GPU.vram[mapoffs + map_row + map_col];
+    if (!GPU.bg_tile_set) {
         /* Signed tile region: -128 to 127. */
-        int tile_signed_id = (int)GPU.vram[mapoffs + map_row + map_col];
         /* Adjust id for the 0x8000 - 0x97ff range. */
-        tile_id = (uint32_t)(256 + tile_signed_id);
+        tile_id = (uint32_t)(256 + (int8_t)tile_id);
     }
     return tile_id;
 }
@@ -182,7 +183,7 @@ static tile_line_t get_tile_line(uint32_t tile_id, int y)
     tile_line_t tile_line;
     /* Get tile index for the correct line of the tile. Each tile is 16 bytes
      * long. */
-    uint32_t tile_line_id = tile_id * 16 + (uint32_t)((y % 8) * 2);
+    uint32_t tile_line_id = (tile_id << 4) + (uint32_t)((y & 7) << 1);
     /* Get tile line data: Each tile line takes 2 bytes. */
     tile_line.data_l = GPU.vram[tile_line_id];
     tile_line.data_h = GPU.vram[tile_line_id + 1];
@@ -228,12 +229,12 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
         bg_y = GPU.scanline + GPU.scroll_y;
         mapoffs = (GPU.bg_tile_map) ? 0x1c00 : 0x1800;
     }
-    /* Map row offset. */
-    int map_row = (bg_y / 8) * 32;
+    /* Map row offset: (bg_y / 8) * 32. */
+    int map_row = (bg_y >> 3) << 5;
     uint32_t screen_x = 0;
-    uint32_t pixeloffs = (uint32_t)GPU.scanline * 160;
+    uint32_t pixeloffs = GPU.scanline * 160u;
     while (screen_x < 160) {
-        int map_col = (bg_x / 8);
+        int map_col = (bg_x >> 3);
         /* Get tile index adjusted for the 0x8000 - 0x97ff range. */
         uint32_t tile_id = gpu_get_tile_id(mapoffs, map_row, map_col);
         /* Get tile line data. */
@@ -318,6 +319,29 @@ static void gpu_render_framebuffer(void)
     glfwPollEvents();
 }
 
+static void gpu_change_mode(gpu_mode_e new_mode)
+{
+    GPU.linemode = new_mode;
+    switch (new_mode) {
+        case GPU_MODE_HBLANK:
+            if (GPU.lcd_status & LCD_INT_HBLANK)
+                interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
+            break;
+        case GPU_MODE_VBLANK:
+            if (interrupt_is_enable(INTERRUPTS_VBLANK))
+                interrupt_set_flag_bit(INTERRUPTS_VBLANK);
+            if (GPU.lcd_status & LCD_INT_VBLANK)
+                interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
+            break;
+        case GPU_MODE_OAM:
+            if (GPU.lcd_status & LCD_INT_OAM)
+                interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
+            break;
+        case GPU_MODE_VRAM:
+            break;
+    }
+}
+
 /* Check GPU FSM.
  * Note: All clock values are divided by 4.
  */
@@ -328,13 +352,13 @@ void gpu_step(uint32_t clock_step)
         case GPU_MODE_OAM:
             if (GPU.modeclock >= 20) {
                 GPU.modeclock -= 20;
-                GPU.linemode = GPU_MODE_VRAM;
+                gpu_change_mode(GPU_MODE_VRAM);
             }
             break;
         case GPU_MODE_VRAM:
             if (GPU.modeclock >= 43) {
                 GPU.modeclock -= 43;
-                GPU.linemode = GPU_MODE_HBLANK;
+                gpu_change_mode(GPU_MODE_HBLANK);
                 /* End of scanline. Write a scanline to framebuffer. */
                 gpu_render_scanline();
             }
@@ -343,14 +367,14 @@ void gpu_step(uint32_t clock_step)
             if (GPU.modeclock >= 51) {
                 GPU.modeclock -= 51;
                 GPU.scanline++;
+                if (GPU.scanline == GPU.raster && GPU.lcd_status & LCD_INT_LY_LYC) {
+                    interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
+                }
                 if (GPU.scanline == 143) {
-                    GPU.linemode = GPU_MODE_VBLANK;
-                    if (interrupt_is_enable(INTERRUPTS_VBLANK)) {
-                        interrupt_set_flag_bit(INTERRUPTS_VBLANK);
-                    }
+                    gpu_change_mode(GPU_MODE_VBLANK);
                     gpu_render_framebuffer();
                 } else {
-                    GPU.linemode = GPU_MODE_OAM;
+                    gpu_change_mode(GPU_MODE_OAM);
                 }
             }
             break;
@@ -360,23 +384,9 @@ void gpu_step(uint32_t clock_step)
                 GPU.scanline++;
                 if (GPU.scanline > 153) {
                     GPU.scanline = 0;
-                    GPU.linemode = GPU_MODE_OAM;
+                    gpu_change_mode(GPU_MODE_OAM);
                 }
             }
             break;
-    }
-}
-
-void gpu_update_tile(uint16_t addr)
-{
-    /* TODO: check if can remove this. */
-    uint16_t vram_index = addr & 0x1fff;
-    uint16_t tile = (vram_index >> 4) & 511;
-    uint16_t y = (vram_index >> 1) & 7;
-    for (uint8_t x = 0; x < 8; ++x) {
-        uint8_t bit_index = (uint8_t)(1 << (7 - x));
-        GPU.tiles[tile][y][x] =
-            (uint8_t)(((GPU.vram[vram_index] & bit_index) ? 1u : 0u) +
-                      ((GPU.vram[vram_index + 1] & bit_index) ? 2u : 0u));
     }
 }

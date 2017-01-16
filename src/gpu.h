@@ -13,6 +13,11 @@
 #define GPU_CONTROL_WINDOWTILEMAP (1 << 6)
 #define GPU_CONTROL_DISPLAYENABLE (1 << 7)
 
+#define LCD_INT_HBLANK 0x08 // HBLANK interrupt
+#define LCD_INT_VBLANK 0x10 // VBLANK interrupt
+#define LCD_INT_OAM    0x20 // OAM interrupt
+#define LCD_INT_LY_LYC 0x40 // LY/LYC coincidence interrupt
+
 typedef enum {
     GPU_MODE_HBLANK = 0,
     GPU_MODE_VBLANK = 1,
@@ -39,6 +44,7 @@ typedef struct {
         };
         uint8_t control;
     };
+    uint8_t lcd_status;
     uint8_t scroll_x;
     uint8_t scroll_y;
     uint8_t window_x;
@@ -82,6 +88,5 @@ void gpu_write_vram(uint16_t addr, uint8_t val);
 uint8_t gpu_read_oam(uint16_t addr);
 void gpu_write_oam(uint16_t addr, uint8_t val);
 void gpu_step(uint32_t cpu_tick);
-void gpu_update_tile(uint16_t addr);
 
 #endif /* __GPU_H__ */
