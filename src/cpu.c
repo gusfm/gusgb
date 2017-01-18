@@ -60,7 +60,7 @@ const instruction_t g_instr[256] = {
     {"RRA", NULL, 0, rra, NULL, NULL},                    // 0x1f
     {"JR NZ, $", NULL, 1, NULL, jr_nz_n, NULL},           // 0x20
     {"LD HL, $", NULL, 2, NULL, NULL, ld_hl_nn},          // 0x21
-    {"LD (HL+), A", NULL, 0, ldi_hlp_a, NULL, NULL},      // 0x22
+    {"LDI (HL), A", NULL, 0, ldi_hlp_a, NULL, NULL},      // 0x22
     {"INC HL", NULL, 0, inc_hl, NULL, NULL},              // 0x23
     {"INC H", NULL, 0, inc_h, NULL, NULL},                // 0x24
     {"DEC H", NULL, 0, dec_h, NULL, NULL},                // 0x25
@@ -68,7 +68,7 @@ const instruction_t g_instr[256] = {
     {"DAA", NULL, 0, daa, NULL, NULL},                    // 0x27
     {"JR Z, $", NULL, 1, NULL, jr_z_n, NULL},             // 0x28
     {"ADD HL, HL", NULL, 0, add_hl_hl, NULL, NULL},       // 0x29
-    {"LD A, (HL+)", NULL, 0, ldi_a_hlp, NULL, NULL},      // 0x2a
+    {"LDI A, (HL)", NULL, 0, ldi_a_hlp, NULL, NULL},      // 0x2a
     {"DEC HL", NULL, 0, dec_hl, NULL, NULL},              // 0x2b
     {"INC L", NULL, 0, inc_l, NULL, NULL},                // 0x2c
     {"DEC L", NULL, 0, dec_l, NULL, NULL},                // 0x2d
@@ -76,7 +76,7 @@ const instruction_t g_instr[256] = {
     {"CPL", NULL, 0, cpl, NULL, NULL},                    // 0x2f
     {"JR NC, $", NULL, 1, NULL, jr_nc_n, NULL},           // 0x30
     {"LD SP, $", NULL, 2, NULL, NULL, ld_sp_nn},          // 0x31
-    {"LD (HL-), A", NULL, 0, ldd_hlp_a, NULL, NULL},      // 0x32
+    {"LDD (HL), A", NULL, 0, ldd_hlp_a, NULL, NULL},      // 0x32
     {"INC SP", NULL, 0, inc_sp, NULL, NULL},              // 0x33
     {"INC (HL)", NULL, 0, inc_hlp, NULL, NULL},           // 0x34
     {"DEC (HL)", NULL, 0, dec_hlp, NULL, NULL},           // 0x35
@@ -250,7 +250,7 @@ const instruction_t g_instr[256] = {
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xdd
     {"SBC $", NULL, 1, NULL, sbc_n, NULL},                // 0xde
     {"RST $18", NULL, 0, rst_18, NULL, NULL},             // 0xdf
-    {"LDH ($FF00 + $", "), A", 1, NULL, ldh_n_a, NULL},   // 0xe0
+    {"LD ($FF00 + $", "), A", 1, NULL, ldh_n_a, NULL},    // 0xe0
     {"POP HL", NULL, 0, pop_hl, NULL, NULL},              // 0xe1
     {"LD ($FF00 + C), A", NULL, 0, ld_cp_a, NULL, NULL},  // 0xe2
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xe3
@@ -266,7 +266,7 @@ const instruction_t g_instr[256] = {
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xed
     {"XOR $", NULL, 1, NULL, xor_n, NULL},                // 0xee
     {"RST $28", NULL, 0, rst_28, NULL, NULL},             // 0xef
-    {"LDH A, ($FF00 + $", ")", 1, NULL, ldh_a_n, NULL},   // 0xf0
+    {"LD A, ($FF00 + $", ")", 1, NULL, ldh_a_n, NULL},    // 0xf0
     {"POP AF", NULL, 0, pop_af, NULL, NULL},              // 0xf1
     {"LD A, ($FF00 + C)", NULL, 0, ld_a_cp, NULL, NULL},  // 0xf2
     {"DI", NULL, 0, di, NULL, NULL},                      // 0xf3
@@ -274,7 +274,7 @@ const instruction_t g_instr[256] = {
     {"PUSH AF", NULL, 0, push_af, NULL, NULL},            // 0xf5
     {"OR $", NULL, 1, NULL, or_n, NULL},                  // 0xf6
     {"RST $30", NULL, 0, rst_30, NULL, NULL},             // 0xf7
-    {"LDHL, SP+$", NULL, 1, NULL, ldhl_sp_n, NULL},       // 0xf8
+    {"LD HL, SP+$", NULL, 1, NULL, ldhl_sp_n, NULL},      // 0xf8
     {"LD SP, HL", NULL, 0, ld_sp_hl, NULL, NULL},         // 0xf9
     {"LD A, ($", ")", 2, NULL, NULL, ld_a_nnp},           // 0xfa
     {"EI", NULL, 0, ei, NULL, NULL},                      // 0xfb
