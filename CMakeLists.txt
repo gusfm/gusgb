@@ -36,3 +36,6 @@ add_executable(${PROJECT_NAME}
     src/game_boy.c
     src/main.c)
 target_link_libraries(${PROJECT_NAME} libgusgb GL glfw ftgl)
+
+add_executable(gusdump
+    src/as/gusdump.c)
