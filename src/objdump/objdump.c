@@ -271,15 +271,15 @@ typedef struct {
     uint8_t *rom;
     size_t rom_size;
     FILE *output;
-} gusdump_t;
+} objdump_t;
 
-static gusdump_t *gusdump_init(char *path)
+static objdump_t *objdump_init(char *path)
 {
     FILE *file = fopen(path, "rb");
     if (file == NULL) {
         return NULL;
     }
-    gusdump_t *obj = malloc(sizeof(gusdump_t));
+    objdump_t *obj = malloc(sizeof(objdump_t));
     /* Get file size. */
     fseek(file, 0, SEEK_END);
     obj->rom_size = (size_t)ftell(file);
@@ -296,25 +296,25 @@ static gusdump_t *gusdump_init(char *path)
     return obj;
 }
 
-static void gusdump_finish(gusdump_t *obj)
+static void objdump_finish(objdump_t *obj)
 {
     free(obj->rom);
     free(obj);
 }
 
-static void gusdump_data(gusdump_t *obj, uint8_t data)
+static void objdump_data(objdump_t *obj, uint8_t data)
 {
     fprintf(obj->output, "db $%02x\n", data);
 }
 
-static void gusdump_instruction(gusdump_t *obj, size_t pc)
+static void objdump_instruction(objdump_t *obj, size_t pc)
 {
     uint8_t opcode = obj->rom[pc++];
     uint8_t instr_length = instr[opcode].length;
     const char *asm1 = instr[opcode].asm1;
     const char *asm2 = instr[opcode].asm2 ? instr[opcode].asm2 : "";
     if (asm1 == NULL) {
-        gusdump_data(obj, opcode);
+        objdump_data(obj, opcode);
         return;
     }
     if (instr_length == 1) {
@@ -331,15 +331,15 @@ static void gusdump_instruction(gusdump_t *obj, size_t pc)
     }
 }
 
-static void gusdump_dump(gusdump_t *obj)
+static void objdump_dump(objdump_t *obj)
 {
     obj->output = fopen("out.as", "w");
     size_t pc = 0;
     while (pc < obj->rom_size) {
         while (pc >= 0x0104 && pc <= 0x014f) {
-            gusdump_data(obj, obj->rom[pc++]);
+            objdump_data(obj, obj->rom[pc++]);
         }
-        gusdump_instruction(obj, pc);
+        objdump_instruction(obj, pc);
         uint8_t opcode = obj->rom[pc];
         pc += instr[opcode].length;
     }
@@ -352,13 +352,13 @@ int main(int argc, char *argv[])
         fprintf(stderr, "ERROR: syntax: %s <rom file>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    gusdump_t *obj = gusdump_init(argv[1]);
+    objdump_t *obj = objdump_init(argv[1]);
     if (obj == NULL) {
         fprintf(stderr, "ERROR: could not load rom %s\n", argv[1]);
-        gusdump_finish(obj);
+        objdump_finish(obj);
         exit(EXIT_FAILURE);
     }
-    gusdump_dump(obj);
-    gusdump_finish(obj);
+    objdump_dump(obj);
+    objdump_finish(obj);
     return 0;
 }
