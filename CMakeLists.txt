@@ -51,6 +51,7 @@ ADD_FLEX_BISON_DEPENDENCY(gbas_scanner gbas_parser)
 add_executable(gbas
     ${BISON_gbas_parser_OUTPUTS}
     ${FLEX_gbas_scanner_OUTPUTS}
+    src/as/opcodes.c
     )
 target_link_libraries(gbas fl)
 set_target_properties(gbas PROPERTIES COMPILE_FLAGS "-D_POSIX_SOURCE")
