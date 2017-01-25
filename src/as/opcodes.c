@@ -1,5 +1,6 @@
 #include "opcodes.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 static inline void op_write1(FILE *f, uint8_t opcode)
 {
@@ -1023,9 +1024,28 @@ void add_a_n(FILE *f, uint8_t val)
     op_write2(f, 0xc6, val);
 }
 
-void rst_00(FILE *f)
+void rst(FILE *f, uint8_t val)
 {
-    op_write1(f, 0xc7);
+    if (val == 0x00) {
+        op_write1(f, 0xc7);
+    } else if (val == 0x08) {
+        op_write1(f, 0xcf);
+    } else if (val == 0x10) {
+        op_write1(f, 0xd7);
+    } else if (val == 0x18) {
+        op_write1(f, 0xdf);
+    } else if (val == 0x20) {
+        op_write1(f, 0xe7);
+    } else if (val == 0x28) {
+        op_write1(f, 0xef);
+    } else if (val == 0x30) {
+        op_write1(f, 0xf7);
+    } else if (val == 0x38) {
+        op_write1(f, 0xff);
+    } else {
+        fprintf(stderr, "rst: invalid value: %hhu\n", val);
+        exit(EXIT_FAILURE);
+    }
 }
 
 void ret_z(FILE *f)
@@ -1063,11 +1083,6 @@ void adc_n(FILE *f, uint8_t val)
     op_write2(f, 0xce, val);
 }
 
-void rst_08(FILE *f)
-{
-    op_write1(f, 0xcf);
-}
-
 void ret_nc(FILE *f)
 {
     op_write1(f, 0xd0);
@@ -1098,11 +1113,6 @@ void sub_n(FILE *f, uint8_t val)
     op_write2(f, 0xd6, val);
 }
 
-void rst_10(FILE *f)
-{
-    op_write1(f, 0xd7);
-}
-
 void ret_c(FILE *f)
 {
     op_write1(f, 0xd8);
@@ -1126,11 +1136,6 @@ void call_c_nn(FILE *f, uint16_t val)
 void sbc_n(FILE *f, uint8_t val)
 {
     op_write2(f, 0xde, val);
-}
-
-void rst_18(FILE *f)
-{
-    op_write1(f, 0xdf);
 }
 
 void ldh_n_a(FILE *f, uint8_t val)
@@ -1158,11 +1163,6 @@ void and_n(FILE *f, uint8_t val)
     op_write2(f, 0xe6, val);
 }
 
-void rst_20(FILE *f)
-{
-    op_write1(f, 0xe7);
-}
-
 void add_sp_n(FILE *f, uint8_t val)
 {
     op_write2(f, 0xe8, val);
@@ -1181,11 +1181,6 @@ void ld_nnp_a(FILE *f, uint16_t val)
 void xor_n(FILE *f, uint8_t val)
 {
     op_write2(f, 0xee, val);
-}
-
-void rst_28(FILE *f)
-{
-    op_write1(f, 0xef);
 }
 
 void ldh_a_n(FILE *f, uint8_t val)
@@ -1218,11 +1213,6 @@ void or_n(FILE *f, uint8_t val)
     op_write2(f, 0xf6, val);
 }
 
-void rst_30(FILE *f)
-{
-    op_write1(f, 0xf7);
-}
-
 void ldhl_sp_n(FILE *f, uint8_t val)
 {
     op_write2(f, 0xf8, val);
@@ -1246,9 +1236,4 @@ void ei(FILE *f)
 void cp_n(FILE *f, uint8_t val)
 {
     op_write2(f, 0xfe, val);
-}
-
-void rst_38(FILE *f)
-{
-    op_write1(f, 0xff);
 }

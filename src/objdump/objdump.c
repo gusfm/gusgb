@@ -233,9 +233,9 @@ const instruction_t instr[256] = {
     {NULL, NULL, 1},                 // 0xdd
     {"sbc $", NULL, 2},              // 0xde
     {"rst $18", NULL, 1},            // 0xdf
-    {"ld ($ff00 + $", "), a", 2},    // 0xe0
+    {"ldh ($", "), a", 2},    // 0xe0
     {"pop hl", NULL, 1},             // 0xe1
-    {"ld ($ff00 + c), a", NULL, 1},  // 0xe2
+    {"ld (c), a", NULL, 1},  // 0xe2
     {NULL, NULL, 1},                 // 0xe3
     {NULL, NULL, 1},                 // 0xe4
     {"push hl", NULL, 1},            // 0xe5
@@ -249,7 +249,7 @@ const instruction_t instr[256] = {
     {NULL, NULL, 1},                 // 0xed
     {"xor $", NULL, 2},              // 0xee
     {"rst $28", NULL, 1},            // 0xef
-    {"ld a, ($ff00 + $", ")", 2},    // 0xf0
+    {"ldh a, ($", ")", 2},    // 0xf0
     {"pop af", NULL, 1},             // 0xf1
     {"ld a, ($ff00 + c)", NULL, 1},  // 0xf2
     {"di", NULL, 1},                 // 0xf3
