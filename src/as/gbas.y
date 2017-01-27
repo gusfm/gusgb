@@ -8,8 +8,11 @@
 extern int yylex();
 extern FILE *yyin;
 FILE *output;
- 
+extern unsigned int linenum;
+extern const char *yytext;
 void yyerror(const char *s);
+
+register_e last_reg;
 %}
 
 /* */
@@ -74,6 +77,18 @@ void yyerror(const char *s);
 %token STOP
 %token SUB
 %token XOR
+/* CB */
+%token BIT;
+%token RES;
+%token RL;
+%token RLC;
+%token RR;
+%token RRC;
+%token SET;
+%token SLA;
+%token SRA;
+%token SRL;
+%token SWAP;
 
 /* Sub commands. */
 %token NC
@@ -356,17 +371,35 @@ sub_cmd:
         | NUMBER                { sub_n(output, $1); }
         ;
 
+regs_8:
+        A             { last_reg = REG_A; }
+      | B             { last_reg = REG_B; }
+      | C             { last_reg = REG_C; }
+      | D             { last_reg = REG_D; }
+      | E             { last_reg = REG_E; }
+      | H             { last_reg = REG_H; }
+      | L             { last_reg = REG_L; }
+      | '(' HL ')'    { last_reg = REG_HL; }
+      ;
+
 xor_cmd:
-          '(' HL ')'            { xor_hlp(output); }
-        | A                     { xor_a(output); }
-        | B                     { xor_b(output); }
-        | C                     { xor_c(output); }
-        | D                     { xor_d(output); }
-        | E                     { xor_e(output); }
-        | H                     { xor_h(output); }
-        | L                     { xor_l(output); }
+          regs_8                { xorf(output, last_reg); }
         | NUMBER                { xor_n(output, $1); }
         ;
+
+cb_cmd:
+        BIT NUMBER ',' regs_8       { bit(output, $2, last_reg); }
+      | RES NUMBER ',' regs_8       { res(output, $2, last_reg); }
+      | RL regs_8                   { rl(output, last_reg); }
+      | RLC regs_8                  { rlc(output, last_reg); }
+      | RR regs_8                   { rr(output, last_reg); }
+      | RRC regs_8                  { rrc(output, last_reg); }
+      | SET NUMBER ',' regs_8       { set(output, $2, last_reg); }
+      | SLA regs_8                  { sla(output, last_reg); }
+      | SRA regs_8                  { sra(output, last_reg); }
+      | SRL regs_8                  { srl(output, last_reg); }
+      | SWAP regs_8                 { swap(output, last_reg); }
+      ;
 
 command:
           ADC adc_cmd
@@ -405,25 +438,29 @@ command:
         | STOP                      { stop(output); }
         | SUB sub_cmd
         | XOR xor_cmd
+        | cb_cmd
         ;
 %%
 
 int main(int argc, char **argv)
 {
-#if 0
-    // open a file handle to a particular file:
-    FILE *myfile = fopen("a.snazzle.file", "r");
-    // make sure it is valid:
-    if (!myfile) {
-        cout << "I can't open a.snazzle.file!" << endl;
+    if (argc < 3) {
+        fprintf(stderr, "Syntax: %s <input file> <output file>\n", argv[0]);
         return -1;
     }
-    // set flex to read from it instead of defaulting to STDIN:
-    yyin = myfile;
-#endif
-    output = fopen("out.gb", "wb");
+    const char *infile = argv[1];
+    const char *outfile = argv[2];
+    FILE *input = fopen(infile, "r");
+    if (!input) {
+        fprintf(stderr, "Can't open file %s\n", infile);
+        return -1;
+    }
+    /* Set flex to read from it instead of defaulting to STDIN. */
+    yyin = input;
+    output = fopen(outfile, "wb");
     if (output == NULL) {
-        fprintf(stderr, "cant open output file!\n");
+        fprintf(stderr, "Can't open output file %s\n", outfile);
+        fclose(input);
         return -1;
     }
     
@@ -432,6 +469,7 @@ int main(int argc, char **argv)
         yyparse();
     } while (!feof(yyin));
 
+    fclose(input);
     fclose(output);
 
     return 0;
@@ -439,6 +477,6 @@ int main(int argc, char **argv)
 
 void yyerror(const char *s)
 {
-    fprintf(stderr, "parse error: %s\n", s);
+    fprintf(stderr, "Parse error:%u: %s: %s\n", linenum, s, yytext);
     exit(EXIT_FAILURE);
 }

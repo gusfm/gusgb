@@ -4,6 +4,22 @@
 #include <stdint.h>
 #include <stdio.h>
 
+typedef enum {
+    REG_A = 0,
+    REG_F,
+    REG_B,
+    REG_C,
+    REG_D,
+    REG_E,
+    REG_H,
+    REG_L,
+    REG_AF,
+    REG_BC,
+    REG_DE,
+    REG_HL,
+    REG_LEN
+} register_e;
+
 void data(FILE *f, uint8_t val);
 void nop(FILE *f);
 void ld_bc_nn(FILE *f, uint16_t val);
@@ -173,14 +189,7 @@ void and_h(FILE *f);
 void and_l(FILE *f);
 void and_hlp(FILE *f);
 void and_a(FILE *f);
-void xor_b(FILE *f);
-void xor_c(FILE *f);
-void xor_d(FILE *f);
-void xor_e(FILE *f);
-void xor_h(FILE *f);
-void xor_l(FILE *f);
-void xor_hlp(FILE *f);
-void xor_a(FILE *f);
+void xorf(FILE *f, register_e reg);
 void or_b(FILE *f);
 void or_c(FILE *f);
 void or_d(FILE *f);
@@ -243,5 +252,18 @@ void ld_sp_hl(FILE *f);
 void ld_a_nnp(FILE *f, uint16_t val);
 void ei(FILE *f);
 void cp_n(FILE *f, uint8_t val);
+
+/* CB */
+void rlc(FILE *f, register_e reg);
+void rrc(FILE *f, register_e reg);
+void rl(FILE *f, register_e reg);
+void rr(FILE *f, register_e reg);
+void sla(FILE *f, register_e reg);
+void sra(FILE *f, register_e reg);
+void swap(FILE *f, register_e reg);
+void srl(FILE *f, register_e reg);
+void bit(FILE *f, unsigned int b, register_e reg);
+void res(FILE *f, unsigned int b, register_e reg);
+void set(FILE *f, unsigned int b, register_e reg);
 
 #endif /* __OPCODES_H__ */
