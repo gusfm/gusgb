@@ -4,7 +4,8 @@
 
 extern unsigned int linenum;
 
-const char *regs[REG_LEN] = {"a", "f", "b", "c", "d", "e", "h", "l", "af", "bc", "de", "hl"};
+const char *regs[REG_LEN] = {"a", "f", "b",  "c",  "d",  "e",
+                             "h", "l", "af", "bc", "de", "hl"};
 
 void error_register(register_e reg)
 {
@@ -733,164 +734,140 @@ void add_a_a(FILE *f)
     op_write1(f, 0x87);
 }
 
-void adc_b(FILE *f)
+void adc(FILE *f, register_e reg)
 {
-    op_write1(f, 0x88);
+    unsigned int opcode = 0x88;
+    switch (reg) {
+        case REG_B:
+            opcode += 0;
+            break;
+        case REG_C:
+            opcode += 1;
+            break;
+        case REG_D:
+            opcode += 2;
+            break;
+        case REG_E:
+            opcode += 3;
+            break;
+        case REG_H:
+            opcode += 4;
+            break;
+        case REG_L:
+            opcode += 5;
+            break;
+        case REG_HL:
+            opcode += 6;
+            break;
+        case REG_A:
+            opcode += 7;
+            break;
+        default:
+            error_register(reg);
+    }
+    op_write1(f, (uint8_t)opcode);
 }
 
-void adc_c(FILE *f)
+void sub(FILE *f, register_e reg)
 {
-    op_write1(f, 0x89);
+    unsigned int opcode = 0x90;
+    switch (reg) {
+        case REG_B:
+            opcode += 0;
+            break;
+        case REG_C:
+            opcode += 1;
+            break;
+        case REG_D:
+            opcode += 2;
+            break;
+        case REG_E:
+            opcode += 3;
+            break;
+        case REG_H:
+            opcode += 4;
+            break;
+        case REG_L:
+            opcode += 5;
+            break;
+        case REG_HL:
+            opcode += 6;
+            break;
+        case REG_A:
+            opcode += 7;
+            break;
+        default:
+            error_register(reg);
+    }
+    op_write1(f, (uint8_t)opcode);
 }
 
-void adc_d(FILE *f)
+void sbc(FILE *f, register_e reg)
 {
-    op_write1(f, 0x8a);
+    unsigned int opcode = 0x98;
+    switch (reg) {
+        case REG_B:
+            opcode += 0;
+            break;
+        case REG_C:
+            opcode += 1;
+            break;
+        case REG_D:
+            opcode += 2;
+            break;
+        case REG_E:
+            opcode += 3;
+            break;
+        case REG_H:
+            opcode += 4;
+            break;
+        case REG_L:
+            opcode += 5;
+            break;
+        case REG_HL:
+            opcode += 6;
+            break;
+        case REG_A:
+            opcode += 7;
+            break;
+        default:
+            error_register(reg);
+    }
+    op_write1(f, (uint8_t)opcode);
 }
 
-void adc_e(FILE *f)
+void andf(FILE *f, register_e reg)
 {
-    op_write1(f, 0x8b);
-}
-
-void adc_h(FILE *f)
-{
-    op_write1(f, 0x8c);
-}
-
-void adc_l(FILE *f)
-{
-    op_write1(f, 0x8d);
-}
-
-void adc_hlp(FILE *f)
-{
-    op_write1(f, 0x8e);
-}
-
-void adc_a(FILE *f)
-{
-    op_write1(f, 0x8f);
-}
-
-void sub_b(FILE *f)
-{
-    op_write1(f, 0x90);
-}
-
-void sub_c(FILE *f)
-{
-    op_write1(f, 0x91);
-}
-
-void sub_d(FILE *f)
-{
-    op_write1(f, 0x92);
-}
-
-void sub_e(FILE *f)
-{
-    op_write1(f, 0x93);
-}
-
-void sub_h(FILE *f)
-{
-    op_write1(f, 0x94);
-}
-
-void sub_l(FILE *f)
-{
-    op_write1(f, 0x95);
-}
-
-void sub_hlp(FILE *f)
-{
-    op_write1(f, 0x96);
-}
-
-void sub_a(FILE *f)
-{
-    op_write1(f, 0x97);
-}
-
-void sbc_b(FILE *f)
-{
-    op_write1(f, 0x98);
-}
-
-void sbc_c(FILE *f)
-{
-    op_write1(f, 0x99);
-}
-
-void sbc_d(FILE *f)
-{
-    op_write1(f, 0x9a);
-}
-
-void sbc_e(FILE *f)
-{
-    op_write1(f, 0x9b);
-}
-
-void sbc_h(FILE *f)
-{
-    op_write1(f, 0x9c);
-}
-
-void sbc_l(FILE *f)
-{
-    op_write1(f, 0x9d);
-}
-
-void sbc_hlp(FILE *f)
-{
-    op_write1(f, 0x9e);
-}
-
-void sbc_a(FILE *f)
-{
-    op_write1(f, 0x9f);
-}
-
-void and_b(FILE *f)
-{
-    op_write1(f, 0xa0);
-}
-
-void and_c(FILE *f)
-{
-    op_write1(f, 0xa1);
-}
-
-void and_d(FILE *f)
-{
-    op_write1(f, 0xa2);
-}
-
-void and_e(FILE *f)
-{
-    op_write1(f, 0xa3);
-}
-
-void and_h(FILE *f)
-{
-    op_write1(f, 0xa4);
-}
-
-void and_l(FILE *f)
-{
-    op_write1(f, 0xa5);
-}
-
-void and_hlp(FILE *f)
-{
-    op_write1(f, 0xa6);
-}
-
-void and_a(FILE *f)
-{
-    op_write1(f, 0xa7);
+    unsigned int opcode = 0xa0;
+    switch (reg) {
+        case REG_B:
+            opcode += 0;
+            break;
+        case REG_C:
+            opcode += 1;
+            break;
+        case REG_D:
+            opcode += 2;
+            break;
+        case REG_E:
+            opcode += 3;
+            break;
+        case REG_H:
+            opcode += 4;
+            break;
+        case REG_L:
+            opcode += 5;
+            break;
+        case REG_HL:
+            opcode += 6;
+            break;
+        case REG_A:
+            opcode += 7;
+            break;
+        default:
+            error_register(reg);
+    }
+    op_write1(f, (uint8_t)opcode);
 }
 
 void xorf(FILE *f, register_e reg)
@@ -927,84 +904,72 @@ void xorf(FILE *f, register_e reg)
     op_write1(f, (uint8_t)opcode);
 }
 
-void or_b(FILE *f)
+void orf(FILE *f, register_e reg)
 {
-    op_write1(f, 0xb0);
+    unsigned int opcode = 0xb0;
+    switch (reg) {
+        case REG_B:
+            opcode += 0;
+            break;
+        case REG_C:
+            opcode += 1;
+            break;
+        case REG_D:
+            opcode += 2;
+            break;
+        case REG_E:
+            opcode += 3;
+            break;
+        case REG_H:
+            opcode += 4;
+            break;
+        case REG_L:
+            opcode += 5;
+            break;
+        case REG_HL:
+            opcode += 6;
+            break;
+        case REG_A:
+            opcode += 7;
+            break;
+        default:
+            error_register(reg);
+    }
+    op_write1(f, (uint8_t)opcode);
 }
 
-void or_c(FILE *f)
+void cp(FILE *f, register_e reg)
 {
-    op_write1(f, 0xb1);
-}
-
-void or_d(FILE *f)
-{
-    op_write1(f, 0xb2);
-}
-
-void or_e(FILE *f)
-{
-    op_write1(f, 0xb3);
-}
-
-void or_h(FILE *f)
-{
-    op_write1(f, 0xb4);
-}
-
-void or_l(FILE *f)
-{
-    op_write1(f, 0xb5);
-}
-
-void or_hlp(FILE *f)
-{
-    op_write1(f, 0xb6);
-}
-
-void or_a(FILE *f)
-{
-    op_write1(f, 0xb7);
-}
-
-void cp_b(FILE *f)
-{
-    op_write1(f, 0xb8);
-}
-
-void cp_c(FILE *f)
-{
-    op_write1(f, 0xb9);
-}
-
-void cp_d(FILE *f)
-{
-    op_write1(f, 0xba);
-}
-
-void cp_e(FILE *f)
-{
-    op_write1(f, 0xbb);
-}
-
-void cp_h(FILE *f)
-{
-    op_write1(f, 0xbc);
-}
-
-void cp_l(FILE *f)
-{
-    op_write1(f, 0xbd);
-}
-
-void cp_hlp(FILE *f)
-{
-    op_write1(f, 0xbe);
-}
-
-void cp_a(FILE *f)
-{
-    op_write1(f, 0xbf);
+    unsigned int opcode = 0xb8;
+    switch (reg) {
+        case REG_B:
+            opcode += 0;
+            break;
+        case REG_C:
+            opcode += 1;
+            break;
+        case REG_D:
+            opcode += 2;
+            break;
+        case REG_E:
+            opcode += 3;
+            break;
+        case REG_H:
+            opcode += 4;
+            break;
+        case REG_L:
+            opcode += 5;
+            break;
+        case REG_HL:
+            opcode += 6;
+            break;
+        case REG_A:
+            opcode += 7;
+            break;
+        default:
+            error_register(reg);
+    }
+    op_write1(f, (uint8_t)opcode);
 }
 
 void ret_nz(FILE *f)

@@ -101,16 +101,20 @@ commands:
         | commands command
         ;
 
+regs_8:
+        A             { last_reg = REG_A; }
+      | B             { last_reg = REG_B; }
+      | C             { last_reg = REG_C; }
+      | D             { last_reg = REG_D; }
+      | E             { last_reg = REG_E; }
+      | H             { last_reg = REG_H; }
+      | L             { last_reg = REG_L; }
+      | '(' HL ')'    { last_reg = REG_HL; }
+      ;
+
 adc_cmd:
           NUMBER                { adc_n(output, $1); }
-        | '(' HL ')'            { adc_hlp(output); }
-        | A                     { adc_a(output); }
-        | B                     { adc_b(output); }
-        | C                     { adc_c(output); }
-        | D                     { adc_d(output); }
-        | E                     { adc_e(output); }
-        | H                     { adc_h(output); }
-        | L                     { adc_l(output); }
+        | regs_8                { adc(output, last_reg); }
         ;
 
 add_cmd:
@@ -131,15 +135,8 @@ add_cmd:
         ;
 
 and_cmd:
-          '(' HL ')'            { and_hlp(output); }
-        | A                     { and_a(output); }
-        | B                     { and_b(output); }
-        | C                     { and_c(output); }
-        | D                     { and_d(output); }
-        | E                     { and_e(output); }
-        | H                     { and_h(output); }
-        | L                     { and_l(output); }
-        | NUMBER                { and_n(output, $1); }
+          NUMBER                { and_n(output, $1); }
+        | regs_8                { andf(output, last_reg); }
         ;
 
 call_cmd:
@@ -151,15 +148,8 @@ call_cmd:
         ;
 
 cp_cmd:
-          '(' HL ')'             { cp_hlp(output); }
-        | A                      { cp_a(output); }
-        | B                      { cp_b(output); }
-        | C                      { cp_c(output); }
-        | D                      { cp_d(output); }
-        | E                      { cp_e(output); }
-        | H                      { cp_h(output); }
-        | L                      { cp_l(output); }
-        | NUMBER                 { cp_n(output, $1); }
+          NUMBER                 { cp_n(output, $1); }
+        | regs_8                 { cp(output, last_reg); }
         ;
 
 dec_cmd:
@@ -314,15 +304,8 @@ ldi_cmd:
         ;
 
 or_cmd:
-          '(' HL ')'             { or_hlp(output); }
-        | A                      { or_a(output); }
-        | B                      { or_b(output); }
-        | C                      { or_c(output); }
-        | D                      { or_d(output); }
-        | E                      { or_e(output); }
-        | H                      { or_h(output); }
-        | L                      { or_l(output); }
-        | NUMBER                 { or_n(output, $1); }
+          NUMBER                 { or_n(output, $1); }
+        | regs_8                 { orf(output, last_reg); }
         ;
 
 pop_cmd:
@@ -348,43 +331,18 @@ ret_cmd:
         ;
 
 sbc_cmd:
-          '(' HL ')'            { sbc_hlp(output); }
-        | A                     { sbc_a(output); }
-        | B                     { sbc_b(output); }
-        | C                     { sbc_c(output); }
-        | D                     { sbc_d(output); }
-        | E                     { sbc_e(output); }
-        | H                     { sbc_h(output); }
-        | L                     { sbc_l(output); }
-        | NUMBER                { sbc_n(output, $1); }
+          NUMBER                { sbc_n(output, $1); }
+        | regs_8                { sbc(output, last_reg); }
         ;
 
 sub_cmd:
-          '(' HL ')'            { sub_hlp(output); }
-        | A                     { sub_a(output); }
-        | B                     { sub_b(output); }
-        | C                     { sub_c(output); }
-        | D                     { sub_d(output); }
-        | E                     { sub_e(output); }
-        | H                     { sub_h(output); }
-        | L                     { sub_l(output); }
-        | NUMBER                { sub_n(output, $1); }
+          NUMBER                { sub_n(output, $1); }
+        | regs_8                { sub(output, last_reg); }
         ;
 
-regs_8:
-        A             { last_reg = REG_A; }
-      | B             { last_reg = REG_B; }
-      | C             { last_reg = REG_C; }
-      | D             { last_reg = REG_D; }
-      | E             { last_reg = REG_E; }
-      | H             { last_reg = REG_H; }
-      | L             { last_reg = REG_L; }
-      | '(' HL ')'    { last_reg = REG_HL; }
-      ;
-
 xor_cmd:
-          regs_8                { xorf(output, last_reg); }
-        | NUMBER                { xor_n(output, $1); }
+          NUMBER                { xor_n(output, $1); }
+        | regs_8                { xorf(output, last_reg); }
         ;
 
 cb_cmd:
