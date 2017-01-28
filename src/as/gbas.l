@@ -1,9 +1,6 @@
 D			[0-9]
 L			[a-zA-Z_]
 H			[a-fA-F0-9]
-E			[Ee][+-]?{D}+
-FS			(f|F|l|L)
-IS			(u|U|l|L)*
 %{
 #include <stdio.h>
 #include <string.h>
@@ -13,9 +10,10 @@ unsigned int linenum = 1;
 %option noinput nounput
 
 %%
-$[0123456789abcdef]+        { yylval.num = strtol(yytext + 1, NULL, 16); return NUMBER; }
-[0123456789]+               { yylval.num = strtol(yytext, NULL, 10); return NUMBER; }
+${H}+                       { yylval.num = strtol(yytext + 1, NULL, 16); return NUMBER; }
+{D}+                        { yylval.num = strtol(yytext, NULL, 10); return NUMBER; }
 L?\"(\\.|[^\\"])*\"         { yylval.sval = strdup(yytext); return STRING_LITERAL; }
+";".*                       { /* ignore comments */ };
 
 "+" |
 "." |
