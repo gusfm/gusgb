@@ -6,7 +6,7 @@ find_package(Threads REQUIRED)
 
 SET (WARNINGS "-Werror -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wuninitialized -Wconversion -Wstrict-prototypes")
 
-set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=c11 -g")
+set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -g")
 #set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DDEBUG -Wall -std=c11 -g ${WARNINGS}")
 #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O2")
 #set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=c11 -g")
@@ -54,4 +54,3 @@ add_executable(gbas
     src/as/opcodes.c
     )
 target_link_libraries(gbas fl)
-set_target_properties(gbas PROPERTIES COMPILE_FLAGS "-D_POSIX_SOURCE")

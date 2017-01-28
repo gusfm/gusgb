@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "interrupt.h"
 
-timer_t TIMER;
+gb_timer_t TIMER;
 
 #define TIMER_ENABLE (1 << 2)
 #define TIMER_SPEED (0x3)

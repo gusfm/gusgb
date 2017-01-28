@@ -268,7 +268,7 @@ const instruction_t instr[256] = {
 };
 
 typedef struct {
-    const char *asm;
+    const char *asm1;
 } ext_instruction_t;
 
 const ext_instruction_t cb_instr[256] = {
@@ -567,13 +567,13 @@ static void objdump_finish(objdump_t *obj)
 
 static void objdump_data(objdump_t *obj, uint8_t data)
 {
-    fprintf(obj->output, "data $%02x\n", data);
+    fprintf(obj->output, ".data $%02x\n", data);
 }
 
 static void objdump_cb(objdump_t *obj, size_t pc)
 {
     uint8_t opcode = obj->rom[pc++];
-    fprintf(obj->output, "%s\n", cb_instr[opcode].asm);
+    fprintf(obj->output, "%s\n", cb_instr[opcode].asm1);
 }
 
 static void objdump_instruction(objdump_t *obj, size_t pc)

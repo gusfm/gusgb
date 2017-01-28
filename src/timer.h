@@ -7,15 +7,15 @@ typedef struct {
     uint32_t main; /* Internal timer clock. 1/4 of cpu main clock. */
     uint32_t sub;  /* Variable to help internal clock count. */
     uint32_t div;  /* Variable to help div timer count. */
-} clock_t;
+} gb_clock_t;
 
 typedef struct {
     uint8_t div;
     uint8_t tima;
     uint8_t tma;
     uint8_t tac;
-    clock_t clock;
-} timer_t;
+    gb_clock_t clock;
+} gb_timer_t;
 
 void timer_init(void);
 void timer_step(uint32_t clock_step);

@@ -7,7 +7,7 @@
 extern cpu_t g_cpu;
 
 typedef struct {
-    const char *asm;
+    const char *asm1;
     void (*execute)(void);
 } ext_instruction_t;
 
@@ -296,7 +296,7 @@ const uint8_t ext_instr_ticks[256] = {
 
 void print_ext_ops(char *str, uint8_t opcode)
 {
-    sprintf(str, "0xcb%02x: %s", opcode, g_ext_instr[opcode].asm);
+    sprintf(str, "0xcb%02x: %s", opcode, g_ext_instr[opcode].asm1);
 }
 
 /* 0xcb: Extended operations. */

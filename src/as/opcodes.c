@@ -1,8 +1,11 @@
 #include "opcodes.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 extern unsigned int linenum;
+extern FILE *output;
+unsigned int pc = 0;
 
 const char *regs[REG_LEN] = {"a", "f", "b",  "c",  "d",  "e",
                              "h", "l", "af", "bc", "de", "hl"};
@@ -19,722 +22,747 @@ void error_bit(unsigned int bit)
     exit(EXIT_FAILURE);
 }
 
-static inline void op_write1(FILE *f, uint8_t opcode)
+static inline void op_write1(uint8_t opcode)
 {
-    fwrite(&opcode, 1, 1, f);
+    fwrite(&opcode, 1, 1, output);
+    pc += 1;
 }
 
-static inline void op_write2(FILE *f, uint8_t opcode, uint8_t val)
+static inline void op_write2(uint8_t opcode, uint8_t val)
 {
     uint8_t buf[2];
     buf[0] = opcode;
     buf[1] = val;
-    fwrite(buf, 2, 1, f);
+    fwrite(buf, 2, 1, output);
+    pc += 2;
 }
 
-static inline void op_write3(FILE *f, uint8_t opcode, uint16_t val)
+static inline void op_write3(uint8_t opcode, uint16_t val)
 {
     uint8_t buf[3];
     buf[0] = opcode;
     buf[1] = (uint8_t)(val & 0x00ff);
     buf[2] = (uint8_t)((val & 0xff00) >> 8);
-    fwrite(buf, 3, 1, f);
+    fwrite(buf, 3, 1, output);
+    pc += 3;
 }
 
-static inline void op_write_cb(FILE *f, uint8_t opcode)
+static inline void op_write_cb(uint8_t opcode)
 {
     uint8_t buf[2];
     buf[0] = 0xcb;
     buf[1] = opcode;
-    fwrite(buf, 2, 1, f);
+    fwrite(buf, 2, 1, output);
+    pc += 2;
 }
 
-void data(FILE *f, uint8_t val)
+void ascii(char *str)
 {
-    op_write1(f, val);
+    size_t size = strlen(str) - 1;
+    for (int i = 1; i < size; ++i) {
+        op_write1(str[i]);
+    }
 }
 
-void nop(FILE *f)
+void data(uint8_t val)
 {
-    op_write1(f, 0x00);
+    op_write1(val);
 }
 
-void ld_bc_nn(FILE *f, uint16_t val)
+void jump(long offset)
 {
-    op_write3(f, 0x01, val);
+    pc = offset;
+    fseek(output, offset, SEEK_SET);
 }
 
-void ld_bcp_a(FILE *f)
+void memsetf(uint8_t c, size_t n)
 {
-    op_write1(f, 0x02);
+    for (size_t i = 0; i < n; ++i) {
+        op_write1(c);
+    }
 }
 
-void inc_bc(FILE *f)
+void nop(void)
 {
-    op_write1(f, 0x03);
+    op_write1(0x00);
 }
 
-void inc_b(FILE *f)
+void ld_bc_nn(uint16_t val)
 {
-    op_write1(f, 0x04);
+    op_write3(0x01, val);
 }
 
-void dec_b(FILE *f)
+void ld_bcp_a(void)
 {
-    op_write1(f, 0x05);
+    op_write1(0x02);
 }
 
-void ld_b_n(FILE *f, uint8_t val)
+void inc_bc(void)
 {
-    op_write2(f, 0x06, val);
+    op_write1(0x03);
 }
 
-void rlca(FILE *f)
+void inc_b(void)
 {
-    op_write1(f, 0x07);
+    op_write1(0x04);
 }
 
-void ld_nnp_sp(FILE *f, uint16_t val)
+void dec_b(void)
 {
-    op_write3(f, 0x08, val);
+    op_write1(0x05);
 }
 
-void add_hl_bc(FILE *f)
+void ld_b_n(uint8_t val)
 {
-    op_write1(f, 0x09);
+    op_write2(0x06, val);
 }
 
-void ld_a_bcp(FILE *f)
+void rlca(void)
 {
-    op_write1(f, 0x0a);
+    op_write1(0x07);
 }
 
-void dec_bc(FILE *f)
+void ld_nnp_sp(uint16_t val)
 {
-    op_write1(f, 0x0b);
+    op_write3(0x08, val);
 }
 
-void inc_c(FILE *f)
+void add_hl_bc(void)
 {
-    op_write1(f, 0x0c);
+    op_write1(0x09);
 }
 
-void dec_c(FILE *f)
+void ld_a_bcp(void)
 {
-    op_write1(f, 0x0d);
+    op_write1(0x0a);
 }
 
-void ld_c_n(FILE *f, uint8_t val)
+void dec_bc(void)
 {
-    op_write2(f, 0x0e, val);
+    op_write1(0x0b);
 }
 
-void rrca(FILE *f)
+void inc_c(void)
 {
-    op_write1(f, 0x0f);
+    op_write1(0x0c);
 }
 
-void stop(FILE *f)
+void dec_c(void)
 {
-    op_write1(f, 0x10);
+    op_write1(0x0d);
 }
 
-void ld_de_nn(FILE *f, uint16_t val)
+void ld_c_n(uint8_t val)
 {
-    op_write3(f, 0x11, val);
+    op_write2(0x0e, val);
 }
 
-void ld_dep_a(FILE *f)
+void rrca(void)
 {
-    op_write1(f, 0x12);
+    op_write1(0x0f);
 }
 
-void inc_de(FILE *f)
+void stop(void)
 {
-    op_write1(f, 0x13);
+    op_write1(0x10);
 }
 
-void inc_d(FILE *f)
+void ld_de_nn(uint16_t val)
 {
-    op_write1(f, 0x14);
+    op_write3(0x11, val);
 }
 
-void dec_d(FILE *f)
+void ld_dep_a(void)
 {
-    op_write1(f, 0x15);
+    op_write1(0x12);
 }
 
-void ld_d_n(FILE *f, uint8_t val)
+void inc_de(void)
 {
-    op_write2(f, 0x16, val);
+    op_write1(0x13);
 }
 
-void rla(FILE *f)
+void inc_d(void)
 {
-    op_write1(f, 0x17);
+    op_write1(0x14);
 }
 
-void jr_n(FILE *f, uint8_t val)
+void dec_d(void)
 {
-    op_write2(f, 0x18, val);
+    op_write1(0x15);
 }
 
-void add_hl_de(FILE *f)
+void ld_d_n(uint8_t val)
 {
-    op_write1(f, 0x19);
+    op_write2(0x16, val);
 }
 
-void ld_a_dep(FILE *f)
+void rla(void)
 {
-    op_write1(f, 0x1a);
+    op_write1(0x17);
 }
 
-void dec_de(FILE *f)
+void jr_n(uint8_t val)
 {
-    op_write1(f, 0x1b);
+    op_write2(0x18, val);
 }
 
-void inc_e(FILE *f)
+void add_hl_de(void)
 {
-    op_write1(f, 0x1c);
+    op_write1(0x19);
 }
 
-void dec_e(FILE *f)
+void ld_a_dep(void)
 {
-    op_write1(f, 0x1d);
+    op_write1(0x1a);
 }
 
-void ld_e_n(FILE *f, uint8_t val)
+void dec_de(void)
 {
-    op_write2(f, 0x1e, val);
+    op_write1(0x1b);
 }
 
-void rra(FILE *f)
+void inc_e(void)
 {
-    op_write1(f, 0x1f);
+    op_write1(0x1c);
 }
 
-void jr_nz_n(FILE *f, uint8_t val)
+void dec_e(void)
 {
-    op_write2(f, 0x20, val);
+    op_write1(0x1d);
 }
 
-void ld_hl_nn(FILE *f, uint16_t val)
+void ld_e_n(uint8_t val)
 {
-    op_write3(f, 0x21, val);
+    op_write2(0x1e, val);
 }
 
-void ldi_hlp_a(FILE *f)
+void rra(void)
 {
-    op_write1(f, 0x22);
+    op_write1(0x1f);
 }
 
-void inc_hl(FILE *f)
+void jr_nz_n(uint8_t val)
 {
-    op_write1(f, 0x23);
+    op_write2(0x20, val);
 }
 
-void inc_h(FILE *f)
+void ld_hl_nn(uint16_t val)
 {
-    op_write1(f, 0x24);
+    op_write3(0x21, val);
 }
 
-void dec_h(FILE *f)
+void ldi_hlp_a(void)
 {
-    op_write1(f, 0x25);
+    op_write1(0x22);
 }
 
-void ld_h_n(FILE *f, uint8_t val)
+void inc_hl(void)
 {
-    op_write2(f, 0x26, val);
+    op_write1(0x23);
 }
 
-void daa(FILE *f)
+void inc_h(void)
 {
-    op_write1(f, 0x27);
+    op_write1(0x24);
 }
 
-void jr_z_n(FILE *f, uint8_t val)
+void dec_h(void)
 {
-    op_write2(f, 0x28, val);
+    op_write1(0x25);
 }
 
-void add_hl_hl(FILE *f)
+void ld_h_n(uint8_t val)
 {
-    op_write1(f, 0x29);
+    op_write2(0x26, val);
 }
 
-void ldi_a_hlp(FILE *f)
+void daa(void)
 {
-    op_write1(f, 0x2a);
+    op_write1(0x27);
 }
 
-void dec_hl(FILE *f)
+void jr_z_n(uint8_t val)
 {
-    op_write1(f, 0x2b);
+    op_write2(0x28, val);
 }
 
-void inc_l(FILE *f)
+void add_hl_hl(void)
 {
-    op_write1(f, 0x2c);
+    op_write1(0x29);
 }
 
-void dec_l(FILE *f)
+void ldi_a_hlp(void)
 {
-    op_write1(f, 0x2d);
+    op_write1(0x2a);
 }
 
-void ld_l_n(FILE *f, uint8_t val)
+void dec_hl(void)
 {
-    op_write2(f, 0x2e, val);
+    op_write1(0x2b);
 }
 
-void cpl(FILE *f)
+void inc_l(void)
 {
-    op_write1(f, 0x2f);
+    op_write1(0x2c);
 }
 
-void jr_nc_n(FILE *f, uint8_t val)
+void dec_l(void)
 {
-    op_write2(f, 0x30, val);
+    op_write1(0x2d);
 }
 
-void ld_sp_nn(FILE *f, uint16_t val)
+void ld_l_n(uint8_t val)
 {
-    op_write3(f, 0x31, val);
+    op_write2(0x2e, val);
 }
 
-void ldd_hlp_a(FILE *f)
+void cpl(void)
 {
-    op_write1(f, 0x32);
+    op_write1(0x2f);
 }
 
-void inc_sp(FILE *f)
+void jr_nc_n(uint8_t val)
 {
-    op_write1(f, 0x33);
+    op_write2(0x30, val);
 }
 
-void inc_hlp(FILE *f)
+void ld_sp_nn(uint16_t val)
 {
-    op_write1(f, 0x34);
+    op_write3(0x31, val);
 }
 
-void dec_hlp(FILE *f)
+void ldd_hlp_a(void)
 {
-    op_write1(f, 0x35);
+    op_write1(0x32);
 }
 
-void ld_hlp_n(FILE *f, uint8_t val)
+void inc_sp(void)
 {
-    op_write2(f, 0x36, val);
+    op_write1(0x33);
 }
 
-void scf(FILE *f)
+void inc_hlp(void)
 {
-    op_write1(f, 0x37);
+    op_write1(0x34);
 }
 
-void jr_c_n(FILE *f, uint8_t val)
+void dec_hlp(void)
 {
-    op_write2(f, 0x38, val);
+    op_write1(0x35);
 }
 
-void add_hl_sp(FILE *f)
+void ld_hlp_n(uint8_t val)
 {
-    op_write1(f, 0x39);
+    op_write2(0x36, val);
 }
 
-void ldd_a_hlp(FILE *f)
+void scf(void)
 {
-    op_write1(f, 0x3a);
+    op_write1(0x37);
 }
 
-void dec_sp(FILE *f)
+void jr_c_n(uint8_t val)
 {
-    op_write1(f, 0x3b);
+    op_write2(0x38, val);
 }
 
-void inc_a(FILE *f)
+void add_hl_sp(void)
 {
-    op_write1(f, 0x3c);
+    op_write1(0x39);
 }
 
-void dec_a(FILE *f)
+void ldd_a_hlp(void)
 {
-    op_write1(f, 0x3d);
+    op_write1(0x3a);
 }
 
-void ld_a_n(FILE *f, uint8_t val)
+void dec_sp(void)
 {
-    op_write2(f, 0x3e, val);
+    op_write1(0x3b);
 }
 
-void ccf(FILE *f)
+void inc_a(void)
 {
-    op_write1(f, 0x3f);
+    op_write1(0x3c);
 }
 
-void ld_b_b(FILE *f)
+void dec_a(void)
 {
-    op_write1(f, 0x40);
+    op_write1(0x3d);
 }
 
-void ld_b_c(FILE *f)
+void ld_a_n(uint8_t val)
 {
-    op_write1(f, 0x41);
+    op_write2(0x3e, val);
 }
 
-void ld_b_d(FILE *f)
+void ccf(void)
 {
-    op_write1(f, 0x42);
+    op_write1(0x3f);
 }
 
-void ld_b_e(FILE *f)
+void ld_b_b(void)
 {
-    op_write1(f, 0x43);
+    op_write1(0x40);
 }
 
-void ld_b_h(FILE *f)
+void ld_b_c(void)
 {
-    op_write1(f, 0x44);
+    op_write1(0x41);
 }
 
-void ld_b_l(FILE *f)
+void ld_b_d(void)
 {
-    op_write1(f, 0x45);
+    op_write1(0x42);
 }
 
-void ld_b_hlp(FILE *f)
+void ld_b_e(void)
 {
-    op_write1(f, 0x46);
+    op_write1(0x43);
 }
 
-void ld_b_a(FILE *f)
+void ld_b_h(void)
 {
-    op_write1(f, 0x47);
+    op_write1(0x44);
 }
 
-void ld_c_b(FILE *f)
+void ld_b_l(void)
 {
-    op_write1(f, 0x48);
+    op_write1(0x45);
 }
 
-void ld_c_c(FILE *f)
+void ld_b_hlp(void)
 {
-    op_write1(f, 0x49);
+    op_write1(0x46);
 }
 
-void ld_c_d(FILE *f)
+void ld_b_a(void)
 {
-    op_write1(f, 0x4a);
+    op_write1(0x47);
 }
 
-void ld_c_e(FILE *f)
+void ld_c_b(void)
 {
-    op_write1(f, 0x4b);
+    op_write1(0x48);
 }
 
-void ld_c_h(FILE *f)
+void ld_c_c(void)
 {
-    op_write1(f, 0x4c);
+    op_write1(0x49);
 }
 
-void ld_c_l(FILE *f)
+void ld_c_d(void)
 {
-    op_write1(f, 0x4d);
+    op_write1(0x4a);
 }
 
-void ld_c_hlp(FILE *f)
+void ld_c_e(void)
 {
-    op_write1(f, 0x4e);
+    op_write1(0x4b);
 }
 
-void ld_c_a(FILE *f)
+void ld_c_h(void)
 {
-    op_write1(f, 0x4f);
+    op_write1(0x4c);
 }
 
-void ld_d_b(FILE *f)
+void ld_c_l(void)
 {
-    op_write1(f, 0x50);
+    op_write1(0x4d);
 }
 
-void ld_d_c(FILE *f)
+void ld_c_hlp(void)
 {
-    op_write1(f, 0x51);
+    op_write1(0x4e);
 }
 
-void ld_d_d(FILE *f)
+void ld_c_a(void)
 {
-    op_write1(f, 0x52);
+    op_write1(0x4f);
 }
 
-void ld_d_e(FILE *f)
+void ld_d_b(void)
 {
-    op_write1(f, 0x53);
+    op_write1(0x50);
 }
 
-void ld_d_h(FILE *f)
+void ld_d_c(void)
 {
-    op_write1(f, 0x54);
+    op_write1(0x51);
 }
 
-void ld_d_l(FILE *f)
+void ld_d_d(void)
 {
-    op_write1(f, 0x55);
+    op_write1(0x52);
 }
 
-void ld_d_hlp(FILE *f)
+void ld_d_e(void)
 {
-    op_write1(f, 0x56);
+    op_write1(0x53);
 }
 
-void ld_d_a(FILE *f)
+void ld_d_h(void)
 {
-    op_write1(f, 0x57);
+    op_write1(0x54);
 }
 
-void ld_e_b(FILE *f)
+void ld_d_l(void)
 {
-    op_write1(f, 0x58);
+    op_write1(0x55);
 }
 
-void ld_e_c(FILE *f)
+void ld_d_hlp(void)
 {
-    op_write1(f, 0x59);
+    op_write1(0x56);
 }
 
-void ld_e_d(FILE *f)
+void ld_d_a(void)
 {
-    op_write1(f, 0x5a);
+    op_write1(0x57);
 }
 
-void ld_e_e(FILE *f)
+void ld_e_b(void)
 {
-    op_write1(f, 0x5b);
+    op_write1(0x58);
 }
 
-void ld_e_h(FILE *f)
+void ld_e_c(void)
 {
-    op_write1(f, 0x5c);
+    op_write1(0x59);
 }
 
-void ld_e_l(FILE *f)
+void ld_e_d(void)
 {
-    op_write1(f, 0x5d);
+    op_write1(0x5a);
 }
 
-void ld_e_hlp(FILE *f)
+void ld_e_e(void)
 {
-    op_write1(f, 0x5e);
+    op_write1(0x5b);
 }
 
-void ld_e_a(FILE *f)
+void ld_e_h(void)
 {
-    op_write1(f, 0x5f);
+    op_write1(0x5c);
 }
 
-void ld_h_b(FILE *f)
+void ld_e_l(void)
 {
-    op_write1(f, 0x60);
+    op_write1(0x5d);
 }
 
-void ld_h_c(FILE *f)
+void ld_e_hlp(void)
 {
-    op_write1(f, 0x61);
+    op_write1(0x5e);
 }
 
-void ld_h_d(FILE *f)
+void ld_e_a(void)
 {
-    op_write1(f, 0x62);
+    op_write1(0x5f);
 }
 
-void ld_h_e(FILE *f)
+void ld_h_b(void)
 {
-    op_write1(f, 0x63);
+    op_write1(0x60);
 }
 
-void ld_h_h(FILE *f)
+void ld_h_c(void)
 {
-    op_write1(f, 0x64);
+    op_write1(0x61);
 }
 
-void ld_h_l(FILE *f)
+void ld_h_d(void)
 {
-    op_write1(f, 0x65);
+    op_write1(0x62);
 }
 
-void ld_h_hlp(FILE *f)
+void ld_h_e(void)
 {
-    op_write1(f, 0x66);
+    op_write1(0x63);
 }
 
-void ld_h_a(FILE *f)
+void ld_h_h(void)
 {
-    op_write1(f, 0x67);
+    op_write1(0x64);
 }
 
-void ld_l_b(FILE *f)
+void ld_h_l(void)
 {
-    op_write1(f, 0x68);
+    op_write1(0x65);
 }
 
-void ld_l_c(FILE *f)
+void ld_h_hlp(void)
 {
-    op_write1(f, 0x69);
+    op_write1(0x66);
 }
 
-void ld_l_d(FILE *f)
+void ld_h_a(void)
 {
-    op_write1(f, 0x6a);
+    op_write1(0x67);
 }
 
-void ld_l_e(FILE *f)
+void ld_l_b(void)
 {
-    op_write1(f, 0x6b);
+    op_write1(0x68);
 }
 
-void ld_l_h(FILE *f)
+void ld_l_c(void)
 {
-    op_write1(f, 0x6c);
+    op_write1(0x69);
 }
 
-void ld_l_l(FILE *f)
+void ld_l_d(void)
 {
-    op_write1(f, 0x6d);
+    op_write1(0x6a);
 }
 
-void ld_l_hlp(FILE *f)
+void ld_l_e(void)
 {
-    op_write1(f, 0x6e);
+    op_write1(0x6b);
 }
 
-void ld_l_a(FILE *f)
+void ld_l_h(void)
 {
-    op_write1(f, 0x6f);
+    op_write1(0x6c);
 }
 
-void ld_hlp_b(FILE *f)
+void ld_l_l(void)
 {
-    op_write1(f, 0x70);
+    op_write1(0x6d);
 }
 
-void ld_hlp_c(FILE *f)
+void ld_l_hlp(void)
 {
-    op_write1(f, 0x71);
+    op_write1(0x6e);
 }
 
-void ld_hlp_d(FILE *f)
+void ld_l_a(void)
 {
-    op_write1(f, 0x72);
+    op_write1(0x6f);
 }
 
-void ld_hlp_e(FILE *f)
+void ld_hlp_b(void)
 {
-    op_write1(f, 0x73);
+    op_write1(0x70);
 }
 
-void ld_hlp_h(FILE *f)
+void ld_hlp_c(void)
 {
-    op_write1(f, 0x74);
+    op_write1(0x71);
 }
 
-void ld_hlp_l(FILE *f)
+void ld_hlp_d(void)
 {
-    op_write1(f, 0x75);
+    op_write1(0x72);
 }
 
-void halt(FILE *f)
+void ld_hlp_e(void)
 {
-    op_write1(f, 0x76);
+    op_write1(0x73);
 }
 
-void ld_hlp_a(FILE *f)
+void ld_hlp_h(void)
 {
-    op_write1(f, 0x77);
+    op_write1(0x74);
 }
 
-void ld_a_b(FILE *f)
+void ld_hlp_l(void)
 {
-    op_write1(f, 0x78);
+    op_write1(0x75);
 }
 
-void ld_a_c(FILE *f)
+void halt(void)
 {
-    op_write1(f, 0x79);
+    op_write1(0x76);
 }
 
-void ld_a_d(FILE *f)
+void ld_hlp_a(void)
 {
-    op_write1(f, 0x7a);
+    op_write1(0x77);
 }
 
-void ld_a_e(FILE *f)
+void ld_a_b(void)
 {
-    op_write1(f, 0x7b);
+    op_write1(0x78);
 }
 
-void ld_a_h(FILE *f)
+void ld_a_c(void)
 {
-    op_write1(f, 0x7c);
+    op_write1(0x79);
 }
 
-void ld_a_l(FILE *f)
+void ld_a_d(void)
 {
-    op_write1(f, 0x7d);
+    op_write1(0x7a);
 }
 
-void ld_a_hlp(FILE *f)
+void ld_a_e(void)
 {
-    op_write1(f, 0x7e);
+    op_write1(0x7b);
 }
 
-void ld_a_a(FILE *f)
+void ld_a_h(void)
 {
-    op_write1(f, 0x7f);
+    op_write1(0x7c);
 }
 
-void add_a_b(FILE *f)
+void ld_a_l(void)
 {
-    op_write1(f, 0x80);
+    op_write1(0x7d);
 }
 
-void add_a_c(FILE *f)
+void ld_a_hlp(void)
 {
-    op_write1(f, 0x81);
+    op_write1(0x7e);
 }
 
-void add_a_d(FILE *f)
+void ld_a_a(void)
 {
-    op_write1(f, 0x82);
+    op_write1(0x7f);
 }
 
-void add_a_e(FILE *f)
+void add_a_b(void)
 {
-    op_write1(f, 0x83);
+    op_write1(0x80);
 }
 
-void add_a_h(FILE *f)
+void add_a_c(void)
 {
-    op_write1(f, 0x84);
+    op_write1(0x81);
 }
 
-void add_a_l(FILE *f)
+void add_a_d(void)
 {
-    op_write1(f, 0x85);
+    op_write1(0x82);
 }
 
-void add_a_hlp(FILE *f)
+void add_a_e(void)
 {
-    op_write1(f, 0x86);
+    op_write1(0x83);
 }
 
-void add_a_a(FILE *f)
+void add_a_h(void)
 {
-    op_write1(f, 0x87);
+    op_write1(0x84);
 }
 
-void adc(FILE *f, register_e reg)
+void add_a_l(void)
+{
+    op_write1(0x85);
+}
+
+void add_a_hlp(void)
+{
+    op_write1(0x86);
+}
+
+void add_a_a(void)
+{
+    op_write1(0x87);
+}
+
+void adc(register_e reg)
 {
     unsigned int opcode = 0x88;
     switch (reg) {
@@ -765,10 +793,10 @@ void adc(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write1(f, (uint8_t)opcode);
+    op_write1((uint8_t)opcode);
 }
 
-void sub(FILE *f, register_e reg)
+void sub(register_e reg)
 {
     unsigned int opcode = 0x90;
     switch (reg) {
@@ -799,10 +827,10 @@ void sub(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write1(f, (uint8_t)opcode);
+    op_write1((uint8_t)opcode);
 }
 
-void sbc(FILE *f, register_e reg)
+void sbc(register_e reg)
 {
     unsigned int opcode = 0x98;
     switch (reg) {
@@ -833,10 +861,10 @@ void sbc(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write1(f, (uint8_t)opcode);
+    op_write1((uint8_t)opcode);
 }
 
-void andf(FILE *f, register_e reg)
+void andf(register_e reg)
 {
     unsigned int opcode = 0xa0;
     switch (reg) {
@@ -867,10 +895,10 @@ void andf(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write1(f, (uint8_t)opcode);
+    op_write1((uint8_t)opcode);
 }
 
-void xorf(FILE *f, register_e reg)
+void xorf(register_e reg)
 {
     unsigned int opcode = 0xa8;
     switch (reg) {
@@ -901,10 +929,10 @@ void xorf(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write1(f, (uint8_t)opcode);
+    op_write1((uint8_t)opcode);
 }
 
-void orf(FILE *f, register_e reg)
+void orf(register_e reg)
 {
     unsigned int opcode = 0xb0;
     switch (reg) {
@@ -935,10 +963,10 @@ void orf(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write1(f, (uint8_t)opcode);
+    op_write1((uint8_t)opcode);
 }
 
-void cp(FILE *f, register_e reg)
+void cp(register_e reg)
 {
     unsigned int opcode = 0xb8;
     switch (reg) {
@@ -969,261 +997,261 @@ void cp(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write1(f, (uint8_t)opcode);
+    op_write1((uint8_t)opcode);
 }
 
-void ret_nz(FILE *f)
+void ret_nz(void)
 {
-    op_write1(f, 0xc0);
+    op_write1(0xc0);
 }
 
-void pop_bc(FILE *f)
+void pop_bc(void)
 {
-    op_write1(f, 0xc1);
+    op_write1(0xc1);
 }
 
-void jp_nz_nn(FILE *f, uint16_t val)
+void jp_nz_nn(uint16_t val)
 {
-    op_write3(f, 0xc2, val);
+    op_write3(0xc2, val);
 }
 
-void jp_nn(FILE *f, uint16_t val)
+void jp_nn(uint16_t val)
 {
-    op_write3(f, 0xc3, val);
+    op_write3(0xc3, val);
 }
 
-void call_nz_nn(FILE *f, uint16_t val)
+void call_nz_nn(uint16_t val)
 {
-    op_write3(f, 0xc4, val);
+    op_write3(0xc4, val);
 }
 
-void push_bc(FILE *f)
+void push_bc(void)
 {
-    op_write1(f, 0xc5);
+    op_write1(0xc5);
 }
 
-void add_a_n(FILE *f, uint8_t val)
+void add_a_n(uint8_t val)
 {
-    op_write2(f, 0xc6, val);
+    op_write2(0xc6, val);
 }
 
-void rst(FILE *f, uint8_t val)
+void rst(uint8_t val)
 {
     if (val == 0x00) {
-        op_write1(f, 0xc7);
+        op_write1(0xc7);
     } else if (val == 0x08) {
-        op_write1(f, 0xcf);
+        op_write1(0xcf);
     } else if (val == 0x10) {
-        op_write1(f, 0xd7);
+        op_write1(0xd7);
     } else if (val == 0x18) {
-        op_write1(f, 0xdf);
+        op_write1(0xdf);
     } else if (val == 0x20) {
-        op_write1(f, 0xe7);
+        op_write1(0xe7);
     } else if (val == 0x28) {
-        op_write1(f, 0xef);
+        op_write1(0xef);
     } else if (val == 0x30) {
-        op_write1(f, 0xf7);
+        op_write1(0xf7);
     } else if (val == 0x38) {
-        op_write1(f, 0xff);
+        op_write1(0xff);
     } else {
         fprintf(stderr, "rst: invalid value: %hhu\n", val);
         exit(EXIT_FAILURE);
     }
 }
 
-void ret_z(FILE *f)
+void ret_z(void)
 {
-    op_write1(f, 0xc8);
+    op_write1(0xc8);
 }
 
-void ret(FILE *f)
+void ret(void)
 {
-    op_write1(f, 0xc9);
+    op_write1(0xc9);
 }
 
-void jp_z_nn(FILE *f, uint16_t val)
+void jp_z_nn(uint16_t val)
 {
-    op_write3(f, 0xca, val);
+    op_write3(0xca, val);
 }
 
-void cb_n(FILE *f, uint8_t val)
+void cb_n(uint8_t val)
 {
-    op_write2(f, 0xcb, val);
+    op_write2(0xcb, val);
 }
 
-void call_z_nn(FILE *f, uint16_t val)
+void call_z_nn(uint16_t val)
 {
-    op_write3(f, 0xcc, val);
+    op_write3(0xcc, val);
 }
 
-void call_nn(FILE *f, uint16_t val)
+void call_nn(uint16_t val)
 {
-    op_write3(f, 0xcd, val);
+    op_write3(0xcd, val);
 }
 
-void adc_n(FILE *f, uint8_t val)
+void adc_n(uint8_t val)
 {
-    op_write2(f, 0xce, val);
+    op_write2(0xce, val);
 }
 
-void ret_nc(FILE *f)
+void ret_nc(void)
 {
-    op_write1(f, 0xd0);
+    op_write1(0xd0);
 }
 
-void pop_de(FILE *f)
+void pop_de(void)
 {
-    op_write1(f, 0xd1);
+    op_write1(0xd1);
 }
 
-void jp_nc_nn(FILE *f, uint16_t val)
+void jp_nc_nn(uint16_t val)
 {
-    op_write3(f, 0xd2, val);
+    op_write3(0xd2, val);
 }
 
-void call_nc_nn(FILE *f, uint16_t val)
+void call_nc_nn(uint16_t val)
 {
-    op_write3(f, 0xd4, val);
+    op_write3(0xd4, val);
 }
 
-void push_de(FILE *f)
+void push_de(void)
 {
-    op_write1(f, 0xd5);
+    op_write1(0xd5);
 }
 
-void sub_n(FILE *f, uint8_t val)
+void sub_n(uint8_t val)
 {
-    op_write2(f, 0xd6, val);
+    op_write2(0xd6, val);
 }
 
-void ret_c(FILE *f)
+void ret_c(void)
 {
-    op_write1(f, 0xd8);
+    op_write1(0xd8);
 }
 
-void reti(FILE *f)
+void reti(void)
 {
-    op_write1(f, 0xd9);
+    op_write1(0xd9);
 }
 
-void jp_c_nn(FILE *f, uint16_t val)
+void jp_c_nn(uint16_t val)
 {
-    op_write3(f, 0xda, val);
+    op_write3(0xda, val);
 }
 
-void call_c_nn(FILE *f, uint16_t val)
+void call_c_nn(uint16_t val)
 {
-    op_write3(f, 0xdc, val);
+    op_write3(0xdc, val);
 }
 
-void sbc_n(FILE *f, uint8_t val)
+void sbc_n(uint8_t val)
 {
-    op_write2(f, 0xde, val);
+    op_write2(0xde, val);
 }
 
-void ldh_n_a(FILE *f, uint8_t val)
+void ldh_n_a(uint8_t val)
 {
-    op_write2(f, 0xe0, val);
+    op_write2(0xe0, val);
 }
 
-void pop_hl(FILE *f)
+void pop_hl(void)
 {
-    op_write1(f, 0xe1);
+    op_write1(0xe1);
 }
 
-void ld_cp_a(FILE *f)
+void ld_cp_a(void)
 {
-    op_write1(f, 0xe2);
+    op_write1(0xe2);
 }
 
-void push_hl(FILE *f)
+void push_hl(void)
 {
-    op_write1(f, 0xe5);
+    op_write1(0xe5);
 }
 
-void and_n(FILE *f, uint8_t val)
+void and_n(uint8_t val)
 {
-    op_write2(f, 0xe6, val);
+    op_write2(0xe6, val);
 }
 
-void add_sp_n(FILE *f, uint8_t val)
+void add_sp_n(uint8_t val)
 {
-    op_write2(f, 0xe8, val);
+    op_write2(0xe8, val);
 }
 
-void jp_hl(FILE *f)
+void jp_hl(void)
 {
-    op_write1(f, 0xe9);
+    op_write1(0xe9);
 }
 
-void ld_nnp_a(FILE *f, uint16_t val)
+void ld_nnp_a(uint16_t val)
 {
-    op_write3(f, 0xea, val);
+    op_write3(0xea, val);
 }
 
-void xor_n(FILE *f, uint8_t val)
+void xor_n(uint8_t val)
 {
-    op_write2(f, 0xee, val);
+    op_write2(0xee, val);
 }
 
-void ldh_a_n(FILE *f, uint8_t val)
+void ldh_a_n(uint8_t val)
 {
-    op_write2(f, 0xf0, val);
+    op_write2(0xf0, val);
 }
 
-void pop_af(FILE *f)
+void pop_af(void)
 {
-    op_write1(f, 0xf1);
+    op_write1(0xf1);
 }
 
-void ld_a_cp(FILE *f)
+void ld_a_cp(void)
 {
-    op_write1(f, 0xf2);
+    op_write1(0xf2);
 }
 
-void di(FILE *f)
+void di(void)
 {
-    op_write1(f, 0xf3);
+    op_write1(0xf3);
 }
 
-void push_af(FILE *f)
+void push_af(void)
 {
-    op_write1(f, 0xf5);
+    op_write1(0xf5);
 }
 
-void or_n(FILE *f, uint8_t val)
+void or_n(uint8_t val)
 {
-    op_write2(f, 0xf6, val);
+    op_write2(0xf6, val);
 }
 
-void ldhl_sp_n(FILE *f, uint8_t val)
+void ldhl_sp_n(uint8_t val)
 {
-    op_write2(f, 0xf8, val);
+    op_write2(0xf8, val);
 }
 
-void ld_sp_hl(FILE *f)
+void ld_sp_hl(void)
 {
-    op_write1(f, 0xf9);
+    op_write1(0xf9);
 }
 
-void ld_a_nnp(FILE *f, uint16_t val)
+void ld_a_nnp(uint16_t val)
 {
-    op_write3(f, 0xfa, val);
+    op_write3(0xfa, val);
 }
 
-void ei(FILE *f)
+void ei(void)
 {
-    op_write1(f, 0xfb);
+    op_write1(0xfb);
 }
 
-void cp_n(FILE *f, uint8_t val)
+void cp_n(uint8_t val)
 {
-    op_write2(f, 0xfe, val);
+    op_write2(0xfe, val);
 }
 
 /* CB */
 
-void rlc(FILE *f, register_e reg)
+void rlc(register_e reg)
 {
     unsigned int opcode = 0x00;
     switch (reg) {
@@ -1254,10 +1282,10 @@ void rlc(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, opcode);
+    op_write_cb(opcode);
 }
 
-void rrc(FILE *f, register_e reg)
+void rrc(register_e reg)
 {
     unsigned int opcode = 0x08;
     switch (reg) {
@@ -1288,10 +1316,10 @@ void rrc(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, opcode);
+    op_write_cb(opcode);
 }
 
-void rl(FILE *f, register_e reg)
+void rl(register_e reg)
 {
     unsigned int opcode = 0x10;
     switch (reg) {
@@ -1322,10 +1350,10 @@ void rl(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, opcode);
+    op_write_cb(opcode);
 }
 
-void rr(FILE *f, register_e reg)
+void rr(register_e reg)
 {
     unsigned int opcode = 0x18;
     switch (reg) {
@@ -1356,10 +1384,10 @@ void rr(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, opcode);
+    op_write_cb(opcode);
 }
 
-void sla(FILE *f, register_e reg)
+void sla(register_e reg)
 {
     unsigned int opcode = 0x20;
     switch (reg) {
@@ -1390,10 +1418,10 @@ void sla(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, opcode);
+    op_write_cb(opcode);
 }
 
-void sra(FILE *f, register_e reg)
+void sra(register_e reg)
 {
     unsigned int opcode = 0x28;
     switch (reg) {
@@ -1424,10 +1452,10 @@ void sra(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, opcode);
+    op_write_cb(opcode);
 }
 
-void swap(FILE *f, register_e reg)
+void swap(register_e reg)
 {
     unsigned int opcode = 0x30;
     switch (reg) {
@@ -1458,10 +1486,10 @@ void swap(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, opcode);
+    op_write_cb(opcode);
 }
 
-void srl(FILE *f, register_e reg)
+void srl(register_e reg)
 {
     unsigned int opcode = 0x38;
     switch (reg) {
@@ -1492,10 +1520,10 @@ void srl(FILE *f, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, opcode);
+    op_write_cb(opcode);
 }
 
-void bit(FILE *f, unsigned int b, register_e reg)
+void bit(unsigned int b, register_e reg)
 {
     if (b > 7) {
         error_bit(b);
@@ -1529,10 +1557,10 @@ void bit(FILE *f, unsigned int b, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, (uint8_t)opcode);
+    op_write_cb((uint8_t)opcode);
 }
 
-void res(FILE *f, unsigned int b, register_e reg)
+void res(unsigned int b, register_e reg)
 {
     if (b > 7) {
         error_bit(b);
@@ -1566,10 +1594,10 @@ void res(FILE *f, unsigned int b, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, (uint8_t)opcode);
+    op_write_cb((uint8_t)opcode);
 }
 
-void set(FILE *f, unsigned int b, register_e reg)
+void set(unsigned int b, register_e reg)
 {
     if (b > 7) {
         error_bit(b);
@@ -1603,5 +1631,5 @@ void set(FILE *f, unsigned int b, register_e reg)
         default:
             error_register(reg);
     }
-    op_write_cb(f, (uint8_t)opcode);
+    op_write_cb((uint8_t)opcode);
 }
