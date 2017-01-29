@@ -206,7 +206,6 @@ jr_cmd:
 
 ld_cmd:
           '(' BC ')' ',' A       { ld_bcp_a(); }
-        | '(' C')' ',' A         { ld_cp_a(); }
         | '(' DE ')' ',' A       { ld_dep_a(); }
         | '(' HL ')' ',' A       { ld_hlp_a(); }
         | '(' HL ')' ',' B       { ld_hlp_b(); }
@@ -218,11 +217,14 @@ ld_cmd:
         | '(' HL ')' ',' NUMBER  { ld_hlp_n($5); }
         | '(' NUMBER ')' ',' A   { ld_nnp_a($2); }
         | '(' NUMBER ')' ',' SP  { ld_nnp_sp($2); }
+        | '(' NUMBER '+' C')' ',' A { ld_cp_a($2); }
+        | '(' NUMBER '+' NUMBER ')' ',' A { ldh_n_a($2, $4); }
         | A ',' '(' BC ')'       { ld_a_bcp(); }
-        | A ',' '(' C ')'        { ld_a_cp(); }
         | A ',' '(' DE ')'       { ld_a_dep(); }
         | A ',' '(' HL ')'       { ld_a_hlp(); }
         | A ',' '(' NUMBER ')'   { ld_a_nnp($4); }
+        | A ',' '(' NUMBER '+' C ')' { ld_a_cp($4); }
+        | A ',' '(' NUMBER '+' NUMBER ')' { ldh_a_n($4, $6); }
         | A ',' A                { ld_a_a(); }
         | A ',' B                { ld_a_b(); }
         | A ',' C                { ld_a_c(); }
@@ -296,11 +298,6 @@ ld_cmd:
 ldd_cmd:
           '(' HL ')' ',' A      { ldd_hlp_a(); }
         | A ',' '(' HL ')'      { ldd_a_hlp(); }
-        ;
-
-ldh_cmd:
-          '(' NUMBER ')' ',' A  { ldh_n_a($2); }
-        | A ',' '(' NUMBER ')'  { ldh_a_n($4); }
         ;
 
 ldi_cmd:
@@ -386,7 +383,6 @@ command:
         | JR jr_cmd
         | LD ld_cmd
         | LDD ldd_cmd
-        | LDH ldh_cmd
         | LDI ldi_cmd
         | NOP                       { nop(); }
         | OR or_cmd

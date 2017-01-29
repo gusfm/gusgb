@@ -1160,8 +1160,12 @@ void sbc_n(uint8_t val)
     op_write2(0xde, val);
 }
 
-void ldh_n_a(uint8_t val)
+void ldh_n_a(uint16_t addr, uint8_t val)
 {
+    if (addr != 0xff00) {
+        fprintf(stderr, "%u: invalid addr: 0x%04x\n", linenum, addr);
+        exit(EXIT_FAILURE);
+    }
     op_write2(0xe0, val);
 }
 
@@ -1170,8 +1174,12 @@ void pop_hl(void)
     op_write1(0xe1);
 }
 
-void ld_cp_a(void)
+void ld_cp_a(uint16_t addr)
 {
+    if (addr != 0xff00) {
+        fprintf(stderr, "%u: invalid addr: 0x%04x\n", linenum, addr);
+        exit(EXIT_FAILURE);
+    }
     op_write1(0xe2);
 }
 
@@ -1205,8 +1213,12 @@ void xor_n(uint8_t val)
     op_write2(0xee, val);
 }
 
-void ldh_a_n(uint8_t val)
+void ldh_a_n(uint16_t addr, uint8_t val)
 {
+    if (addr != 0xff00) {
+        fprintf(stderr, "%u: invalid addr: 0x%04x\n", linenum, addr);
+        exit(EXIT_FAILURE);
+    }
     op_write2(0xf0, val);
 }
 
@@ -1215,8 +1227,12 @@ void pop_af(void)
     op_write1(0xf1);
 }
 
-void ld_a_cp(void)
+void ld_a_cp(uint16_t addr)
 {
+    if (addr != 0xff00) {
+        fprintf(stderr, "%u: invalid addr: 0x%04x\n", linenum, addr);
+        exit(EXIT_FAILURE);
+    }
     op_write1(0xf2);
 }
 

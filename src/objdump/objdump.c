@@ -233,9 +233,9 @@ const instruction_t instr[256] = {
     {NULL, NULL, 1},                 // 0xdd
     {"sbc $", NULL, 2},              // 0xde
     {"rst $18", NULL, 1},            // 0xdf
-    {"ldh ($", "), a", 2},           // 0xe0
+    {"ld ($ff00 + $", "), a", 2},    // 0xe0
     {"pop hl", NULL, 1},             // 0xe1
-    {"ld (c), a", NULL, 1},          // 0xe2
+    {"ld ($ff00 + c), a", NULL, 1},  // 0xe2
     {NULL, NULL, 1},                 // 0xe3
     {NULL, NULL, 1},                 // 0xe4
     {"push hl", NULL, 1},            // 0xe5
@@ -249,9 +249,9 @@ const instruction_t instr[256] = {
     {NULL, NULL, 1},                 // 0xed
     {"xor $", NULL, 2},              // 0xee
     {"rst $28", NULL, 1},            // 0xef
-    {"ldh a, ($", ")", 2},           // 0xf0
+    {"ld a, ($ff00 + $", ")", 2},    // 0xf0
     {"pop af", NULL, 1},             // 0xf1
-    {"ld a, (c)", NULL, 1},          // 0xf2
+    {"ld a, ($ff00 + c)", NULL, 1},  // 0xf2
     {"di", NULL, 1},                 // 0xf3
     {NULL, NULL, 1},                 // 0xf4
     {"push af", NULL, 1},            // 0xf5
@@ -606,7 +606,7 @@ static void objdump_instruction(objdump_t *obj, size_t pc)
 
 static void objdump_dump(objdump_t *obj)
 {
-    obj->output = fopen("out.as", "w");
+    obj->output = fopen("out.s", "w");
     size_t pc = 0;
     while (pc < obj->rom_size) {
         while (pc >= 0x0104 && pc <= 0x014f) {
