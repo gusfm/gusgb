@@ -43,7 +43,7 @@ const instruction_t instr[256] = {
     {"rra", NULL, 1},                // 0x1f
     {"jr nz, $", NULL, 2},           // 0x20
     {"ld hl, $", NULL, 3},           // 0x21
-    {"ldi (hl), a", NULL, 1},        // 0x22
+    {"ld (hl+), a", NULL, 1},        // 0x22
     {"inc hl", NULL, 1},             // 0x23
     {"inc h", NULL, 1},              // 0x24
     {"dec h", NULL, 1},              // 0x25
@@ -51,7 +51,7 @@ const instruction_t instr[256] = {
     {"daa", NULL, 1},                // 0x27
     {"jr z, $", NULL, 2},            // 0x28
     {"add hl, hl", NULL, 1},         // 0x29
-    {"ldi a, (hl)", NULL, 1},        // 0x2a
+    {"ld a, (hl+)", NULL, 1},        // 0x2a
     {"dec hl", NULL, 1},             // 0x2b
     {"inc l", NULL, 1},              // 0x2c
     {"dec l", NULL, 1},              // 0x2d
@@ -59,7 +59,7 @@ const instruction_t instr[256] = {
     {"cpl", NULL, 1},                // 0x2f
     {"jr nc, $", NULL, 2},           // 0x30
     {"ld sp, $", NULL, 3},           // 0x31
-    {"ldd (hl), a", NULL, 1},        // 0x32
+    {"ld (hl-), a", NULL, 1},        // 0x32
     {"inc sp", NULL, 1},             // 0x33
     {"inc (hl)", NULL, 1},           // 0x34
     {"dec (hl)", NULL, 1},           // 0x35
@@ -67,7 +67,7 @@ const instruction_t instr[256] = {
     {"scf", NULL, 1},                // 0x37
     {"jr c, $", NULL, 2},            // 0x38
     {"add hl, sp", NULL, 1},         // 0x39
-    {"ldd a, (hl)", NULL, 1},        // 0x3a
+    {"ld a, (hl-)", NULL, 1},        // 0x3a
     {"dec sp", NULL, 1},             // 0x3b
     {"inc a", NULL, 1},              // 0x3c
     {"dec a", NULL, 1},              // 0x3d

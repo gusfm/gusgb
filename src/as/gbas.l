@@ -16,6 +16,7 @@ L?\"(\\.|[^\\"])*\"         { yylval.sval = strdup(yytext); return STRING_LITERA
 ";".*                       { /* ignore comments */ };
 
 "+" |
+"-" |
 "." |
 "," |
 "(" |
