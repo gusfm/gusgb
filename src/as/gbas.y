@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "as/gbas.h"
 #include "as/opcodes.h"
 #include "cart.h"
 
@@ -409,38 +410,24 @@ command:
 
 int main(int argc, char **argv)
 {
-    if (argc < 3) {
-        fprintf(stderr, "Syntax: %s <input file> <output file>\n", argv[0]);
-        return -1;
-    }
-    const char *infile = argv[1];
-    const char *outfile = argv[2];
-    FILE *input = fopen(infile, "r");
-    if (!input) {
-        fprintf(stderr, "Can't open file %s\n", infile);
+    gbas_t *gbas = gbas_init(argc, argv);
+    if (gbas == NULL) {
         return -1;
     }
     /* Set flex to read from it instead of defaulting to STDIN. */
-    yyin = input;
-    output = fopen(outfile, "wb");
-    if (output == NULL) {
-        fprintf(stderr, "Can't open output file %s\n", outfile);
-        fclose(input);
-        return -1;
-    }
-    
+    yyin = gbas->input;
+    output = gbas->output;
     /* Parse through the input until there is no more. */
     do {
         yyparse();
     } while (!feof(yyin));
-
-    fclose(input);
     /* Output cartridge header. */
-    cart_header_t header;
-    cart_header_init(&header, "TESTE");
-    cart_header_write(&header, output);
-    fclose(output);
-
+    if (gbas->gen_header) {
+        cart_header_t header;
+        cart_header_init(&header, "TESTE");
+        cart_header_write(&header, output);
+    }
+    gbas_finish(gbas);
     return 0;
 }
 
