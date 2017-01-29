@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdint.h>
 
 typedef struct {
@@ -55,5 +56,8 @@ uint8_t cart_read_rom1(uint16_t addr);
 void cart_write_mbc(uint16_t addr, uint8_t val);
 uint8_t cart_read_ram(uint16_t addr);
 void cart_write_ram(uint16_t addr, uint8_t val);
+
+void cart_header_init(cart_header_t *header, char *title);
+int cart_header_write(cart_header_t *cart, FILE *output);
 
 #endif /* __ROM_H__ */

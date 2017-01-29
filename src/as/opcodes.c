@@ -60,6 +60,17 @@ void ascii(char *str)
 {
     size_t size = strlen(str) - 1;
     for (int i = 1; i < size; ++i) {
+        if (str[i] == '\\') {
+            switch (str[i + 1]) {
+                case '0':
+                    op_write1(0x00);
+                    ++i;
+                    continue;
+                default:
+                    fprintf(stderr, "warning:ascii: unimplemented \\%c\n", str[i + 1]);
+                    break;
+            }
+        }
         op_write1(str[i]);
     }
 }

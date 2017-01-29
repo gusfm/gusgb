@@ -1,6 +1,5 @@
 #include "cart.h"
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -199,4 +198,65 @@ void cart_write_ram(uint16_t addr, uint8_t val)
     if (pos < CART.ram.size) {
         CART.ram.bytes[pos] = val;
     }
+}
+
+void cart_header_init(cart_header_t *header, char *title)
+{
+    memset(header, 0, sizeof(*header));
+    snprintf((char *)header->title, sizeof(header->title), "%s", title);
+    header->cgb = 0;
+    header->sgb = 0;
+    header->cart_type = 0;
+    header->rom_size = 0;
+    header->ram_size = 0;
+    header->country_code = 1;
+    header->licensee_old = 1;
+    header->mask_rom = 0;
+}
+
+const uint8_t nintendo_logo[] = {0xce, 0xed, 0x66, 0x66, 0xcc, 0x0d, 0x00, 0x0b,
+                                 0x03, 0x73, 0x00, 0x83, 0x00, 0x0c, 0x00, 0x0d,
+                                 0x00, 0x08, 0x11, 0x1f, 0x88, 0x89, 0x00, 0x0e,
+                                 0xdc, 0xcc, 0x6e, 0xe6, 0xdd, 0xdd, 0xd9, 0x99,
+                                 0xbb, 0xbb, 0x67, 0x63, 0x6e, 0x0e, 0xec, 0xcc,
+                                 0xdd, 0xdc, 0x99, 0x9f, 0xbb, 0xb9, 0x33, 0x3e};
+
+static int card_write_logo(FILE * output)
+{
+    int ret = fseek(output, 0x0104, SEEK_SET);
+    if (ret != 0) {
+        fprintf(stderr, "ERROR: could not seek to 0x0104\n");
+        return -1;
+    }
+    ret = fwrite(nintendo_logo, sizeof(nintendo_logo), 1, output);
+    if (ret < 0) {
+        fprintf(stderr, "ERROR: could not write logo\n");
+        return -1;
+    }
+    return 0;
+}
+
+int cart_header_write(cart_header_t *ch, FILE *output)
+{
+    uint8_t checksum = 0;
+    uint8_t *header = (uint8_t *)ch;
+    for (int i = 0; i < sizeof(*ch); ++i) {
+        checksum += header[i] - 1;
+    }
+    ch->compl_check = checksum;
+    int ret = card_write_logo(output);
+    if (ret < 0) {
+        return -1;
+    }
+    ret = fseek(output, 0x0134, SEEK_SET);
+    if (ret != 0) {
+        fprintf(stderr, "ERROR: could not seek to 0x0134\n");
+        return -1;
+    }
+    ret = fwrite(header, sizeof(cart_header_t), 1, output);
+    if (ret < 0) {
+        fprintf(stderr, "ERROR: could not write header\n");
+        return -1;
+    }
+    return 0;
 }

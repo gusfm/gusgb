@@ -52,5 +52,6 @@ add_executable(gbas
     ${BISON_gbas_parser_OUTPUTS}
     ${FLEX_gbas_scanner_OUTPUTS}
     src/as/opcodes.c
+    src/cart.c
     )
-target_link_libraries(gbas fl)
+target_link_libraries(gbas fl m)

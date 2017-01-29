@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "as/opcodes.h"
+#include "cart.h"
 
 /* stuff from flex that bison needs to know about */
 extern int yylex();
@@ -434,6 +435,10 @@ int main(int argc, char **argv)
     } while (!feof(yyin));
 
     fclose(input);
+    /* Output cartridge header. */
+    cart_header_t header;
+    cart_header_init(&header, "TESTE");
+    cart_header_write(&header, output);
     fclose(output);
 
     return 0;
