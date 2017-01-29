@@ -144,7 +144,7 @@ const instruction_t instr[256] = {
     {"add a, h", NULL, 1},           // 0x84
     {"add a, l", NULL, 1},           // 0x85
     {"add a, (hl)", NULL, 1},        // 0x86
-    {"add a", NULL, 1},              // 0x87
+    {"add a, a", NULL, 1},           // 0x87
     {"adc b", NULL, 1},              // 0x88
     {"adc c", NULL, 1},              // 0x89
     {"adc d", NULL, 1},              // 0x8a

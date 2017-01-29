@@ -13,13 +13,45 @@ const char *regs[REG_LEN] = {"a", "f", "b",  "c",  "d",  "e",
 void error_register(register_e reg)
 {
     fprintf(stderr, "%u: invalid register: %s\n", linenum, regs[reg]);
-    exit(EXIT_FAILURE);
 }
 
 void error_bit(unsigned int bit)
 {
     fprintf(stderr, "%u: invalid bit: %u\n", linenum, bit);
     exit(EXIT_FAILURE);
+}
+
+static unsigned int get_reg_diff(register_e reg)
+{
+    switch (reg) {
+        case REG_B:
+            return 0;
+            break;
+        case REG_C:
+            return 1;
+            break;
+        case REG_D:
+            return 2;
+            break;
+        case REG_E:
+            return 3;
+            break;
+        case REG_H:
+            return 4;
+            break;
+        case REG_L:
+            return 5;
+            break;
+        case REG_HL:
+            return 6;
+            break;
+        case REG_A:
+            return 7;
+            break;
+        default:
+            error_register(reg);
+            exit(EXIT_FAILURE);
+    }
 }
 
 static inline void op_write1(uint8_t opcode)
@@ -413,274 +445,72 @@ void ccf(void)
     op_write1(0x3f);
 }
 
-void ld_b_b(void)
+void ld_b_reg(register_e reg)
 {
-    op_write1(0x40);
+    unsigned int opcode = 0x40 + get_reg_diff(reg);
+    op_write1((uint8_t)opcode);
 }
 
-void ld_b_c(void)
+void ld_c_reg(register_e reg)
 {
-    op_write1(0x41);
+    unsigned int opcode = 0x48 + get_reg_diff(reg);
+    op_write1((uint8_t)opcode);
 }
 
-void ld_b_d(void)
+void ld_d_reg(register_e reg)
 {
-    op_write1(0x42);
+    unsigned int opcode = 0x50 + get_reg_diff(reg);
+    op_write1((uint8_t)opcode);
 }
 
-void ld_b_e(void)
+void ld_e_reg(register_e reg)
 {
-    op_write1(0x43);
+    unsigned int opcode = 0x58 + get_reg_diff(reg);
+    op_write1((uint8_t)opcode);
 }
 
-void ld_b_h(void)
+void ld_h_reg(register_e reg)
 {
-    op_write1(0x44);
+    unsigned int opcode = 0x60 + get_reg_diff(reg);
+    op_write1((uint8_t)opcode);
 }
 
-void ld_b_l(void)
+void ld_l_reg(register_e reg)
 {
-    op_write1(0x45);
+    unsigned int opcode = 0x68 + get_reg_diff(reg);
+    op_write1((uint8_t)opcode);
 }
 
-void ld_b_hlp(void)
+void ld_hlp_reg(register_e reg)
 {
-    op_write1(0x46);
-}
-
-void ld_b_a(void)
-{
-    op_write1(0x47);
-}
-
-void ld_c_b(void)
-{
-    op_write1(0x48);
-}
-
-void ld_c_c(void)
-{
-    op_write1(0x49);
-}
-
-void ld_c_d(void)
-{
-    op_write1(0x4a);
-}
-
-void ld_c_e(void)
-{
-    op_write1(0x4b);
-}
-
-void ld_c_h(void)
-{
-    op_write1(0x4c);
-}
-
-void ld_c_l(void)
-{
-    op_write1(0x4d);
-}
-
-void ld_c_hlp(void)
-{
-    op_write1(0x4e);
-}
-
-void ld_c_a(void)
-{
-    op_write1(0x4f);
-}
-
-void ld_d_b(void)
-{
-    op_write1(0x50);
-}
-
-void ld_d_c(void)
-{
-    op_write1(0x51);
-}
-
-void ld_d_d(void)
-{
-    op_write1(0x52);
-}
-
-void ld_d_e(void)
-{
-    op_write1(0x53);
-}
-
-void ld_d_h(void)
-{
-    op_write1(0x54);
-}
-
-void ld_d_l(void)
-{
-    op_write1(0x55);
-}
-
-void ld_d_hlp(void)
-{
-    op_write1(0x56);
-}
-
-void ld_d_a(void)
-{
-    op_write1(0x57);
-}
-
-void ld_e_b(void)
-{
-    op_write1(0x58);
-}
-
-void ld_e_c(void)
-{
-    op_write1(0x59);
-}
-
-void ld_e_d(void)
-{
-    op_write1(0x5a);
-}
-
-void ld_e_e(void)
-{
-    op_write1(0x5b);
-}
-
-void ld_e_h(void)
-{
-    op_write1(0x5c);
-}
-
-void ld_e_l(void)
-{
-    op_write1(0x5d);
-}
-
-void ld_e_hlp(void)
-{
-    op_write1(0x5e);
-}
-
-void ld_e_a(void)
-{
-    op_write1(0x5f);
-}
-
-void ld_h_b(void)
-{
-    op_write1(0x60);
-}
-
-void ld_h_c(void)
-{
-    op_write1(0x61);
-}
-
-void ld_h_d(void)
-{
-    op_write1(0x62);
-}
-
-void ld_h_e(void)
-{
-    op_write1(0x63);
-}
-
-void ld_h_h(void)
-{
-    op_write1(0x64);
-}
-
-void ld_h_l(void)
-{
-    op_write1(0x65);
-}
-
-void ld_h_hlp(void)
-{
-    op_write1(0x66);
-}
-
-void ld_h_a(void)
-{
-    op_write1(0x67);
-}
-
-void ld_l_b(void)
-{
-    op_write1(0x68);
-}
-
-void ld_l_c(void)
-{
-    op_write1(0x69);
-}
-
-void ld_l_d(void)
-{
-    op_write1(0x6a);
-}
-
-void ld_l_e(void)
-{
-    op_write1(0x6b);
-}
-
-void ld_l_h(void)
-{
-    op_write1(0x6c);
-}
-
-void ld_l_l(void)
-{
-    op_write1(0x6d);
-}
-
-void ld_l_hlp(void)
-{
-    op_write1(0x6e);
-}
-
-void ld_l_a(void)
-{
-    op_write1(0x6f);
-}
-
-void ld_hlp_b(void)
-{
-    op_write1(0x70);
-}
-
-void ld_hlp_c(void)
-{
-    op_write1(0x71);
-}
-
-void ld_hlp_d(void)
-{
-    op_write1(0x72);
-}
-
-void ld_hlp_e(void)
-{
-    op_write1(0x73);
-}
-
-void ld_hlp_h(void)
-{
-    op_write1(0x74);
-}
-
-void ld_hlp_l(void)
-{
-    op_write1(0x75);
+    unsigned int opcode = 0x70;
+    switch (reg) {
+        case REG_B:
+            opcode += 0;
+            break;
+        case REG_C:
+            opcode += 1;
+            break;
+        case REG_D:
+            opcode += 2;
+            break;
+        case REG_E:
+            opcode += 3;
+            break;
+        case REG_H:
+            opcode += 4;
+            break;
+        case REG_L:
+            opcode += 5;
+            break;
+        case REG_A:
+            opcode += 7;
+            break;
+        default:
+            error_register(reg);
+            exit(EXIT_FAILURE);
+    }
+    op_write1((uint8_t)opcode);
 }
 
 void halt(void)
@@ -688,326 +518,57 @@ void halt(void)
     op_write1(0x76);
 }
 
-void ld_hlp_a(void)
+void ld_a_reg(register_e reg)
 {
-    op_write1(0x77);
+    unsigned int opcode = 0x78 + get_reg_diff(reg);
+    op_write1((uint8_t)opcode);
 }
 
-void ld_a_b(void)
+void add_a_reg(register_e reg)
 {
-    op_write1(0x78);
-}
-
-void ld_a_c(void)
-{
-    op_write1(0x79);
-}
-
-void ld_a_d(void)
-{
-    op_write1(0x7a);
-}
-
-void ld_a_e(void)
-{
-    op_write1(0x7b);
-}
-
-void ld_a_h(void)
-{
-    op_write1(0x7c);
-}
-
-void ld_a_l(void)
-{
-    op_write1(0x7d);
-}
-
-void ld_a_hlp(void)
-{
-    op_write1(0x7e);
-}
-
-void ld_a_a(void)
-{
-    op_write1(0x7f);
-}
-
-void add_a_b(void)
-{
-    op_write1(0x80);
-}
-
-void add_a_c(void)
-{
-    op_write1(0x81);
-}
-
-void add_a_d(void)
-{
-    op_write1(0x82);
-}
-
-void add_a_e(void)
-{
-    op_write1(0x83);
-}
-
-void add_a_h(void)
-{
-    op_write1(0x84);
-}
-
-void add_a_l(void)
-{
-    op_write1(0x85);
-}
-
-void add_a_hlp(void)
-{
-    op_write1(0x86);
-}
-
-void add_a_a(void)
-{
-    op_write1(0x87);
+    unsigned int opcode = 0x80 + get_reg_diff(reg);
+    op_write1((uint8_t)opcode);
 }
 
 void adc(register_e reg)
 {
-    unsigned int opcode = 0x88;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x88 + get_reg_diff(reg);
     op_write1((uint8_t)opcode);
 }
 
 void sub(register_e reg)
 {
-    unsigned int opcode = 0x90;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x90 + get_reg_diff(reg);
     op_write1((uint8_t)opcode);
 }
 
 void sbc(register_e reg)
 {
-    unsigned int opcode = 0x98;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x98 + get_reg_diff(reg);
     op_write1((uint8_t)opcode);
 }
 
 void andf(register_e reg)
 {
-    unsigned int opcode = 0xa0;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0xa0 + get_reg_diff(reg);
     op_write1((uint8_t)opcode);
 }
 
 void xorf(register_e reg)
 {
-    unsigned int opcode = 0xa8;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0xa8 + get_reg_diff(reg);
     op_write1((uint8_t)opcode);
 }
 
 void orf(register_e reg)
 {
-    unsigned int opcode = 0xb0;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0xb0 + get_reg_diff(reg);
     op_write1((uint8_t)opcode);
 }
 
 void cp(register_e reg)
 {
-    unsigned int opcode = 0xb8;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0xb8 + get_reg_diff(reg);
     op_write1((uint8_t)opcode);
 }
 
@@ -1280,273 +841,49 @@ void cp_n(uint8_t val)
 
 void rlc(register_e reg)
 {
-    unsigned int opcode = 0x00;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x00 + get_reg_diff(reg);
     op_write_cb(opcode);
 }
 
 void rrc(register_e reg)
 {
-    unsigned int opcode = 0x08;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x08 + get_reg_diff(reg);
     op_write_cb(opcode);
 }
 
 void rl(register_e reg)
 {
-    unsigned int opcode = 0x10;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x10 + get_reg_diff(reg);
     op_write_cb(opcode);
 }
 
 void rr(register_e reg)
 {
-    unsigned int opcode = 0x18;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x18 + get_reg_diff(reg);
     op_write_cb(opcode);
 }
 
 void sla(register_e reg)
 {
-    unsigned int opcode = 0x20;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x20 + get_reg_diff(reg);
     op_write_cb(opcode);
 }
 
 void sra(register_e reg)
 {
-    unsigned int opcode = 0x28;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x28 + get_reg_diff(reg);
     op_write_cb(opcode);
 }
 
 void swap(register_e reg)
 {
-    unsigned int opcode = 0x30;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x30 + get_reg_diff(reg);
     op_write_cb(opcode);
 }
 
 void srl(register_e reg)
 {
-    unsigned int opcode = 0x38;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x38 + get_reg_diff(reg);
     op_write_cb(opcode);
 }
 
@@ -1555,35 +892,7 @@ void bit(unsigned int b, register_e reg)
     if (b > 7) {
         error_bit(b);
     }
-    unsigned int opcode = 0x40u + 8u * b;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x40u + get_reg_diff(reg) + 8u * b;
     op_write_cb((uint8_t)opcode);
 }
 
@@ -1592,35 +901,7 @@ void res(unsigned int b, register_e reg)
     if (b > 7) {
         error_bit(b);
     }
-    unsigned int opcode = 0x80u + 8u * b;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0x80u + get_reg_diff(reg) + 8u * b;
     op_write_cb((uint8_t)opcode);
 }
 
@@ -1629,34 +910,6 @@ void set(unsigned int b, register_e reg)
     if (b > 7) {
         error_bit(b);
     }
-    unsigned int opcode = 0xc0u + 8u * b;
-    switch (reg) {
-        case REG_B:
-            opcode += 0;
-            break;
-        case REG_C:
-            opcode += 1;
-            break;
-        case REG_D:
-            opcode += 2;
-            break;
-        case REG_E:
-            opcode += 3;
-            break;
-        case REG_H:
-            opcode += 4;
-            break;
-        case REG_L:
-            opcode += 5;
-            break;
-        case REG_HL:
-            opcode += 6;
-            break;
-        case REG_A:
-            opcode += 7;
-            break;
-        default:
-            error_register(reg);
-    }
+    unsigned int opcode = 0xc0u + get_reg_diff(reg) + 8u * b;
     op_write_cb((uint8_t)opcode);
 }

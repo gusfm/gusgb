@@ -114,34 +114,35 @@ regs_8:
       | E             { last_reg = REG_E; }
       | H             { last_reg = REG_H; }
       | L             { last_reg = REG_L; }
+      ;
+
+regs_8_hlp:
+       regs_8
       | '(' HL ')'    { last_reg = REG_HL; }
       ;
 
 adc_cmd:
           NUMBER                { adc_n($1); }
-        | regs_8                { adc(last_reg); }
+        | regs_8_hlp            { adc(last_reg); }
         ;
 
+add_a:
+       NUMBER                   { add_a_n($1); }
+     | regs_8_hlp               { add_a_reg(last_reg); }
+     ;
+
 add_cmd:
-          A                     { add_a_a(); }
-        | A ',' '(' HL ')'      { add_a_hlp(); }
-        | A ',' B               { add_a_b(); }
-        | A ',' C               { add_a_c(); }
-        | A ',' D               { add_a_d(); }
-        | A ',' E               { add_a_e(); }
-        | A ',' H               { add_a_h(); }
-        | A ',' L               { add_a_l(); }
-        | A ',' NUMBER          { add_a_n($3); }
-        | HL ',' BC             { add_hl_bc(); }
-        | HL ',' DE             { add_hl_de(); }
-        | HL ',' HL             { add_hl_hl(); }
-        | HL ',' SP             { add_hl_sp(); }
-        | SP ',' NUMBER         { add_sp_n($3); }
-        ;
+         A ',' add_a
+       | HL ',' BC             { add_hl_bc(); }
+       | HL ',' DE             { add_hl_de(); }
+       | HL ',' HL             { add_hl_hl(); }
+       | HL ',' SP             { add_hl_sp(); }
+       | SP ',' NUMBER         { add_sp_n($3); }
+       ;
 
 and_cmd:
           NUMBER                { and_n($1); }
-        | regs_8                { andf(last_reg); }
+        | regs_8_hlp            { andf(last_reg); }
         ;
 
 call_cmd:
@@ -154,7 +155,7 @@ call_cmd:
 
 cp_cmd:
           NUMBER                 { cp_n($1); }
-        | regs_8                 { cp(last_reg); }
+        | regs_8_hlp             { cp(last_reg); }
         ;
 
 dec_cmd:
@@ -204,17 +205,50 @@ jr_cmd:
         | Z ',' NUMBER           { jr_z_n($3); }
         ;
 
+ld_a:
+      NUMBER                     { ld_a_n($1); }
+    | regs_8_hlp                 { ld_a_reg(last_reg); }
+    ;
+
+ld_b:
+      NUMBER                     { ld_b_n($1); }
+    | regs_8_hlp                 { ld_b_reg(last_reg); }
+    ;
+
+ld_c:
+      NUMBER                     { ld_c_n($1); }
+    | regs_8_hlp                 { ld_c_reg(last_reg); }
+    ;
+
+ld_d:
+      NUMBER                     { ld_d_n($1); }
+    | regs_8_hlp                 { ld_d_reg(last_reg); }
+    ;
+
+ld_e:
+      NUMBER                     { ld_e_n($1); }
+    | regs_8_hlp                 { ld_e_reg(last_reg); }
+    ;
+
+ld_h:
+      NUMBER                     { ld_h_n($1); }
+    | regs_8_hlp                 { ld_h_reg(last_reg); }
+    ;
+
+ld_l:
+      NUMBER                     { ld_l_n($1); }
+    | regs_8_hlp                 { ld_l_reg(last_reg); }
+    ;
+
+ld_hlp:
+      NUMBER                     { ld_hlp_n($1); }
+    | regs_8                     { ld_hlp_reg(last_reg); }
+    ;
+
 ld_cmd:
           '(' BC ')' ',' A       { ld_bcp_a(); }
         | '(' DE ')' ',' A       { ld_dep_a(); }
-        | '(' HL ')' ',' A       { ld_hlp_a(); }
-        | '(' HL ')' ',' B       { ld_hlp_b(); }
-        | '(' HL ')' ',' C       { ld_hlp_c(); }
-        | '(' HL ')' ',' D       { ld_hlp_d(); }
-        | '(' HL ')' ',' E       { ld_hlp_e(); }
-        | '(' HL ')' ',' H       { ld_hlp_h(); }
-        | '(' HL ')' ',' L       { ld_hlp_l(); }
-        | '(' HL ')' ',' NUMBER  { ld_hlp_n($5); }
+        | '(' HL ')' ',' ld_hlp
         | '(' HL '+' ')' ',' A   { ldi_hlp_a(); }
         | '(' HL '-' ')' ',' A   { ldd_hlp_a(); }
         | '(' NUMBER ')' ',' A   { ld_nnp_a($2); }
@@ -223,85 +257,29 @@ ld_cmd:
         | '(' NUMBER '+' NUMBER ')' ',' A { ldh_n_a($2, $4); }
         | A ',' '(' BC ')'       { ld_a_bcp(); }
         | A ',' '(' DE ')'       { ld_a_dep(); }
-        | A ',' '(' HL ')'       { ld_a_hlp(); }
         | A ',' '(' HL '+' ')'   { ldi_a_hlp(); }
         | A ',' '(' HL '-' ')'   { ldd_a_hlp(); }
         | A ',' '(' NUMBER ')'   { ld_a_nnp($4); }
         | A ',' '(' NUMBER '+' C ')' { ld_a_cp($4); }
         | A ',' '(' NUMBER '+' NUMBER ')' { ldh_a_n($4, $6); }
-        | A ',' A                { ld_a_a(); }
-        | A ',' B                { ld_a_b(); }
-        | A ',' C                { ld_a_c(); }
-        | A ',' D                { ld_a_d(); }
-        | A ',' E                { ld_a_e(); }
-        | A ',' H                { ld_a_h(); }
-        | A ',' L                { ld_a_l(); }
-        | A ',' NUMBER           { ld_a_n($3); }
-        | B ',' '(' HL ')'       { ld_b_hlp(); }
-        | B ',' A                { ld_b_a(); }
-        | B ',' B                { ld_b_b(); }
-        | B ',' C                { ld_b_c(); }
-        | B ',' D                { ld_b_d(); }
-        | B ',' E                { ld_b_e(); }
-        | B ',' H                { ld_b_h(); }
-        | B ',' L                { ld_b_l(); }
-        | B ',' NUMBER           { ld_b_n($3); }
+        | A ',' ld_a
+        | B ',' ld_b
+        | C ',' ld_c
+        | D ',' ld_d
+        | E ',' ld_e
+        | H ',' ld_h
+        | L ',' ld_l
         | BC ',' NUMBER          { ld_bc_nn($3); }
-        | C ',' '(' HL ')'       { ld_c_hlp(); }
-        | C ',' A                { ld_c_a(); }
-        | C ',' B                { ld_c_b(); }
-        | C ',' C                { ld_c_c(); }
-        | C ',' D                { ld_c_d(); }
-        | C ',' E                { ld_c_e(); }
-        | C ',' H                { ld_c_h(); }
-        | C ',' L                { ld_c_l(); }
-        | C ',' NUMBER           { ld_c_n($3); }
-        | D ',' '(' HL ')'       { ld_d_hlp(); }
-        | D ',' A                { ld_d_a(); }
-        | D ',' B                { ld_d_b(); }
-        | D ',' C                { ld_d_c(); }
-        | D ',' D                { ld_d_d(); }
-        | D ',' E                { ld_d_e(); }
-        | D ',' H                { ld_d_h(); }
-        | D ',' L                { ld_d_l(); }
-        | D ',' NUMBER           { ld_d_n($3); }
         | DE ',' NUMBER          { ld_de_nn($3); }
-        | E ',' '(' HL ')'       { ld_e_hlp(); }
-        | E ',' A                { ld_e_a(); }
-        | E ',' B                { ld_e_b(); }
-        | E ',' C                { ld_e_c(); }
-        | E ',' D                { ld_e_d(); }
-        | E ',' E                { ld_e_e(); }
-        | E ',' H                { ld_e_h(); }
-        | E ',' L                { ld_e_l(); }
-        | E ',' NUMBER           { ld_e_n($3); }
-        | H ',' '(' HL ')'       { ld_h_hlp(); }
-        | H ',' A                { ld_h_a(); }
-        | H ',' B                { ld_h_b(); }
-        | H ',' C                { ld_h_c(); }
-        | H ',' D                { ld_h_d(); }
-        | H ',' E                { ld_h_e(); }
-        | H ',' H                { ld_h_h(); }
-        | H ',' L                { ld_h_l(); }
-        | H ',' NUMBER           { ld_h_n($3); }
         | HL ',' NUMBER          { ld_hl_nn($3); }
         | HL ',' SP '+' NUMBER   { ldhl_sp_n($5); }
-        | L ',' '(' HL ')'       { ld_l_hlp(); }
-        | L ',' A                { ld_l_a(); }
-        | L ',' B                { ld_l_b(); }
-        | L ',' C                { ld_l_c(); }
-        | L ',' D                { ld_l_d(); }
-        | L ',' E                { ld_l_e(); }
-        | L ',' H                { ld_l_h(); }
-        | L ',' L                { ld_l_l(); }
-        | L ',' NUMBER           { ld_l_n($3); }
         | SP ',' HL              { ld_sp_hl(); }
         | SP ',' NUMBER          { ld_sp_nn($3); }
         ;
 
 or_cmd:
-          NUMBER                 { or_n($1); }
-        | regs_8                 { orf(last_reg); }
+          NUMBER                { or_n($1); }
+        | regs_8_hlp            { orf(last_reg); }
         ;
 
 pop_cmd:
@@ -312,10 +290,10 @@ pop_cmd:
         ;
 
 push_cmd:
-          AF                   { push_af(); }
-        | BC                   { push_bc(); }
-        | DE                   { push_de(); }
-        | HL                   { push_hl(); }
+          AF                    { push_af(); }
+        | BC                    { push_bc(); }
+        | DE                    { push_de(); }
+        | HL                    { push_hl(); }
         ;
 
 ret_cmd:
@@ -328,31 +306,31 @@ ret_cmd:
 
 sbc_cmd:
           NUMBER                { sbc_n($1); }
-        | regs_8                { sbc(last_reg); }
+        | regs_8_hlp            { sbc(last_reg); }
         ;
 
 sub_cmd:
           NUMBER                { sub_n($1); }
-        | regs_8                { sub(last_reg); }
+        | regs_8_hlp            { sub(last_reg); }
         ;
 
 xor_cmd:
           NUMBER                { xor_n($1); }
-        | regs_8                { xorf(last_reg); }
+        | regs_8_hlp            { xorf(last_reg); }
         ;
 
 cb_cmd:
-        BIT NUMBER ',' regs_8       { bit($2, last_reg); }
-      | RES NUMBER ',' regs_8       { res($2, last_reg); }
-      | RL regs_8                   { rl(last_reg); }
-      | RLC regs_8                  { rlc(last_reg); }
-      | RR regs_8                   { rr(last_reg); }
-      | RRC regs_8                  { rrc(last_reg); }
-      | SET NUMBER ',' regs_8       { set($2, last_reg); }
-      | SLA regs_8                  { sla(last_reg); }
-      | SRA regs_8                  { sra(last_reg); }
-      | SRL regs_8                  { srl(last_reg); }
-      | SWAP regs_8                 { swap(last_reg); }
+        BIT NUMBER ',' regs_8_hlp       { bit($2, last_reg); }
+      | RES NUMBER ',' regs_8_hlp       { res($2, last_reg); }
+      | RL regs_8_hlp                   { rl(last_reg); }
+      | RLC regs_8_hlp                  { rlc(last_reg); }
+      | RR regs_8_hlp                   { rr(last_reg); }
+      | RRC regs_8_hlp                  { rrc(last_reg); }
+      | SET NUMBER ',' regs_8_hlp       { set($2, last_reg); }
+      | SLA regs_8_hlp                  { sla(last_reg); }
+      | SRA regs_8_hlp                  { sra(last_reg); }
+      | SRL regs_8_hlp                  { srl(last_reg); }
+      | SWAP regs_8_hlp                 { swap(last_reg); }
       ;
 
 command:
