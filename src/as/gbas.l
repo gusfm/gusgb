@@ -1,6 +1,7 @@
-D			[0-9]
-L			[a-zA-Z_]
-H			[a-fA-F0-9]
+D           [0-9]
+L           [a-zA-Z_]
+A           [a-zA-Z_0-9]
+H           [a-fA-F0-9]
 %{
 #include <stdio.h>
 #include <string.h>
@@ -19,6 +20,7 @@ L?\"(\\.|[^\\"])*\"         { yylval.sval = strdup(yytext); return STRING_LITERA
 "-" |
 "." |
 "," |
+":" |
 "(" |
 ")"                         { return yytext[0]; }
 
@@ -93,5 +95,6 @@ de                          { return DE; }
 hl                          { return HL; }
 sp                          { return SP; }
 \n                          { ++linenum; }
+{L}{A}*                     { yylval.sval = strdup(yytext); return LABEL; }
 [ \t]+                      /* ignore white space */;
 %%

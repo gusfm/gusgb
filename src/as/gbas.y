@@ -14,7 +14,11 @@ extern unsigned int linenum;
 extern const char *yytext;
 void yyerror(const char *s);
 
+gbas_t *gbas;
 register_e last_reg;
+unsigned int jump_addr;
+unsigned int pc = 0;
+
 %}
 
 /* */
@@ -25,6 +29,7 @@ register_e last_reg;
 
 %token <num> NUMBER
 %token <sval> STRING_LITERAL
+%token <sval> LABEL
 /* Registers */
 %token A
 %token F
@@ -188,21 +193,26 @@ inc_cmd:
         | SP                    { inc_sp(); }
         ;
 
+jump_to:
+         NUMBER                 { jump_addr = $1; }
+       | LABEL                  { jump_addr = gbas_label_get_addr(gbas, $1); free($1); }
+       ;
+
 jp_cmd:
-          C ',' NUMBER           { jp_c_nn($3); }
-        | HL                     { jp_hl(); }
-        | NC ',' NUMBER          { jp_nc_nn($3); }
-        | NUMBER                 { jp_nn($1); }
-        | NZ ',' NUMBER          { jp_nz_nn($3); }
-        | Z ',' NUMBER           { jp_z_nn($3); }
+          C ',' jump_to         { jp_c_nn(jump_addr); }
+        | HL                    { jp_hl(); }
+        | NC ',' jump_to        { jp_nc_nn(jump_addr); }
+        | jump_to               { jp_nn(jump_addr); }
+        | NZ ',' jump_to        { jp_nz_nn(jump_addr); }
+        | Z ',' jump_to         { jp_z_nn(jump_addr); }
         ;
 
 jr_cmd:
-          C ',' NUMBER           { jr_c_n($3); }
-        | NC ',' NUMBER          { jr_nc_n($3); }
-        | NUMBER                 { jr_n($1); }
-        | NZ ',' NUMBER          { jr_nz_n($3); }
-        | Z ',' NUMBER           { jr_z_n($3); }
+          C ',' jump_to         { jr_c_n((int8_t)(jump_addr - (pc - 1))); }
+        | NC ',' jump_to        { jr_nc_n((int8_t)(jump_addr - (pc - 1))); }
+        | jump_to               { jr_n((int8_t)(jump_addr - (pc - 1))); }
+        | NZ ',' jump_to        { jr_nz_n((int8_t)(jump_addr - (pc - 1))); }
+        | Z ',' jump_to         { jr_z_n((int8_t)(jump_addr - (pc - 1))); }
         ;
 
 ld_a:
@@ -338,6 +348,7 @@ command:
         | '.' DATA NUMBER           { data($3); }
         | '.' JUMP NUMBER           { jump($3); }
         | '.' MEMSET NUMBER ',' NUMBER { memsetf($3, $5); }
+        | LABEL ':'                 { gbas_label_insert(gbas, $1, pc); }
         | ADC adc_cmd
         | ADD add_cmd
         | AND and_cmd
@@ -376,7 +387,7 @@ command:
 
 int main(int argc, char **argv)
 {
-    gbas_t *gbas = gbas_init(argc, argv);
+    gbas = gbas_init(argc, argv);
     if (gbas == NULL) {
         return -1;
     }
@@ -390,7 +401,7 @@ int main(int argc, char **argv)
     /* Output cartridge header. */
     if (gbas->gen_header) {
         cart_header_t header;
-        cart_header_init(&header, "TESTE");
+        cart_header_init(&header, "TEST");
         cart_header_write(&header, output);
     }
     gbas_finish(gbas);

@@ -57,7 +57,7 @@ void inc_e(void);
 void dec_e(void);
 void ld_e_n(uint8_t val);
 void rra(void);
-void jr_nz_n(uint8_t val);
+void jr_nz_n(int8_t val);
 void ld_hl_nn(uint16_t val);
 void ldi_hlp_a(void);
 void inc_hl(void);

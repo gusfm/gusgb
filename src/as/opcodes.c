@@ -5,7 +5,7 @@
 
 extern unsigned int linenum;
 extern FILE *output;
-unsigned int pc = 0;
+extern unsigned int pc;
 
 const char *regs[REG_LEN] = {"a", "f", "b",  "c",  "d",  "e",
                              "h", "l", "af", "bc", "de", "hl"};
@@ -285,7 +285,7 @@ void rra(void)
     op_write1(0x1f);
 }
 
-void jr_nz_n(uint8_t val)
+void jr_nz_n(int8_t val)
 {
     op_write2(0x20, val);
 }

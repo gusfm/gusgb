@@ -53,6 +53,7 @@ add_executable(gbas
     ${FLEX_gbas_scanner_OUTPUTS}
     src/as/opcodes.c
     src/as/gbas.c
+    src/as/list.c
     src/cart.c
     )
 target_link_libraries(gbas fl m)
