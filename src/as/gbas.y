@@ -16,7 +16,8 @@ void yyerror(const char *s);
 
 gbas_t *gbas;
 register_e last_reg;
-unsigned int jump_addr;
+int jump_addr;
+bool jump_label;
 unsigned int pc = 0;
 
 %}
@@ -194,8 +195,8 @@ inc_cmd:
         ;
 
 jump_to:
-         NUMBER                 { jump_addr = $1; }
-       | LABEL                  { jump_addr = gbas_label_get_addr(gbas, $1); free($1); }
+         NUMBER                 { jump_label = false; jump_addr = $1; }
+       | LABEL                  { jump_label = true; jump_addr = gbas_label_get_addr(gbas, $1); free($1); }
        ;
 
 jp_cmd:
@@ -208,11 +209,11 @@ jp_cmd:
         ;
 
 jr_cmd:
-          C ',' jump_to         { jr_c_n((int8_t)(jump_addr - (pc - 1))); }
-        | NC ',' jump_to        { jr_nc_n((int8_t)(jump_addr - (pc - 1))); }
-        | jump_to               { jr_n((int8_t)(jump_addr - (pc - 1))); }
-        | NZ ',' jump_to        { jr_nz_n((int8_t)(jump_addr - (pc - 1))); }
-        | Z ',' jump_to         { jr_z_n((int8_t)(jump_addr - (pc - 1))); }
+          C ',' jump_to         { if (jump_label) jump_addr -= (pc - 1); jr_c_n((int8_t)(jump_addr)); }
+        | NC ',' jump_to        { if (jump_label) jump_addr -= (pc - 1); jr_nc_n((int8_t)(jump_addr)); }
+        | jump_to               { if (jump_label) jump_addr -= (pc - 1); jr_n((int8_t)(jump_addr)); }
+        | NZ ',' jump_to        { if (jump_label) jump_addr -= (pc - 1); jr_nz_n((int8_t)(jump_addr)); }
+        | Z ',' jump_to         { if (jump_label) jump_addr -= (pc - 1); jr_z_n((int8_t)(jump_addr)); }
         ;
 
 ld_a:
