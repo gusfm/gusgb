@@ -115,11 +115,16 @@ void data(uint8_t val)
 void seek(long offset)
 {
     pc = offset;
-    fseek(output, offset, SEEK_SET);
+    int ret = fseek(output, offset, SEEK_SET);
+    if (ret != 0) {
+        fprintf(stderr, "ERROR: seek: invalid position: %ld\n", offset);
+        exit(EXIT_FAILURE);
+    }
 }
 
 void memsetf(uint8_t c, size_t n)
 {
+    n &= 0xffffff;
     for (size_t i = 0; i < n; ++i) {
         op_write1(c);
     }

@@ -1,4 +1,6 @@
 #include "gbas.h"
+#include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,6 +12,12 @@ typedef struct {
     char *str;
     unsigned int addr;
 } label_t;
+
+typedef struct {
+    jump_type_e type;
+    char *label;
+    unsigned int addr;
+} jump_t;
 
 static void gbas_print_help(char **argv)
 {
@@ -62,6 +70,7 @@ gbas_t *gbas_init(int argc, char **argv)
         return NULL;
     }
     gbas->label_list = list_create();
+    gbas->jump_list = list_create();
     return gbas;
 }
 
@@ -73,6 +82,8 @@ void gbas_finish(gbas_t *gbas)
         free(label);
     }
     list_destroy(gbas->label_list);
+    assert(list_empty(gbas->jump_list));
+    list_destroy(gbas->jump_list);
     fclose(gbas->input);
     fclose(gbas->output);
     free(gbas);
@@ -98,4 +109,35 @@ unsigned int gbas_label_get_addr(gbas_t *gbas, char *str)
     }
     fprintf(stderr, "ERROR:%u: invalid label: %s\n", linenum, str);
     exit(EXIT_FAILURE);
+}
+
+void gbas_jump_insert(gbas_t *gbas, char *label, unsigned int addr,
+                      jump_type_e type)
+{
+    jump_t *jump = malloc(sizeof(jump_t));
+    jump->type = type;
+    jump->label = label;
+    jump->addr = addr;
+    list_insert(gbas->jump_list, jump);
+}
+
+void gbas_jump_process(gbas_t *gbas)
+{
+    while (!list_empty(gbas->jump_list)) {
+        jump_t *jump = list_remove_first(gbas->jump_list);
+        unsigned int jump_addr = gbas_label_get_addr(gbas, jump->label);
+        fseek(gbas->output, jump->addr + 1, SEEK_SET);
+        if (jump->type == JUMP_JP) {
+            uint16_t val = jump_addr;
+            uint8_t buf[2];
+            buf[0] = (uint8_t)(val & 0x00ff);
+            buf[1] = (uint8_t)((val & 0xff00) >> 8);
+            fwrite(buf, 2, 1, gbas->output);
+        } else {
+            int8_t val = jump_addr - jump->addr;
+            fwrite(&val, 1, 1, gbas->output);
+        }
+        free(jump->label);
+        free(jump);
+    }
 }

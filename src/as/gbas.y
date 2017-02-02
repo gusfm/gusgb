@@ -17,8 +17,11 @@ void yyerror(const char *s);
 gbas_t *gbas;
 register_e last_reg;
 int jump_addr;
-bool jump_label;
+char *jump_label;
 unsigned int pc = 0;
+
+#define JP() { if (jump_label) gbas_jump_insert(gbas, jump_label, pc, JUMP_JP); }
+#define JR() { if (jump_label) gbas_jump_insert(gbas, jump_label, pc, JUMP_JR); }
 
 %}
 
@@ -195,25 +198,25 @@ inc_cmd:
         ;
 
 jump_to:
-         NUMBER                 { jump_label = false; jump_addr = $1; }
-       | LABEL                  { jump_label = true; jump_addr = gbas_label_get_addr(gbas, $1); free($1); }
+         NUMBER                 { jump_label = NULL; jump_addr = $1; }
+       | LABEL                  { jump_label = $1; jump_addr = 0x00; }
        ;
 
 jp_cmd:
-          C ',' jump_to         { jp_c_nn(jump_addr); }
-        | HL                    { jp_hl(); }
-        | NC ',' jump_to        { jp_nc_nn(jump_addr); }
-        | jump_to               { jp_nn(jump_addr); }
-        | NZ ',' jump_to        { jp_nz_nn(jump_addr); }
-        | Z ',' jump_to         { jp_z_nn(jump_addr); }
+          C ',' jump_to         { JP(); jp_c_nn(jump_addr); }
+        | HL                    { JP(); jp_hl(); }
+        | NC ',' jump_to        { JP(); jp_nc_nn(jump_addr); }
+        | jump_to               { JP(); jp_nn(jump_addr); }
+        | NZ ',' jump_to        { JP(); jp_nz_nn(jump_addr); }
+        | Z ',' jump_to         { JP(); jp_z_nn(jump_addr); }
         ;
 
 jr_cmd:
-          C ',' jump_to         { if (jump_label) jump_addr -= (pc - 1); jr_c_n((int8_t)(jump_addr)); }
-        | NC ',' jump_to        { if (jump_label) jump_addr -= (pc - 1); jr_nc_n((int8_t)(jump_addr)); }
-        | jump_to               { if (jump_label) jump_addr -= (pc - 1); jr_n((int8_t)(jump_addr)); }
-        | NZ ',' jump_to        { if (jump_label) jump_addr -= (pc - 1); jr_nz_n((int8_t)(jump_addr)); }
-        | Z ',' jump_to         { if (jump_label) jump_addr -= (pc - 1); jr_z_n((int8_t)(jump_addr)); }
+          C ',' jump_to         { JR(); jr_c_n((int8_t)(jump_addr)); }
+        | NC ',' jump_to        { JR(); jr_nc_n((int8_t)(jump_addr)); }
+        | jump_to               { JR(); jr_n((int8_t)(jump_addr)); }
+        | NZ ',' jump_to        { JR(); jr_nz_n((int8_t)(jump_addr)); }
+        | Z ',' jump_to         { JR(); jr_z_n((int8_t)(jump_addr)); }
         ;
 
 ld_a:
@@ -405,6 +408,7 @@ int main(int argc, char **argv)
         cart_header_init(&header, "TEST");
         cart_header_write(&header, output);
     }
+    gbas_jump_process(gbas);
     gbas_finish(gbas);
     return 0;
 }
