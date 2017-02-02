@@ -112,7 +112,7 @@ void data(uint8_t val)
     op_write1(val);
 }
 
-void jump(long offset)
+void seek(long offset)
 {
     pc = offset;
     fseek(output, offset, SEEK_SET);

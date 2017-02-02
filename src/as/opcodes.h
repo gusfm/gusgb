@@ -22,7 +22,7 @@ typedef enum {
 
 void ascii(char *str);
 void data(uint8_t val);
-void jump(long offset);
+void seek(long offset);
 void memsetf(uint8_t c, size_t n);
 
 void nop(void);

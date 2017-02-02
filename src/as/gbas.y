@@ -49,7 +49,7 @@ unsigned int pc = 0;
 /* Special compiller commands. */
 %token ASCII
 %token DATA
-%token JUMP
+%token SEEK
 %token MEMSET
 
 /* Commands */
@@ -347,7 +347,7 @@ cb_cmd:
 command:
           '.' ASCII STRING_LITERAL  { ascii($3); free($3); }
         | '.' DATA NUMBER           { data($3); }
-        | '.' JUMP NUMBER           { jump($3); }
+        | '.' SEEK NUMBER           { seek($3); }
         | '.' MEMSET NUMBER ',' NUMBER { memsetf($3, $5); }
         | LABEL ':'                 { gbas_label_insert(gbas, $1, pc); }
         | ADC adc_cmd
