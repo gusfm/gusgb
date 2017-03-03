@@ -402,13 +402,14 @@ int main(int argc, char **argv)
     do {
         yyparse();
     } while (!feof(yyin));
+    /* Write all jump values. */
+    gbas_jump_process(gbas);
     /* Output cartridge header. */
     if (gbas->gen_header) {
         cart_header_t header;
-        cart_header_init(&header, "TEST");
+        cart_header_init(&header, gbas->outfile);
         cart_header_write(&header, output);
     }
-    gbas_jump_process(gbas);
     gbas_finish(gbas);
     return 0;
 }

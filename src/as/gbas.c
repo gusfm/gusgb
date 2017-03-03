@@ -63,7 +63,7 @@ gbas_t *gbas_init(int argc, char **argv)
         fprintf(stderr, "Can't open input file %s\n", gbas->infile);
         return NULL;
     }
-    gbas->output = fopen(gbas->outfile, "wb");
+    gbas->output = fopen(gbas->outfile, "w+");
     if (gbas->output == NULL) {
         fprintf(stderr, "Can't open output file %s\n", gbas->outfile);
         fclose(gbas->input);
