@@ -134,7 +134,7 @@ void gbas_jump_process(gbas_t *gbas)
             buf[1] = (uint8_t)((val & 0xff00) >> 8);
             fwrite(buf, 2, 1, gbas->output);
         } else {
-            int8_t val = jump_addr - jump->addr;
+            int8_t val = jump_addr - (jump->addr + 2);
             fwrite(&val, 1, 1, gbas->output);
         }
         free(jump->label);
