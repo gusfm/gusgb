@@ -40,24 +40,37 @@ void gpu_set_glfw_window(GLFWwindow *window)
     GPU.window = window;
 }
 
+static bool gpu_check_vram_io(void)
+{
+    return !GPU.display_on || GPU.linemode == GPU_MODE_HBLANK || GPU.linemode == GPU_MODE_VBLANK;
+}
+
 uint8_t gpu_read_vram(uint16_t addr)
 {
-    return GPU.vram[addr & 0x1fff];
+    if (gpu_check_vram_io())
+        return GPU.vram[addr & 0x1fff];
+    else
+        return 0xFF;
 }
 
 void gpu_write_vram(uint16_t addr, uint8_t val)
 {
-    GPU.vram[addr & 0x1fff] = val;
+    if (gpu_check_vram_io())
+        GPU.vram[addr & 0x1fff] = val;
 }
 
 uint8_t gpu_read_oam(uint16_t addr)
 {
-    return GPU.oam[addr & 0xff];
+    if (gpu_check_vram_io())
+        return GPU.oam[addr & 0xff];
+    else
+        return 0xFF;
 }
 
 void gpu_write_oam(uint16_t addr, uint8_t val)
 {
-    GPU.oam[addr & 0xff] = val;
+    if (gpu_check_vram_io())
+        GPU.oam[addr & 0xff] = val;
 }
 
 static void gpu_set_bg_palette(uint8_t value)
