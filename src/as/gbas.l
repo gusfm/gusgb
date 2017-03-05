@@ -45,9 +45,6 @@ inc                         { return INC; }
 jp                          { return JP; }
 jr                          { return JR; }
 ld                          { return LD; }
-ldd                         { return LDD; }
-ldh                         { return LDH; }
-ldi                         { return LDI; }
 nop                         { return NOP; }
 or                          { return OR; }
 pop                         { return POP; }

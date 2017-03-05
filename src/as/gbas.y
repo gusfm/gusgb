@@ -72,9 +72,6 @@ unsigned int pc = 0;
 %token JP
 %token JR
 %token LD
-%token LDD
-%token LDH
-%token LDI
 %token NOP
 %token OR
 %token POP
