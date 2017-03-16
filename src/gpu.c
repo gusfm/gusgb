@@ -247,13 +247,13 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
     uint32_t screen_x = 0;
     uint32_t pixeloffs = GPU.scanline * 160u;
     while (screen_x < 160) {
-        int map_col = (bg_x >> 3);
+        int map_col = (bg_x >> 3) & 0x1f;
         /* Get tile index adjusted for the 0x8000 - 0x97ff range. */
         uint32_t tile_id = gpu_get_tile_id(mapoffs, map_row, map_col);
         /* Get tile line data. */
         tile_line_t tile_line = get_tile_line(tile_id, bg_y);
         /* Iterate over remaining pixels of the tile. */
-        for (int tile_x = screen_x % 8; tile_x < 8; ++tile_x) {
+        for (int tile_x = bg_x & 0x7; tile_x < 8; ++tile_x) {
             /* Get tile color number for coordinate. */
             uint32_t color_num = gpu_get_tile_color(tile_line, tile_x);
             scanline_row[screen_x] = (uint8_t)color_num;
