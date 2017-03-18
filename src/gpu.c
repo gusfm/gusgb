@@ -42,7 +42,9 @@ void gpu_set_glfw_window(GLFWwindow *window)
 
 static bool gpu_check_vram_io(void)
 {
-    return !GPU.display_on || GPU.linemode == GPU_MODE_HBLANK || GPU.linemode == GPU_MODE_VBLANK;
+    //return !GPU.display_on || GPU.linemode == GPU_MODE_HBLANK || GPU.linemode == GPU_MODE_VBLANK;
+    // FIXME: Allow IO to vram for now since this was causing problems.
+    return true;
 }
 
 uint8_t gpu_read_vram(uint16_t addr)
