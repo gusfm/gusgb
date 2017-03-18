@@ -34,7 +34,7 @@ target_link_libraries(gusgb m)
 
 add_executable(gusgb-bin
     src/main.c)
-target_link_libraries(gusgb-bin gusgb GL glfw ftgl)
+target_link_libraries(gusgb-bin gusgb GL glfw)
 set_target_properties(gusgb-bin
     PROPERTIES
         COMPILE_FLAGS ${WARNINGS}
