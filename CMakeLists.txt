@@ -64,13 +64,19 @@ target_link_libraries(gbas fl m)
 # libgusai
 add_library(gusgbai SHARED
     src/ai/neuron.c
+    src/ai/neuron_layer.c
     )
 target_link_libraries(gusgbai m)
+set_target_properties(gusgbai
+    PROPERTIES
+        COMPILE_FLAGS ${WARNINGS}
+        )
 
 enable_testing()
 # gusgbai test
 add_executable(gusaitest
     test/ai/neuron_test.cc
+    test/ai/neuron_layer_test.cc
     )
 target_link_libraries(gusaitest
     gusgbai
