@@ -11,7 +11,7 @@ neuron_layer_t *neuron_layer_create(unsigned int num_neurons,
     neuron_layer_t *nl = (neuron_layer_t *)malloc(sizeof(neuron_layer_t));
     nl->num_neurons = num_neurons;
     nl->inputs_per_neuron = intputs_per_neuron;
-    nl->neurons = (neuron_t **)malloc(sizeof(neuron_t) * num_neurons);
+    nl->neurons = (neuron_t **)malloc(sizeof(neuron_t *) * num_neurons);
     for (unsigned int i = 0; i < num_neurons; ++i) {
         nl->neurons[i] = neuron_create(intputs_per_neuron);
     }
@@ -24,6 +24,7 @@ void neuron_layer_destroy(neuron_layer_t *nl)
     for (unsigned int i = 0; i < nl->num_neurons; ++i) {
         neuron_destroy(nl->neurons[i]);
     }
+    free(nl->neurons);
     free(nl->outputs);
     free(nl);
 }
@@ -38,20 +39,22 @@ unsigned int neuron_layer_get_num_weights(neuron_layer_t *nl)
     return nl->num_neurons * (nl->inputs_per_neuron + 1);
 }
 
-void neuron_layer_get_weights(neuron_layer_t *nl, double *weights)
+double *neuron_layer_get_weights(neuron_layer_t *nl, double *weights)
 {
     for (unsigned int i = 0; i < nl->num_neurons; ++i) {
         neuron_get_weights(nl->neurons[i], weights);
         weights += nl->inputs_per_neuron + 1;
     }
+    return weights;
 }
 
-void neuron_layer_set_weights(neuron_layer_t *nl, double *weights)
+double *neuron_layer_set_weights(neuron_layer_t *nl, double *weights)
 {
     for (unsigned int i = 0; i < nl->num_neurons; ++i) {
         neuron_set_weights(nl->neurons[i], weights);
         weights += nl->inputs_per_neuron + 1;
     }
+    return weights;
 }
 
 const double *neuron_layer_output(neuron_layer_t *nl, const double *inputs)

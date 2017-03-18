@@ -65,6 +65,7 @@ target_link_libraries(gbas fl m)
 add_library(gusgbai SHARED
     src/ai/neuron.c
     src/ai/neuron_layer.c
+    src/ai/neural_net.c
     )
 target_link_libraries(gusgbai m)
 set_target_properties(gusgbai
@@ -74,11 +75,12 @@ set_target_properties(gusgbai
 
 enable_testing()
 # gusgbai test
-add_executable(gusaitest
+add_executable(gusgbaitest
     test/ai/neuron_test.cc
     test/ai/neuron_layer_test.cc
+    test/ai/neural_net_test.cc
     )
-target_link_libraries(gusaitest
+target_link_libraries(gusgbaitest
     gusgbai
     /usr/lib/libgtest.a
     /usr/lib/libgtest_main.a
