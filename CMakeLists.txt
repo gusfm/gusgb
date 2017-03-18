@@ -6,11 +6,10 @@ find_package(Threads REQUIRED)
 
 SET (WARNINGS "-Werror -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wuninitialized -Wconversion -Wstrict-prototypes")
 
-set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -g")
-#set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -DDEBUG -Wall -std=c11 -g ${WARNINGS}")
-#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O2")
-#set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=c11 -g")
-#set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=c11 -pg")
+#set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -g")
+#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -g")
+set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -O2")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O2")
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(SYSTEM "/usr/include/freetype2")
 
@@ -18,7 +17,7 @@ include_directories(SYSTEM "/usr/include/freetype2")
 # Module source
 #-------------------
 
-add_library(libgusgb SHARED
+add_library(gusgb SHARED
     src/interrupt.c
     src/timer.c
     src/cart.c
@@ -29,14 +28,18 @@ add_library(libgusgb SHARED
     src/cpu_opcodes.c
     src/cpu_ext_ops.c
     src/cpu.c
-    )
-target_link_libraries(libgusgb m)
-
-add_executable(${PROJECT_NAME}
     src/game_boy.c
+    )
+target_link_libraries(gusgb m)
+
+add_executable(gusgb-bin
     src/main.c)
-target_link_libraries(${PROJECT_NAME} libgusgb GL glfw ftgl)
-set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${WARNINGS})
+target_link_libraries(gusgb-bin gusgb GL glfw ftgl)
+set_target_properties(gusgb-bin
+    PROPERTIES
+        COMPILE_FLAGS ${WARNINGS}
+        OUTPUT_NAME gusgb
+        )
 
 # Objdump
 add_executable(objdump
@@ -57,3 +60,22 @@ add_executable(gbas
     src/cart.c
     )
 target_link_libraries(gbas fl m)
+
+# libgusai
+add_library(gusgbai SHARED
+    src/ai/neuron.c
+    )
+target_link_libraries(gusgbai m)
+
+enable_testing()
+# gusgbai test
+add_executable(gusaitest
+    test/ai/neuron_test.cc
+    )
+target_link_libraries(gusaitest
+    gusgbai
+    /usr/lib/libgtest.a
+    /usr/lib/libgtest_main.a
+    ${CMAKE_THREAD_LIBS_INIT}
+    )
+add_test(test gusgbaitest)
