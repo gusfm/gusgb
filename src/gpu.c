@@ -271,7 +271,8 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
 static void gpu_update_fb_sprite(uint8_t *scanline_row)
 {
     uint32_t ysize = GPU.sprites_size ? 16 : 8;
-    /* Iterate over all sprites. */
+    int sprites = 0;
+    /* Iterate over the first 10 sprites on the scanline. */
     for (uint32_t i = 0; i < 40; i++) {
         sprite_t sprite = ((sprite_t *)GPU.oam)[i];
         int sx = (int)sprite.x - 8;
@@ -281,13 +282,14 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
             /* Get palette for this sprite. */
             rgb_t *pal = GPU.sprite_palette[sprite.palette];
             /* Get frame buffer pixel offset. */
-            uint32_t pixeloffs = (uint32_t)(GPU.scanline * 160 + sx);
             tile_line_t tile_line =
                 get_tile_line_sprite(sprite.tile, sy, sprite.yflip, ysize);
             /* Iterate over all tile pixels in the X-axis. */
             for (int tile_x = 0; tile_x < 8; tile_x++) {
                 /* Calculate pixel x coordinate. */
                 int px = sx + tile_x;
+                /* Calculate frame buffer pixel offset. */
+                uint32_t pixeloffs = (uint32_t)(GPU.scanline * 160 + px);
                 /* If pixel is on screen. */
                 if (px >= 0 && px < 160) {
                     /* Check if pixel is hidden. */
@@ -302,9 +304,11 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
                         GPU.framebuffer[pixeloffs].g = pal[color].g;
                         GPU.framebuffer[pixeloffs].b = pal[color].b;
                     }
-                    pixeloffs++;
                 }
             }
+            /* Only show 10 sprites for each scanline. */
+            if (++sprites == 10)
+                return;
         }
     }
 }
