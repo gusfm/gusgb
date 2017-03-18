@@ -66,6 +66,7 @@ add_library(gusgbai SHARED
     src/ai/neuron.c
     src/ai/neuron_layer.c
     src/ai/neural_net.c
+    src/ai/player.c
     )
 target_link_libraries(gusgbai m)
 set_target_properties(gusgbai
