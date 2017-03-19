@@ -6,10 +6,10 @@
 #define NUM_HIDDEN_LAYERS 2
 #define NUM_NEURONS_PER_LAYER 5
 
-player_t *player_create(unsigned int num_inputs)
+player_t *player_create(unsigned int num_inputs, unsigned int num_outputs)
 {
     player_t *p = (player_t *)malloc(sizeof(player_t));
-    p->nn = neural_net_create(num_inputs, NUM_OUTPUTS, NUM_HIDDEN_LAYERS,
+    p->nn = neural_net_create(num_inputs, num_outputs, NUM_HIDDEN_LAYERS,
                               NUM_NEURONS_PER_LAYER);
     return p;
 }

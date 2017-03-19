@@ -13,10 +13,10 @@
 #define GPU_CONTROL_WINDOWTILEMAP (1 << 6)
 #define GPU_CONTROL_DISPLAYENABLE (1 << 7)
 
-#define LCD_INT_HBLANK 0x08 // HBLANK interrupt
-#define LCD_INT_VBLANK 0x10 // VBLANK interrupt
-#define LCD_INT_OAM    0x20 // OAM interrupt
-#define LCD_INT_LY_LYC 0x40 // LY/LYC coincidence interrupt
+#define LCD_INT_HBLANK 0x08  // HBLANK interrupt
+#define LCD_INT_VBLANK 0x10  // VBLANK interrupt
+#define LCD_INT_OAM 0x20     // OAM interrupt
+#define LCD_INT_LY_LYC 0x40  // LY/LYC coincidence interrupt
 
 typedef enum {
     GPU_MODE_HBLANK = 0,
@@ -28,6 +28,8 @@ typedef enum {
 typedef struct {
     uint8_t r, g, b;
 } rgb_t;
+
+typedef void (*render_callback_t)(void);
 
 typedef struct {
     uint8_t reg[0x100];
@@ -55,12 +57,13 @@ typedef struct {
     uint8_t tiles[384][8][8];
     gpu_mode_e linemode;
     uint8_t vram[0x2000]; /* Video RAM. */
-    uint8_t oam[0xa0];   /* Sprite info. */
+    uint8_t oam[0xa0];    /* Sprite info. */
     rgb_t framebuffer[160 * 144];
     rgb_t bg_palette[4];
     rgb_t sprite_palette[2][4];
     GLFWwindow *window;
     float zoom;
+    render_callback_t callback;
 } gpu_t;
 
 typedef struct {
@@ -79,7 +82,8 @@ typedef struct {
     };
 } sprite_t;
 
-void gpu_init(float zoom);
+void gpu_init(float zoom, render_callback_t cb);
+gpu_t *gpu_get_instance(void);
 void gpu_set_glfw_window(GLFWwindow *window);
 uint8_t gpu_read_byte(uint16_t addr);
 void gpu_write_byte(uint16_t addr, uint8_t val);

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "keys.h"
 #include "interrupt.h"
 
@@ -99,4 +100,39 @@ void key_release(key_e key)
             break;
     }
     interrupt_set_flag_bit(INTERRUPTS_JOYPAD);
+}
+
+bool key_check_pressed(key_e key)
+{
+    uint8_t val;
+    switch (key) {
+        case KEY_START:
+             val = KEY.rows[0] & 0x8;
+             break;
+        case KEY_SELECT:
+            val = KEY.rows[0] & 0x4;
+            break;
+        case KEY_B:
+            val = KEY.rows[0] & 0x2;
+            break;
+        case KEY_A:
+            val = KEY.rows[0] & 0x1;
+            break;
+        case KEY_DOWN:
+            val = KEY.rows[1] & 0x8;
+            break;
+        case KEY_UP:
+            val = KEY.rows[1] & 0x4;
+            break;
+        case KEY_LEFT:
+            val = KEY.rows[1] & 0x2;
+            break;
+        case KEY_RIGHT:
+            val = KEY.rows[1] & 0x1;
+            break;
+        default:
+            printf("%s:%d: unknown key release: %d\n", __func__, __LINE__, key);;
+            exit(EXIT_FAILURE);
+    }
+    return !val;
 }

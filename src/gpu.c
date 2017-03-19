@@ -13,7 +13,7 @@ const rgb_t g_palette[4] = {
     {0, 0, 0},        // on
 };
 
-void gpu_init(float zoom)
+void gpu_init(float zoom, render_callback_t cb)
 {
     memset(&GPU, 0, sizeof(GPU));
     GPU.linemode = GPU_MODE_OAM;
@@ -33,6 +33,12 @@ void gpu_init(float zoom)
     GPU.sprite_palette[1][2] = g_palette[2];
     GPU.sprite_palette[1][3] = g_palette[3];
     GPU.zoom = zoom;
+    GPU.callback = cb;
+}
+
+gpu_t *gpu_get_instance(void)
+{
+    return &GPU;
 }
 
 void gpu_set_glfw_window(GLFWwindow *window)
@@ -42,7 +48,8 @@ void gpu_set_glfw_window(GLFWwindow *window)
 
 static bool gpu_check_vram_io(void)
 {
-    //return !GPU.display_on || GPU.linemode == GPU_MODE_HBLANK || GPU.linemode == GPU_MODE_VBLANK;
+    // return !GPU.display_on || GPU.linemode == GPU_MODE_HBLANK || GPU.linemode
+    // == GPU_MODE_VBLANK;
     // FIXME: Allow IO to vram for now since this was causing problems.
     return true;
 }
@@ -131,7 +138,8 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             GPU.control = val;
             break;
         case 0xff41:
-            GPU.lcd_status = (uint8_t)((val & 0xf8u) | (GPU.lcd_status & 0x07u));
+            GPU.lcd_status =
+                (uint8_t)((val & 0xf8u) | (GPU.lcd_status & 0x07u));
             break;
         case 0xff42:
             GPU.scroll_y = val;
@@ -171,7 +179,8 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             GPU.window_x = val;
             break;
         default:
-            printf("gpu_write_byte: not implemented: 0x%04x=0x%02x\n", addr, val);
+            printf("gpu_write_byte: not implemented: 0x%04x=0x%02x\n", addr,
+                   val);
             break;
     }
 }
@@ -336,6 +345,8 @@ static void gpu_render_framebuffer(void)
     glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, GPU.framebuffer);
     glfwSwapBuffers(GPU.window);
     glfwPollEvents();
+    if (GPU.callback)
+        GPU.callback();
 }
 
 static void gpu_change_mode(gpu_mode_e new_mode)
@@ -386,7 +397,8 @@ void gpu_step(uint32_t clock_step)
             if (GPU.modeclock >= 51) {
                 GPU.modeclock -= 51;
                 GPU.scanline++;
-                if (GPU.scanline == GPU.raster && GPU.lcd_status & LCD_INT_LY_LYC) {
+                if (GPU.scanline == GPU.raster &&
+                    GPU.lcd_status & LCD_INT_LY_LYC) {
                     interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
                 }
                 if (GPU.scanline == 143) {

@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     int zoom = 4;
-    int ret = gb_init(160 * zoom, 144 * zoom, (float)zoom, rom_path);
+    int ret = gb_init(160 * zoom, 144 * zoom, (float)zoom, rom_path, NULL);
     if (ret < 0) {
         fprintf(stderr, "ERROR: could not load ROM %s\n", rom_path);
         exit(EXIT_FAILURE);

@@ -8,7 +8,7 @@ typedef struct {
     unsigned int fitness;
 } player_t;
 
-player_t *player_create(unsigned int num_inputs);
+player_t *player_create(unsigned int num_inputs, unsigned int num_outputs);
 void player_destroy(player_t *p);
 unsigned int player_get_chromosome_lenght(player_t *p);
 void player_get_chromosome(player_t *p, double *chromo_array,
