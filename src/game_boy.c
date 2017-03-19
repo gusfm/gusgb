@@ -1,20 +1,11 @@
 #include "game_boy.h"
-#include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cpu.h"
 #include "gpu.h"
 #include "keys.h"
 
-typedef struct {
-    int width;
-    int height;
-    GLFWwindow *window;
-    cpu_t *cpu;
-} game_boy_t;
-
-static game_boy_t GB;
+game_boy_t GB;
 
 static void gb_error_callback(int error, const char *description)
 {

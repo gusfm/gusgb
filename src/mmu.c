@@ -67,12 +67,10 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
             return keys_read();
         case 0xff01:
             /* SB (R/W): Serial transfer data. */
-            printf("NOTE: Serial transfer not implemented!\n");
             break;
         case 0xff02:
             /* SC (R/W): SIO control. */
             /* Not implemented registers. */
-            printf("NOTE: Serial control not implemented!\n");
             break;
         case 0xff0f:
             /* IF (R/W): Interrupt flag. */
@@ -98,11 +96,9 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
         case 0xff24:
         case 0xff25:
         case 0xff26:
-            printf("ERROR: sound register 0x%04x not implemented!\n", addr);
             return 0;
     }
     if (addr >= 0xff30 && addr <= 0xff3f) {
-        printf("ERROR: Wave pattern RAM not implemented.\n");
         return 0;
     } else if (addr == 0xff50) {
         return MMU.read_ext_rom;
@@ -136,12 +132,10 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
                 return;
             case 0xff01:
                 /* SB (R/W): Serial transfer data. */
-                printf("NOTE: Serial transfer not implemented!\n");
                 break;
             case 0xff02:
                 /* SC (R/W): SIO control. */
                 /* Not implemented registers. */
-                printf("NOTE: Serial control not implemented!\n");
                 break;
             case 0xff0f:
                 /* IF (R/W): Interrupt flag. */
@@ -168,13 +162,11 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
             case 0xff24:
             case 0xff25:
             case 0xff26:
-                printf("ERROR: sound register 0x%04x not implemented!\n", addr);
                 return;
         }
         if (addr >= 0xff30 && addr <= 0xff3f) {
-            printf("ERROR: Wave pattern RAM not implemented.\n");
+            return;
         } else if (addr == 0xff50) {
-            printf("Switching to external ROM!\n");
             MMU.read_ext_rom = value;
         } else if (addr >= 0xff40 && addr < 0xff80) {
             gpu_write_byte(addr, value);
