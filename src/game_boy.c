@@ -164,8 +164,6 @@ int gb_init(int width, int height, float window_zoom, const char *rom_path,
         return -1;
     }
     gpu_set_glfw_window(GB.window);
-    GB.cpu = cpu_get_instance();
-    GB.gpu = gpu_get_instance();
     return 0;
 }
 
