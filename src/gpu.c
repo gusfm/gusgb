@@ -34,6 +34,7 @@ void gpu_init(float zoom, render_callback_t cb)
     GPU.sprite_palette[1][3] = g_palette[3];
     GPU.zoom = zoom;
     GPU.callback = cb;
+    GPU.gl_enabled = true;
 }
 
 gpu_t *gpu_get_instance(void)
@@ -44,6 +45,16 @@ gpu_t *gpu_get_instance(void)
 void gpu_set_glfw_window(GLFWwindow *window)
 {
     GPU.window = window;
+}
+
+void gpu_gl_enable(void)
+{
+    GPU.gl_enabled = true;
+}
+
+void gpu_gl_disable(void)
+{
+    GPU.gl_enabled = false;
 }
 
 static bool gpu_check_vram_io(void)
@@ -338,15 +349,17 @@ static void gpu_render_scanline(void)
 
 static void gpu_render_framebuffer(void)
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-    glRasterPos2i(-1, 1);
-    glPixelZoom(GPU.zoom, -GPU.zoom);
-    glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, GPU.framebuffer);
-    glfwSwapBuffers(GPU.window);
-    glfwPollEvents();
-    if (GPU.callback)
-        GPU.callback();
+    if (GPU.gl_enabled) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity();
+        glRasterPos2i(-1, 1);
+        glPixelZoom(GPU.zoom, -GPU.zoom);
+        glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, GPU.framebuffer);
+        glfwSwapBuffers(GPU.window);
+        glfwPollEvents();
+        if (GPU.callback)
+            GPU.callback();
+    }
 }
 
 static void gpu_change_mode(gpu_mode_e new_mode)

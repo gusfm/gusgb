@@ -19,6 +19,8 @@ int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
     int ret = gb_init(width, height, window_zoom, rom_path, gb_ai_step);
     if (ret != 0)
         return ret;
+    /* Disable gl rendering until the end of intro logo. */
+    gpu_gl_disable();
     gb_ai.num_inputs = 160 * 144;
     gb_ai.num_outputs = 6;
     gb_ai.pl = player_create(gb_ai.num_inputs, gb_ai.num_outputs);
@@ -62,7 +64,6 @@ void gb_ai_step(void)
         const double *keys = player_output(gb_ai.pl, gb_ai.screen);
         check_player_keys(keys, gb_ai.num_outputs);
         /* TODO:
-         * - Disable screen rendering during Nintendo logo;
          * - Automatize game start;
          * - Only start player AI after starting game;
          * - Check if game over and update player fitness;

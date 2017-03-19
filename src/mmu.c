@@ -185,6 +185,10 @@ uint8_t mmu_read_byte(uint16_t addr)
     if (addr < 0x4000) {
         /* 256B Internal ROM accessed after reset. */
         if (MMU.read_ext_rom == 0 && addr < 0x0100) {
+            if (addr == 0xff) {
+                /* Last internal rom access. Enable rendering if disabled. */
+                gpu_gl_enable();
+            }
             return g_internal_rom[addr];
         }
         /* 16kB ROM bank 0. */
