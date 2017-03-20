@@ -1,17 +1,19 @@
 #include "gb_ai.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "ai/player.h"
 #include "game_boy.h"
 #include "keys.h"
 #include "mmu.h"
+#include "population.h"
 
+#define NUM_PLAYERS (16)
 /**
  * This file controls the game and AI initialization. For now it's hardcoded for
  * the Super Marioland game. In the future this should be configurable.
  */
 typedef struct {
-    player_t *pl;
+    population_t *pop;
+    player_t *player;
     double *screen;
     unsigned int num_inputs;
     unsigned int num_outputs;
@@ -33,7 +35,8 @@ int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
     gpu_gl_disable();
     gb_ai.num_inputs = 160 * 144;
     gb_ai.num_outputs = 6;
-    gb_ai.pl = player_create(gb_ai.num_inputs, gb_ai.num_outputs);
+    gb_ai.pop =
+        population_create(NUM_PLAYERS, gb_ai.num_inputs, gb_ai.num_outputs);
     gb_ai.screen = (double *)malloc(sizeof(double) * gb_ai.num_inputs);
     return 0;
 }
@@ -52,13 +55,13 @@ static void check_player_keys(const double *outputs, unsigned int num_outputs)
         if (outputs[i] > 0.5) {
             /* Key pressed. */
             if (!key_check_pressed(key)) {
-                printf("%s:%d: pressing key %d\n", __func__, __LINE__, key);
+                printf("Pressing key %s\n", key_str(key));
                 key_press(key);
             }
         } else {
             /* Key released. */
             if (key_check_pressed(key)) {
-                printf("%s:%d: releasing key %d\n", __func__, __LINE__, key);
+                printf("Releasing key %s\n", key_str(key));
                 key_release(key);
             }
         }
@@ -71,7 +74,7 @@ void gb_ai_step(void)
     if (++cnt & 1) {
         /* Only calculate output every odd frame. */
         get_input(gb_ai.screen, gb_ai.num_inputs);
-        const double *keys = player_output(gb_ai.pl, gb_ai.screen);
+        const double *keys = player_output(gb_ai.player, gb_ai.screen);
         check_player_keys(keys, gb_ai.num_outputs);
     }
 }
@@ -108,6 +111,22 @@ static unsigned int bcd_to_dec(uint8_t *bcd, unsigned int length)
     return dec;
 }
 
+static void gb_ai_finish_game(void)
+{
+    /* Game over: Loading start screen tiles. */
+    uint8_t s[3];
+    s[0] = mmu_read_byte(0xc0a0);
+    s[1] = mmu_read_byte(0xc0a1);
+    s[2] = mmu_read_byte(0xc0a2);
+    unsigned int score = bcd_to_dec(s, 3);
+    player_set_fitness(gb_ai.player, score);
+    printf("AI score: %u\n", score);
+    for (key_e key = KEY_B; key < KEY_MAX; ++key) {
+        /* Release all keys before starting a new game. */
+        key_release(key);
+    }
+}
+
 static void gb_ai_run_game(void)
 {
     /* Start SUPER MARIOLAND game. */
@@ -120,14 +139,7 @@ static void gb_ai_run_game(void)
         }
         cpu_emulate_cycle();
         if (gb_ai.cpu->reg.pc == 0x03f4) {
-            /* Game over: Loading start screen tiles. */
-            uint8_t s[3];
-            s[0] = mmu_read_byte(0xc0a0);
-            s[1] = mmu_read_byte(0xc0a1);
-            s[2] = mmu_read_byte(0xc0a2);
-            unsigned int score = bcd_to_dec(s, 3);
-            player_set_fitness(gb_ai.pl, score);
-            printf("AI score: %d\n", score);
+            gb_ai_finish_game();
             break;
         }
     }
@@ -136,7 +148,14 @@ static void gb_ai_run_game(void)
 void gb_ai_main(void)
 {
     while (1) {
-        gb_ai_run_game();
+        /* Make every player play the game once. */
+        for (unsigned int i = 0; i < NUM_PLAYERS; ++i) {
+            printf("Current player: %u\n", i);
+            gb_ai.player = population_get_player(gb_ai.pop, i);
+            gb_ai_run_game();
+        }
+        /* Select the best fitting players, and reproduce them. */
+        population_natural_selection(gb_ai.pop);
     }
 }
 
@@ -146,5 +165,5 @@ void gb_ai_finish(void)
         glfwDestroyWindow(GB.window);
         glfwTerminate();
     }
-    player_destroy(gb_ai.pl);
+    population_destroy(gb_ai.pop);
 }

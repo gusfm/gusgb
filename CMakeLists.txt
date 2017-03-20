@@ -56,17 +56,20 @@ add_executable(gbas
     ${FLEX_gbas_scanner_OUTPUTS}
     src/as/opcodes.c
     src/as/gbas.c
-    src/as/list.c
+    src/utils/list.c
     src/cart.c
     )
 target_link_libraries(gbas fl m)
 
 # libgusgbai
 add_library(gusgbai SHARED
+    src/ai/random.c
     src/ai/neuron.c
     src/ai/neuron_layer.c
     src/ai/neural_net.c
     src/ai/player.c
+    src/ai/genetic_alg.c
+    src/ai/population.c
     )
 target_link_libraries(gusgbai m)
 set_target_properties(gusgbai

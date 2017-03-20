@@ -53,6 +53,6 @@ void player_set_fitness(player_t *p, unsigned int fitness)
 
 void player_print(player_t *p)
 {
-    printf("Organism: fitness: %u\n", p->fitness);
+    printf("Player: fitness: %u\n", p->fitness);
     neural_net_print(p->nn);
 }

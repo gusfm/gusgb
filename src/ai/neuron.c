@@ -2,15 +2,10 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "random.h"
 
 #define BIAS (-1.0)
 #define SHAPE_OF_CURVE (1.0)
-
-/* Returns a random double in the range -1 <= n <= 1. */
-static double rand_clamp(void)
-{
-    return ((double)rand() / RAND_MAX) * 2.0 - 1.0;
-}
 
 neuron_t *neuron_create(unsigned int num_inputs)
 {

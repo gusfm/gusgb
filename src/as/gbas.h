@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include "list.h"
+#include "utils/list.h"
 
 typedef enum {
     JUMP_JP,

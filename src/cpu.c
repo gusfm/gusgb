@@ -8,7 +8,7 @@
 #include "interrupt.h"
 #include "mmu.h"
 #include "timer.h"
-#include "utils.h"
+#include "utils/debug.h"
 
 cpu_t g_cpu;
 

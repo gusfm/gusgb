@@ -1,6 +1,6 @@
+#include "keys.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "keys.h"
 #include "interrupt.h"
 
 typedef struct {
@@ -62,7 +62,8 @@ void key_press(key_e key)
             KEY.rows[1] &= 0xe;
             break;
         default:
-            printf("%s:%d: unknown key press: %d\n", __func__, __LINE__, key);;
+            printf("%s:%d: unknown key press: %d\n", __func__, __LINE__, key);
+            ;
             break;
     }
     interrupt_set_flag_bit(INTERRUPTS_JOYPAD);
@@ -96,7 +97,8 @@ void key_release(key_e key)
             KEY.rows[1] |= 0x1;
             break;
         default:
-            printf("%s:%d: unknown key release: %d\n", __func__, __LINE__, key);;
+            printf("%s:%d: unknown key release: %d\n", __func__, __LINE__, key);
+            ;
             break;
     }
     interrupt_set_flag_bit(INTERRUPTS_JOYPAD);
@@ -107,8 +109,8 @@ bool key_check_pressed(key_e key)
     uint8_t val;
     switch (key) {
         case KEY_START:
-             val = KEY.rows[0] & 0x8;
-             break;
+            val = KEY.rows[0] & 0x8;
+            break;
         case KEY_SELECT:
             val = KEY.rows[0] & 0x4;
             break;
@@ -131,8 +133,17 @@ bool key_check_pressed(key_e key)
             val = KEY.rows[1] & 0x1;
             break;
         default:
-            printf("%s:%d: unknown key release: %d\n", __func__, __LINE__, key);;
+            printf("%s:%d: unknown key release: %d\n", __func__, __LINE__, key);
+            ;
             exit(EXIT_FAILURE);
     }
     return !val;
+}
+
+const char *keys_str[] = {"Start", "Select", "B",    "A",
+                          "Down",  "Up",     "Left", "Right"};
+
+const char *key_str(key_e key)
+{
+    return keys_str[key];
 }
