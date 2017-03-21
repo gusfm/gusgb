@@ -63,11 +63,31 @@ static void population_debug(population_t *pop)
     }
 }
 
+static void population_random(population_t *pop)
+{
+    double *weights = pop->mom_weights;
+    printf("Generating random population\n");
+    for (unsigned int i = 0; i < pop->num_players; ++i) {
+        player_get_chromosome(pop->players[i], weights, pop->num_chromo);
+        /* Set random weights. */
+        for (unsigned int w = 0; w < pop->num_chromo; ++w) {
+            weights[w] = rand_clamp();
+        }
+        player_set_chromosome(pop->players[i], weights, pop->num_chromo);
+    }
+}
+
 void population_natural_selection(population_t *pop)
 {
     /* Sort agents list. */
     qsort(pop->players, pop->num_players, sizeof(player_t *), compare_sort);
     population_debug(pop);
+    /* Check if player with best score is zero. */
+    if (player_get_fitness(pop->players[0]) == 0) {
+        printf("No players scored this round\n");
+        population_random(pop);
+        return;
+    }
     /* Get half of population, and reproduce them. */
     unsigned int half_pop = pop->num_players / 2;
     for (unsigned int i = 0; i < half_pop; i += 2) {
