@@ -5,6 +5,7 @@
 #include "mmu.h"
 
 gpu_t GPU;
+gpu_gl_t GPU_GL;
 
 const rgb_t g_palette[4] = {
     {255, 255, 255},  // off
@@ -15,26 +16,18 @@ const rgb_t g_palette[4] = {
 
 void gpu_init(float zoom, render_callback_t cb)
 {
+    gpu_reset();
+    GPU_GL.zoom = zoom;
+    GPU_GL.callback = cb;
+    GPU_GL.gl_enabled = true;
+    GPU_GL.window = NULL;
+}
+
+void gpu_reset(void)
+{
     memset(&GPU, 0, sizeof(GPU));
     GPU.linemode = GPU_MODE_OAM;
-    /* Init background palette. */
-    GPU.bg_palette[0] = g_palette[0];
-    GPU.bg_palette[1] = g_palette[1];
-    GPU.bg_palette[2] = g_palette[2];
-    GPU.bg_palette[3] = g_palette[3];
-    /* Init sprite palette. */
-    GPU.sprite_palette[0][0] = g_palette[0];
-    GPU.sprite_palette[0][1] = g_palette[1];
-    GPU.sprite_palette[0][2] = g_palette[2];
-    GPU.sprite_palette[0][3] = g_palette[3];
-    /* Init sprite palette. */
-    GPU.sprite_palette[1][0] = g_palette[0];
-    GPU.sprite_palette[1][1] = g_palette[1];
-    GPU.sprite_palette[1][2] = g_palette[2];
-    GPU.sprite_palette[1][3] = g_palette[3];
-    GPU.zoom = zoom;
-    GPU.callback = cb;
-    GPU.gl_enabled = true;
+    GPU_GL.gl_enabled = false;
 }
 
 gpu_t *gpu_get_instance(void)
@@ -44,17 +37,17 @@ gpu_t *gpu_get_instance(void)
 
 void gpu_set_glfw_window(GLFWwindow *window)
 {
-    GPU.window = window;
+    GPU_GL.window = window;
 }
 
 void gpu_gl_enable(void)
 {
-    GPU.gl_enabled = true;
+    GPU_GL.gl_enabled = true;
 }
 
 void gpu_gl_disable(void)
 {
-    GPU.gl_enabled = false;
+    GPU_GL.gl_enabled = false;
 }
 
 static bool gpu_check_vram_io(void)
@@ -349,16 +342,16 @@ static void gpu_render_scanline(void)
 
 static void gpu_render_framebuffer(void)
 {
-    if (GPU.gl_enabled) {
+    if (GPU_GL.gl_enabled) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
         glRasterPos2i(-1, 1);
-        glPixelZoom(GPU.zoom, -GPU.zoom);
+        glPixelZoom(GPU_GL.zoom, -GPU_GL.zoom);
         glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, GPU.framebuffer);
-        glfwSwapBuffers(GPU.window);
+        glfwSwapBuffers(GPU_GL.window);
         glfwPollEvents();
-        if (GPU.callback)
-            GPU.callback();
+        if (GPU_GL.callback)
+            GPU_GL.callback();
     }
 }
 

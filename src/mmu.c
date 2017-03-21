@@ -40,12 +40,17 @@ int mmu_init(const char *rom_path)
     if (ret < 0) {
         return -1;
     }
+    mmu_reset();
+    return 0;
+}
+
+void mmu_reset(void)
+{
     memset(MMU.wram, 0, sizeof(MMU.wram));
     memset(MMU.zram, 0, sizeof(MMU.zram));
     MMU.read_ext_rom = 0;
     interrupt_init();
     keys_init();
-    return 0;
 }
 
 static uint8_t mmu_read_byte_ffxx(uint16_t addr)

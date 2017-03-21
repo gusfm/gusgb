@@ -55,18 +55,20 @@ typedef struct {
     uint8_t scanline;
     uint8_t raster;
     uint32_t modeclock;
-    uint8_t tiles[384][8][8];
     gpu_mode_e linemode;
     uint8_t vram[0x2000]; /* Video RAM. */
     uint8_t oam[0xa0];    /* Sprite info. */
-    bool gl_enabled;
     rgb_t framebuffer[160 * 144];
     rgb_t bg_palette[4];
     rgb_t sprite_palette[2][4];
-    GLFWwindow *window;
-    float zoom;
-    render_callback_t callback;
 } gpu_t;
+
+typedef struct {
+    GLFWwindow *window;
+    render_callback_t callback;
+    float zoom;
+    bool gl_enabled;
+} gpu_gl_t;
 
 typedef struct {
     uint8_t y;    /* Y-coordinate minus 16. */
@@ -85,6 +87,7 @@ typedef struct {
 } sprite_t;
 
 void gpu_init(float zoom, render_callback_t cb);
+void gpu_reset(void);
 gpu_t *gpu_get_instance(void);
 void gpu_set_glfw_window(GLFWwindow *window);
 void gpu_gl_enable(void);

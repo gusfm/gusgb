@@ -55,10 +55,19 @@ static int compare_sort(const void *first, const void *second)
     return 0;
 }
 
+static void population_debug(population_t *pop)
+{
+    printf("Population fitness after round:\n");
+    for (unsigned int i = 0; i < pop->num_players; ++i) {
+        printf("Player %u: %u\n", i + 1, player_get_fitness(pop->players[i]));
+    }
+}
+
 void population_natural_selection(population_t *pop)
 {
     /* Sort agents list. */
     qsort(pop->players, pop->num_players, sizeof(player_t *), compare_sort);
+    population_debug(pop);
     /* Get half of population, and reproduce them. */
     unsigned int half_pop = pop->num_players / 2;
     for (unsigned int i = 0; i < half_pop; i += 2) {

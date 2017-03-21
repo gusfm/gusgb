@@ -15,6 +15,9 @@ typedef struct {
 /* Init MMU subsystem. */
 int mmu_init(const char *rom_path);
 
+/* Reset MMU keeping cartridge ROM memory. */
+void mmu_reset(void);
+
 /* Read byte from a given address. */
 uint8_t mmu_read_byte(uint16_t addr);
 

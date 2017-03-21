@@ -409,6 +409,14 @@ int cpu_init(const char *rom_path, float screen_zoom, render_callback_t cb)
     return mmu_init(rom_path);
 }
 
+void cpu_reset(void)
+{
+    memset(&g_cpu, 0x0, sizeof(g_cpu));
+    timer_init();
+    gpu_reset();
+    mmu_reset();
+}
+
 static uint8_t cpu_fetch_opcode(void)
 {
     uint8_t op = mmu_read_byte(g_cpu.reg.pc);

@@ -19,6 +19,9 @@ typedef struct {
     unsigned int num_outputs;
     cpu_t *cpu;
     gpu_t *gpu;
+    unsigned int vblank_cnt;
+    unsigned int last_vblank_score;
+    unsigned int last_score;
 } gb_ai_t;
 
 gb_ai_t gb_ai;
@@ -91,6 +94,9 @@ static void gb_ai_wait_vblank(unsigned int num)
 
 static void gb_ai_start_game(void)
 {
+    gb_ai.vblank_cnt = 0;
+    gb_ai.last_vblank_score = 0;
+    gb_ai.last_score = 0;
     /* Execute until start game screen. */
     gb_ai_wait_vblank(2);
     /* Press start to start the game. */
@@ -111,20 +117,41 @@ static unsigned int bcd_to_dec(uint8_t *bcd, unsigned int length)
     return dec;
 }
 
-static void gb_ai_finish_game(void)
+static unsigned int gb_ai_get_score(void)
 {
     /* Game over: Loading start screen tiles. */
     uint8_t s[3];
     s[0] = mmu_read_byte(0xc0a0);
     s[1] = mmu_read_byte(0xc0a1);
     s[2] = mmu_read_byte(0xc0a2);
-    unsigned int score = bcd_to_dec(s, 3);
+    return bcd_to_dec(s, 3);
+}
+
+static void gb_ai_finish_game(void)
+{
+    unsigned int score = gb_ai_get_score();
     player_set_fitness(gb_ai.player, score);
     printf("AI score: %u\n", score);
-    for (key_e key = KEY_B; key < KEY_MAX; ++key) {
-        /* Release all keys before starting a new game. */
-        key_release(key);
+}
+
+static bool gb_ai_check_game_over(void)
+{
+    if (gb_ai.cpu->reg.pc == 0x03f4) {
+        printf("Player game over detected\n");
+        return true;
+    } else if (gb_ai.cpu->reg.pc == 0x40) {
+        gb_ai.vblank_cnt++;
+        unsigned int cur_score = gb_ai_get_score();
+        if (cur_score > gb_ai.last_score) {
+            gb_ai.last_vblank_score = gb_ai.vblank_cnt;
+            gb_ai.last_score = cur_score;
+        } else if (gb_ai.last_vblank_score + 600 < gb_ai.vblank_cnt) {
+            /* If after 10 seconds the score didn't change, timeout. */
+            printf("Player timeout after 10 seconds without change in score\n");
+            return true;
+        }
     }
+    return false;
 }
 
 static void gb_ai_run_game(void)
@@ -138,8 +165,9 @@ static void gb_ai_run_game(void)
             exit(EXIT_SUCCESS);
         }
         cpu_emulate_cycle();
-        if (gb_ai.cpu->reg.pc == 0x03f4) {
+        if (gb_ai_check_game_over() == true) {
             gb_ai_finish_game();
+            cpu_reset();
             break;
         }
     }
@@ -150,7 +178,7 @@ void gb_ai_main(void)
     while (1) {
         /* Make every player play the game once. */
         for (unsigned int i = 0; i < NUM_PLAYERS; ++i) {
-            printf("Current player: %u\n", i);
+            printf("Current player: %u\n", i + 1);
             gb_ai.player = population_get_player(gb_ai.pop, i);
             gb_ai_run_game();
         }
