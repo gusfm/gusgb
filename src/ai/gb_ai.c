@@ -22,6 +22,7 @@ typedef struct {
     unsigned int vblank_cnt;
     unsigned int last_vblank_score;
     unsigned int last_score;
+    bool ai_enable;
 } gb_ai_t;
 
 gb_ai_t gb_ai;
@@ -36,6 +37,7 @@ int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
     gb_ai.gpu = gpu_get_instance();
     /* Disable gl rendering until the end of intro logo. */
     gpu_gl_disable();
+    gb_ai.ai_enable = false;
     gb_ai.num_inputs = 160 * 144;
     gb_ai.num_outputs = 6;
     gb_ai.pop =
@@ -53,6 +55,8 @@ static void get_input(double *inputs, unsigned int num_inputs)
 
 static void check_player_keys(const double *outputs, unsigned int num_outputs)
 {
+    if (gb_ai.ai_enable == false)
+        return;
     key_e key = KEY_B;
     for (unsigned int i = 0; i < num_outputs; ++i, ++key) {
         if (outputs[i] > 0.5) {
@@ -103,6 +107,8 @@ static void gb_ai_start_game(void)
     key_press(KEY_START);
     gb_ai_wait_vblank(1);
     key_release(KEY_START);
+    gb_ai_wait_vblank(10);
+    gb_ai.ai_enable = true;
 }
 
 static unsigned int bcd_to_dec(uint8_t *bcd, unsigned int length)
@@ -132,6 +138,7 @@ static void gb_ai_finish_game(void)
     unsigned int score = gb_ai_get_score();
     player_set_fitness(gb_ai.player, score);
     printf("AI score: %u\n", score);
+    gb_ai.ai_enable = false;
 }
 
 static bool gb_ai_check_game_over(void)
