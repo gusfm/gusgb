@@ -48,11 +48,13 @@ static int compare_sort(const void *first, const void *second)
 {
     unsigned int fitness1 = player_get_fitness(*(player_t **)first);
     unsigned int fitness2 = player_get_fitness(*(player_t **)second);
-    if (fitness1 > fitness2)
+    /* When fitness values are equal, give preference to the second one. This
+     * is useful for giving preference to children instead of parents. */
+    if (fitness1 > fitness2) {
         return -1;
-    if (fitness1 < fitness2)
+    } else {
         return 1;
-    return 0;
+    }
 }
 
 static void population_debug(population_t *pop)
