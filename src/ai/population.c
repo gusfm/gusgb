@@ -65,18 +65,16 @@ static void population_debug(population_t *pop)
     }
 }
 
-static void population_random(population_t *pop)
+static void population_random_player(population_t *pop, unsigned int id)
 {
     double *weights = pop->mom_weights;
-    printf("Generating random population\n");
-    for (unsigned int i = 0; i < pop->num_players; ++i) {
-        player_get_chromosome(pop->players[i], weights, pop->num_chromo);
-        /* Set random weights. */
-        for (unsigned int w = 0; w < pop->num_chromo; ++w) {
-            weights[w] = rand_clamp();
-        }
-        player_set_chromosome(pop->players[i], weights, pop->num_chromo);
+    printf("Generating random player: %u\n", id + 1);
+    player_get_chromosome(pop->players[id], weights, pop->num_chromo);
+    /* Set random weights. */
+    for (unsigned int w = 0; w < pop->num_chromo; ++w) {
+        weights[w] = rand_clamp();
     }
+    player_set_chromosome(pop->players[id], weights, pop->num_chromo);
 }
 
 void population_natural_selection(population_t *pop)
@@ -84,28 +82,32 @@ void population_natural_selection(population_t *pop)
     /* Sort agents list. */
     qsort(pop->players, pop->num_players, sizeof(player_t *), compare_sort);
     population_debug(pop);
-    /* Check if player with best score is zero. */
-    if (player_get_fitness(pop->players[0]) == 0) {
-        printf("No players scored this round\n");
-        population_random(pop);
-        return;
-    }
     /* Get half of population, and reproduce them. */
     unsigned int half_pop = pop->num_players / 2;
     for (unsigned int i = 0; i < half_pop; i += 2) {
-        /* Get parent's weights. */
-        player_get_chromosome(pop->players[i], pop->mom_weights,
-                              pop->num_chromo);
-        player_get_chromosome(pop->players[i + 1], pop->dad_weights,
-                              pop->num_chromo);
-        /* Crossover. */
-        ga_crossover1(pop->num_chromo, pop->mom_weights, pop->dad_weights,
-                      pop->child1_weights, pop->child2_weights);
-        /* Save new child weights. */
-        player_set_chromosome(pop->players[half_pop + i], pop->child1_weights,
-                              pop->num_chromo);
-        player_set_chromosome(pop->players[half_pop + i + 1],
-                              pop->child2_weights, pop->num_chromo);
+        if (player_get_fitness(pop->players[i]) == 0 &&
+            player_get_fitness(pop->players[i + 1]) == 0) {
+            /* When the score of parents is zero, generate random players.*/
+            population_random_player(pop, i);
+            population_random_player(pop, i + 1);
+            population_random_player(pop, half_pop + i);
+            population_random_player(pop, half_pop + i + 1);
+        } else {
+            /* Get parent's weights. */
+            player_get_chromosome(pop->players[i], pop->mom_weights,
+                                  pop->num_chromo);
+            player_get_chromosome(pop->players[i + 1], pop->dad_weights,
+                                  pop->num_chromo);
+
+            /* Crossover. */
+            ga_crossover1(pop->num_chromo, pop->mom_weights, pop->dad_weights,
+                          pop->child1_weights, pop->child2_weights);
+            /* Save new child weights. */
+            player_set_chromosome(pop->players[half_pop + i],
+                                  pop->child1_weights, pop->num_chromo);
+            player_set_chromosome(pop->players[half_pop + i + 1],
+                                  pop->child2_weights, pop->num_chromo);
+        }
     }
 }
 
