@@ -38,7 +38,7 @@ int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
     /* Disable gl rendering until the end of intro logo. */
     gpu_gl_disable();
     gb_ai.ai_enable = false;
-    gb_ai.num_inputs = 160 * 144;
+    gb_ai.num_inputs = 80 * 72; /* 1/4 of original size. */
     gb_ai.num_outputs = 6;
     gb_ai.pop =
         population_create(NUM_PLAYERS, gb_ai.num_inputs, gb_ai.num_outputs);
@@ -46,10 +46,21 @@ int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
     return 0;
 }
 
-static void get_input(double *inputs, unsigned int num_inputs)
+static void get_input(double *inputs)
 {
-    for (unsigned int i = 0; i < num_inputs; ++i) {
-        inputs[i] = (double)(gb_ai.gpu->framebuffer[i].r) / 255.0;
+    /* Resize image to reduce the number of inputs. */
+    rgb_t *fb = gb_ai.gpu->framebuffer;
+    unsigned int i = 0, px, offs;
+    for (unsigned int y = 0; y < 144; y += 2) {
+        for (unsigned int x = 0; x < 160; x += 2) {
+            offs = y * 160 + x;
+            px = fb[offs].r;
+            px += fb[++offs].r;
+            offs = (y + 1) * 160 + x;
+            px += fb[offs].r;
+            px += fb[++offs].r;
+            inputs[i++] = (double) px / (255.0 * 4.0);
+        }
     }
 }
 
@@ -80,7 +91,7 @@ void gb_ai_step(void)
     static unsigned int cnt = 0;
     if (++cnt & 1) {
         /* Only calculate output every odd frame. */
-        get_input(gb_ai.screen, gb_ai.num_inputs);
+        get_input(gb_ai.screen);
         const double *keys = player_output(gb_ai.player, gb_ai.screen);
         check_player_keys(keys, gb_ai.num_outputs);
     }
