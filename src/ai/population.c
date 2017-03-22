@@ -61,7 +61,9 @@ static void population_debug(population_t *pop)
 {
     printf("Population fitness after round:\n");
     for (unsigned int i = 0; i < pop->num_players; ++i) {
-        printf("Player %u: %u\n", i + 1, player_get_fitness(pop->players[i]));
+        printf("Player %u: fitness %u age %u\n", i + 1,
+               player_get_fitness(pop->players[i]),
+               player_get_age(pop->players[i]));
     }
 }
 
