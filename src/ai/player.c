@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 #define NUM_OUTPUTS 6
-#define NUM_HIDDEN_LAYERS 2
-#define NUM_NEURONS_PER_LAYER 5
+#define NUM_HIDDEN_LAYERS 3
+#define NUM_NEURONS_PER_LAYER 20
 
 player_t *player_create(unsigned int num_inputs, unsigned int num_outputs)
 {
