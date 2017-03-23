@@ -46,6 +46,11 @@ int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
     return 0;
 }
 
+int gb_ai_load(const char *filename)
+{
+    return population_load(gb_ai.pop, filename);
+}
+
 static void get_input(double *inputs)
 {
     /* Resize image to reduce the number of inputs. */
@@ -211,5 +216,6 @@ void gb_ai_finish(void)
         glfwDestroyWindow(GB.window);
         glfwTerminate();
     }
+    population_save(gb_ai.pop, "population.out");
     population_destroy(gb_ai.pop);
 }

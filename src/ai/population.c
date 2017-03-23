@@ -17,6 +17,8 @@ population_t *population_create(unsigned int num_players,
     }
     population_t *pop = (population_t *)malloc(sizeof(population_t));
     pop->num_players = num_players;
+    pop->num_inputs = num_inputs;
+    pop->num_outputs = num_outputs;
     pop->players = (player_t **)malloc(sizeof(player_t) * num_players);
     rand_start();
     player_t *player;
@@ -117,4 +119,109 @@ player_t *population_get_player(population_t *pop, unsigned int player_id)
 {
     assert(player_id < pop->num_players);
     return pop->players[player_id];
+}
+
+void population_save(population_t *pop, const char *filename)
+{
+    FILE *f = fopen("population.out", "w");
+    if (f == NULL) {
+        fprintf(stderr, "ERROR: could not open %s\n", filename);
+        return;
+    }
+    size_t ret = fwrite(&pop->num_players, sizeof(pop->num_players), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not write num_players\n");
+        return;
+    }
+    ret = fwrite(&pop->num_inputs, sizeof(pop->num_inputs), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not write num_inputs\n");
+        return;
+    }
+    ret = fwrite(&pop->num_outputs, sizeof(pop->num_outputs), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not write num_outputs\n");
+        return;
+    }
+    ret = fwrite(&pop->num_chromo, sizeof(pop->num_chromo), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not write num_chromo\n");
+        return;
+    }
+    for (unsigned int i = 0; i < pop->num_players; ++i) {
+        player_t *p = pop->players[i];
+        unsigned int age = player_get_age(p);
+        ret = fwrite(&age, sizeof(age), 1, f);
+        if (ret != 1) {
+            fprintf(stderr, "ERROR: could not write age\n");
+            return;
+        }
+        player_get_chromosome(pop->players[i], pop->mom_weights,
+                              pop->num_chromo);
+        for (unsigned w = 0; w < pop->num_chromo; ++w) {
+            ret = fwrite(&pop->mom_weights[w], sizeof(pop->mom_weights[0]), 1, f);
+            if (ret != 1) {
+                fprintf(stderr, "ERROR: could not write weights %u\n", w);
+                return;
+            }
+        }
+    }
+    fclose(f);
+}
+
+int population_load(population_t *pop, const char *filename)
+{
+    FILE *f = fopen(filename, "r");
+    if (f == NULL) {
+        fprintf(stderr, "ERROR: could not open %s\n", filename);
+        return -1;
+    }
+    size_t ret = fread(&pop->num_players, sizeof(pop->num_players), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not read num_players\n");
+        fclose(f);
+        return -1;
+    }
+    ret = fread(&pop->num_inputs, sizeof(pop->num_inputs), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not read num_inputs\n");
+        fclose(f);
+        return -1;
+    }
+    ret = fread(&pop->num_outputs, sizeof(pop->num_outputs), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not read num_outputs\n");
+        fclose(f);
+        return -1;
+    }
+    ret = fread(&pop->num_chromo, sizeof(pop->num_chromo), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not read num_chromo\n");
+        fclose(f);
+        return -1;
+    }
+    for (unsigned int i = 0; i < pop->num_players; ++i) {
+        player_t *p = pop->players[i];
+        unsigned int age = player_get_age(p);
+        ret = fread(&age, sizeof(age), 1, f);
+        if (ret != 1) {
+            fprintf(stderr, "ERROR: could not read age\n");
+            fclose(f);
+            return -1;
+        }
+        player_get_chromosome(pop->players[i], pop->mom_weights,
+                              pop->num_chromo);
+        for (unsigned w = 0; w < pop->num_chromo; ++w) {
+            ret =
+                fread(&pop->mom_weights[w], sizeof(pop->mom_weights[0]), 1, f);
+            if (ret != 1) {
+                fprintf(stderr, "ERROR: could not read weight %u\n", w);
+                fclose(f);
+                return -1;
+            }
+        }
+        player_set_chromosome(p, pop->mom_weights, pop->num_chromo);
+    }
+    fclose(f);
+    return 0;
 }

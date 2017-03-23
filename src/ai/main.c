@@ -5,8 +5,9 @@
 int main(int argc, char *argv[])
 {
     const char *rom_path = argv[1];
+    const char *ai_filename = argv[2];
     if (argc < 2) {
-        fprintf(stderr, "Syntax: %s <rom path>\n", argv[0]);
+        fprintf(stderr, "Syntax: %s <rom path> [ai file name]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
     int zoom = 4;
@@ -14,6 +15,12 @@ int main(int argc, char *argv[])
     if (ret < 0) {
         fprintf(stderr, "ERROR: could not load ROM %s\n", rom_path);
         exit(EXIT_FAILURE);
+    }
+    if (ai_filename != NULL) {
+        ret = gb_ai_load(ai_filename);
+        if (ret < 0) {
+            exit(EXIT_FAILURE);
+        }
     }
     gb_ai_main();
     gb_ai_finish();
