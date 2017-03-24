@@ -198,7 +198,9 @@ static void gb_ai_run_game(void)
 
 void gb_ai_main(void)
 {
+    unsigned int epoch = 1;
     while (1) {
+        printf("Epoch: %u\n", epoch++);
         /* Make every player play the game once. */
         for (unsigned int i = 0; i < NUM_PLAYERS; ++i) {
             printf("Current player: %u\n", i + 1);

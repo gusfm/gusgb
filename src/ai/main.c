@@ -5,7 +5,7 @@
 
 static void handler(int sig)
 {
-    printf("Caught signal %d\n", sig);
+    (void)sig;
     gb_ai_finish();
     exit(EXIT_SUCCESS);
 }

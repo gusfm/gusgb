@@ -123,7 +123,8 @@ player_t *population_get_player(population_t *pop, unsigned int player_id)
 
 void population_save(population_t *pop, const char *filename)
 {
-    FILE *f = fopen("population.out", "w");
+    printf("Saving players to %s\n", filename);
+    FILE *f = fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "ERROR: could not open %s\n", filename);
         return;
@@ -178,6 +179,7 @@ void population_save(population_t *pop, const char *filename)
 
 int population_load(population_t *pop, const char *filename)
 {
+    printf("Loading players from %s\n", filename);
     FILE *f = fopen(filename, "r");
     if (f == NULL) {
         fprintf(stderr, "ERROR: could not open %s\n", filename);
