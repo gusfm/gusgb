@@ -131,21 +131,25 @@ void population_save(population_t *pop, const char *filename)
     size_t ret = fwrite(&pop->num_players, sizeof(pop->num_players), 1, f);
     if (ret != 1) {
         fprintf(stderr, "ERROR: could not write num_players\n");
+        fclose(f);
         return;
     }
     ret = fwrite(&pop->num_inputs, sizeof(pop->num_inputs), 1, f);
     if (ret != 1) {
         fprintf(stderr, "ERROR: could not write num_inputs\n");
+        fclose(f);
         return;
     }
     ret = fwrite(&pop->num_outputs, sizeof(pop->num_outputs), 1, f);
     if (ret != 1) {
         fprintf(stderr, "ERROR: could not write num_outputs\n");
+        fclose(f);
         return;
     }
     ret = fwrite(&pop->num_chromo, sizeof(pop->num_chromo), 1, f);
     if (ret != 1) {
         fprintf(stderr, "ERROR: could not write num_chromo\n");
+        fclose(f);
         return;
     }
     for (unsigned int i = 0; i < pop->num_players; ++i) {
@@ -154,14 +158,17 @@ void population_save(population_t *pop, const char *filename)
         ret = fwrite(&age, sizeof(age), 1, f);
         if (ret != 1) {
             fprintf(stderr, "ERROR: could not write age\n");
+            fclose(f);
             return;
         }
         player_get_chromosome(pop->players[i], pop->mom_weights,
                               pop->num_chromo);
         for (unsigned w = 0; w < pop->num_chromo; ++w) {
-            ret = fwrite(&pop->mom_weights[w], sizeof(pop->mom_weights[0]), 1, f);
+            ret =
+                fwrite(&pop->mom_weights[w], sizeof(pop->mom_weights[0]), 1, f);
             if (ret != 1) {
                 fprintf(stderr, "ERROR: could not write weights %u\n", w);
+                fclose(f);
                 return;
             }
         }
