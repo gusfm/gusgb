@@ -7,7 +7,8 @@
 #include "population.h"
 
 #define NUM_PLAYERS (16)
-#define GAME_TIMEOUT (60 * 5)
+#define GAME_TIMEOUT (10)
+#define GAME_TIMEOUT_FRAMES (60 * GAME_TIMEOUT)
 
 /**
  * This file controls the game and AI initialization. For now it's hardcoded for
@@ -26,6 +27,7 @@ typedef struct {
 unsigned int vblank_cnt;
 unsigned int last_score;
 unsigned int last_score_frame;
+unsigned int key_score;
 unsigned int frame_cnt;
 uint16_t *pc;
 rgb_t *fb;
@@ -80,15 +82,20 @@ static void check_player_keys(const double *outputs, unsigned int num_outputs)
     key_e key = KEY_B;
     for (unsigned int i = 0; i < num_outputs; ++i, ++key) {
         if (outputs[i] > 0.5) {
-            /* Key pressed. */
             if (!key_check_pressed(key)) {
-                printf("Pressing key %s\n", key_str(key));
+                /* Key pressed. */
                 key_press(key);
+                if (key_score < 200) {
+                    if (key == KEY_A) {
+                        key_score += 10;
+                    } else if (key == KEY_RIGHT) {
+                        key_score += 5;
+                    }
+                }
             }
         } else {
-            /* Key released. */
             if (key_check_pressed(key)) {
-                printf("Releasing key %s\n", key_str(key));
+                /* Key released. */
                 key_release(key);
             }
         }
@@ -114,6 +121,7 @@ static void gb_ai_start_game(void)
     vblank_cnt = 0;
     last_score = 0;
     last_score_frame = 0;
+    key_score = 0;
     game_over = false;
     /* Execute until start game screen. */
     gpu_set_callback(start_game_step_cb);
@@ -161,9 +169,9 @@ void gb_ai_step(void)
         if (cur_score > last_score) {
             last_score = cur_score;
             last_score_frame = frame_cnt;
-        } else if (frame_cnt > last_score_frame + GAME_TIMEOUT) {
-            /* If after 5 seconds the score didn't change, timeout. */
-            printf("Player timeout after 5 seconds without change in score\n");
+        } else if (frame_cnt > last_score_frame + GAME_TIMEOUT_FRAMES) {
+            /* If after GAME_TIMEOUT seconds the score didn't change, timeout. */
+            printf("Player timeout after %u seconds without change in score\n", GAME_TIMEOUT);
             game_over = true;
         }
     }
@@ -171,7 +179,7 @@ void gb_ai_step(void)
 
 static void gb_ai_finish_game(void)
 {
-    unsigned int score = gb_ai_get_score();
+    unsigned int score = gb_ai_get_score() + key_score;
     player_set_fitness(gb_ai.player, score);
     printf("AI score: %u\n", score);
 }
