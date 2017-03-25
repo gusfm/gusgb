@@ -59,6 +59,11 @@ unsigned int player_get_age(player_t *p)
     return p->age;
 }
 
+void player_set_age(player_t *p, unsigned int age)
+{
+    p->age = age;
+}
+
 void player_print(player_t *p)
 {
     printf("Player: fitness: %u\n", p->fitness);

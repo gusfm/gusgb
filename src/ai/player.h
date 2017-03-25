@@ -20,6 +20,7 @@ const double *player_output(player_t *p, const double *inputs);
 unsigned int player_get_fitness(player_t *p);
 void player_set_fitness(player_t *p, unsigned int fitness);
 unsigned int player_get_age(player_t *p);
+void player_set_age(player_t *p, unsigned int age);
 void player_print(player_t *p);
 
 #endif /* __PLAYER_H__ */

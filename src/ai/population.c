@@ -211,7 +211,7 @@ int population_load(population_t *pop, const char *filename)
     }
     for (unsigned int i = 0; i < pop->num_players; ++i) {
         player_t *p = pop->players[i];
-        unsigned int age = player_get_age(p);
+        unsigned int age;
         ret = fread(&age, sizeof(age), 1, f);
         if (ret != 1) {
             fprintf(stderr, "ERROR: could not read age\n");
@@ -230,6 +230,7 @@ int population_load(population_t *pop, const char *filename)
             }
         }
         player_set_chromosome(p, pop->mom_weights, pop->num_chromo);
+        player_set_age(p, age);
     }
     fclose(f);
     return 0;
