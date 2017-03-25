@@ -86,9 +86,10 @@ typedef struct {
     };
 } sprite_t;
 
-void gpu_init(float zoom, render_callback_t cb);
+void gpu_init(float zoom);
 void gpu_reset(void);
 gpu_t *gpu_get_instance(void);
+void gpu_set_callback(render_callback_t cb);
 void gpu_set_glfw_window(GLFWwindow *window);
 void gpu_gl_enable(void);
 void gpu_gl_disable(void);

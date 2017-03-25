@@ -14,11 +14,11 @@ const rgb_t g_palette[4] = {
     {0, 0, 0},        // on
 };
 
-void gpu_init(float zoom, render_callback_t cb)
+void gpu_init(float zoom)
 {
     gpu_reset();
     GPU_GL.zoom = zoom;
-    GPU_GL.callback = cb;
+    GPU_GL.callback = NULL;
     GPU_GL.gl_enabled = true;
     GPU_GL.window = NULL;
 }
@@ -33,6 +33,11 @@ void gpu_reset(void)
 gpu_t *gpu_get_instance(void)
 {
     return &GPU;
+}
+
+void gpu_set_callback(render_callback_t cb)
+{
+    GPU_GL.callback = cb;
 }
 
 void gpu_set_glfw_window(GLFWwindow *window)
