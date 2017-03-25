@@ -15,7 +15,7 @@ neuron_t *neuron_create(unsigned int num_inputs)
     n->weight_array = malloc(sizeof(double) * n->num_inputs);
     for (unsigned int i = 0; i < n->num_inputs; ++i) {
         /* Set up the weights with an initial random value. */
-        n->weight_array[i] = rand_clamp();
+        n->weight_array[i] = rand1();
     }
     return n;
 }

@@ -76,7 +76,7 @@ static void population_random_player(population_t *pop, unsigned int id)
     player_get_chromosome(pop->players[id], weights, pop->num_chromo);
     /* Set random weights. */
     for (unsigned int w = 0; w < pop->num_chromo; ++w) {
-        weights[w] = rand_clamp();
+        weights[w] = rand1();
     }
     player_set_chromosome(pop->players[id], weights, pop->num_chromo);
 }
