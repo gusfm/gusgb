@@ -6,8 +6,8 @@
 #include "mmu.h"
 #include "population.h"
 
-#define NUM_PLAYERS (16)
-#define GAME_TIMEOUT (10)
+#define NUM_PLAYERS (32)
+#define GAME_TIMEOUT (5)
 #define GAME_TIMEOUT_FRAMES (60 * GAME_TIMEOUT)
 
 /**
