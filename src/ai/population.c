@@ -94,6 +94,12 @@ void population_natural_selection(population_t *pop)
     /* Sort agents list. */
     qsort(pop->players, pop->num_players, sizeof(player_t *), compare_sort);
     population_debug(pop);
+    crossover_t cross;
+    cross.chromo_length = pop->num_chromo;
+    cross.mom = pop->mom_weights;
+    cross.dad = pop->dad_weights;
+    cross.child1 = pop->child1_weights;
+    cross.child2 = pop->child2_weights;
     /* Get half of population, and reproduce them. */
     unsigned int half_pop = pop->num_players / 2;
     for (unsigned int i = 0; i < half_pop; i += 2) {
@@ -110,10 +116,8 @@ void population_natural_selection(population_t *pop)
                                   pop->num_chromo);
             player_get_chromosome(pop->players[i + 1], pop->dad_weights,
                                   pop->num_chromo);
-
             /* Crossover. */
-            ga_crossover1(pop->num_chromo, pop->mom_weights, pop->dad_weights,
-                          pop->child1_weights, pop->child2_weights);
+            ga_crossover(&cross);
             /* Save new child weights. */
             player_set_chromosome(pop->players[half_pop + i],
                                   pop->child1_weights, pop->num_chromo);

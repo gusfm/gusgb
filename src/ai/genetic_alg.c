@@ -28,32 +28,40 @@ static double ga_mutate(double gene)
     return gene;
 }
 
-void ga_crossover1(unsigned int chromo_length, const double *mom,
-                   const double *dad, double *child1, double *child2)
+static void ga_crossover1(crossover_t *cross)
 {
     unsigned int i;
     /* Get crossover point. */
-    unsigned int cp = (unsigned int)rand() % chromo_length;
+    unsigned int cp = (unsigned int)rand() % cross->chromo_length;
     for (i = 0; i < cp; ++i) {
-        child1[i] = ga_mutate(mom[i]);
-        child2[i] = ga_mutate(dad[i]);
+        cross->child1[i] = ga_mutate(cross->mom[i]);
+        cross->child2[i] = ga_mutate(cross->dad[i]);
     }
-    for (i = cp; i < chromo_length; ++i) {
-        child1[i] = ga_mutate(dad[i]);
-        child2[i] = ga_mutate(mom[i]);
+    for (i = cp; i < cross->chromo_length; ++i) {
+        cross->child1[i] = ga_mutate(cross->dad[i]);
+        cross->child2[i] = ga_mutate(cross->mom[i]);
     }
 }
 
-void ga_crossover2(unsigned int chromo_length, const double *mom,
-                   const double *dad, double *child1, double *child2)
+static void ga_crossover2(crossover_t *cross)
 {
-    for (unsigned int i = 0; i < chromo_length; ++i) {
+    for (unsigned int i = 0; i < cross->chromo_length; ++i) {
         if (rand() % 100 < CROSSOVER_PROBABILITY) {
-            child1[i] = ga_mutate(mom[i]);
-            child2[i] = ga_mutate(dad[i]);
+            cross->child1[i] = ga_mutate(cross->mom[i]);
+            cross->child2[i] = ga_mutate(cross->dad[i]);
         } else {
-            child1[i] = ga_mutate(dad[i]);
-            child2[i] = ga_mutate(mom[i]);
+            cross->child1[i] = ga_mutate(cross->dad[i]);
+            cross->child2[i] = ga_mutate(cross->mom[i]);
         }
+    }
+}
+
+void ga_crossover(crossover_t *cross)
+{
+    unsigned int number = (unsigned int)rand() % 100;
+    if (number < 50) {
+        ga_crossover1(cross);
+    } else {
+        ga_crossover2(cross);
     }
 }
