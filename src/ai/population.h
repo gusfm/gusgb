@@ -23,7 +23,9 @@ void population_natural_selection(population_t *pop);
 const double *population_output(population_t *pop, unsigned int player_idx,
                                 const double *inputs);
 player_t *population_get_player(population_t *pop, unsigned int player_id);
-void population_save(population_t *pop, const char *filename);
-int population_load(population_t *pop, const char *filename);
+void population_save(population_t *pop, const char *filename,
+                     unsigned int epoch);
+int population_load(population_t *pop, const char *filename,
+                    unsigned int *epoch);
 
 #endif /* __POPULATION_H__ */

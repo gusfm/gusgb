@@ -29,6 +29,7 @@ unsigned int last_score;
 unsigned int last_score_frame;
 unsigned int key_score;
 unsigned int frame_cnt;
+unsigned int epoch = 0;
 uint16_t *pc;
 rgb_t *fb;
 bool game_over;
@@ -57,7 +58,7 @@ int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
 
 int gb_ai_load(const char *filename)
 {
-    return population_load(gb_ai.pop, filename);
+    return population_load(gb_ai.pop, filename, &epoch);
 }
 
 static void get_input(double *inputs)
@@ -202,9 +203,8 @@ static void gb_ai_run_game(void)
 
 void gb_ai_main(void)
 {
-    unsigned int epoch = 1;
     while (1) {
-        printf("Epoch: %u\n", epoch++);
+        printf("Epoch: %u\n", epoch);
         /* Make every player play the game once. */
         for (unsigned int i = 0; i < NUM_PLAYERS; ++i) {
             printf("Current player: %u\n", i + 1);
@@ -213,6 +213,7 @@ void gb_ai_main(void)
         }
         /* Select the best fitting players, and reproduce them. */
         population_natural_selection(gb_ai.pop);
+        ++epoch;
     }
 }
 
@@ -222,6 +223,6 @@ void gb_ai_finish(void)
         glfwDestroyWindow(GB.window);
         glfwTerminate();
     }
-    population_save(gb_ai.pop, "population.out");
+    population_save(gb_ai.pop, "population.out", epoch);
     population_destroy(gb_ai.pop);
 }

@@ -121,7 +121,8 @@ player_t *population_get_player(population_t *pop, unsigned int player_id)
     return pop->players[player_id];
 }
 
-void population_save(population_t *pop, const char *filename)
+void population_save(population_t *pop, const char *filename,
+                     unsigned int epoch)
 {
     printf("Saving players to %s\n", filename);
     FILE *f = fopen(filename, "w");
@@ -153,6 +154,12 @@ void population_save(population_t *pop, const char *filename)
         fclose(f);
         return;
     }
+    ret = fwrite(&epoch, sizeof(epoch), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not write epoch\n");
+        fclose(f);
+        return;
+    }
     for (unsigned int i = 0; i < pop->num_players; ++i) {
         player_t *p = pop->players[i];
         unsigned int age = player_get_age(p);
@@ -177,7 +184,7 @@ void population_save(population_t *pop, const char *filename)
     fclose(f);
 }
 
-int population_load(population_t *pop, const char *filename)
+int population_load(population_t *pop, const char *filename, unsigned int *epoch)
 {
     printf("Loading players from %s\n", filename);
     FILE *f = fopen(filename, "r");
@@ -204,6 +211,13 @@ int population_load(population_t *pop, const char *filename)
         return -1;
     }
     ret = fread(&pop->num_chromo, sizeof(pop->num_chromo), 1, f);
+    if (ret != 1) {
+        fprintf(stderr, "ERROR: could not read num_chromo\n");
+        fclose(f);
+        return -1;
+    }
+    ret = fread(epoch, sizeof(*epoch), 1, f);
+    printf("%s:%d: epoch=%u\n", __func__, __LINE__, *epoch);
     if (ret != 1) {
         fprintf(stderr, "ERROR: could not read num_chromo\n");
         fclose(f);
