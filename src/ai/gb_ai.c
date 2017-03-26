@@ -5,6 +5,7 @@
 #include "keys.h"
 #include "mmu.h"
 #include "population.h"
+#include "utils/debug.h"
 
 #define NUM_PLAYERS (32)
 #define GAME_TIMEOUT (5)
@@ -172,7 +173,7 @@ void gb_ai_step(void)
             last_score_frame = frame_cnt;
         } else if (frame_cnt > last_score_frame + GAME_TIMEOUT_FRAMES) {
             /* If after GAME_TIMEOUT seconds the score didn't change, timeout. */
-            printf("Player timeout after %u seconds without change in score\n", GAME_TIMEOUT);
+            printd("Player timeout after %u seconds without change in score\n", GAME_TIMEOUT);
             game_over = true;
         }
     }
@@ -182,7 +183,7 @@ static void gb_ai_finish_game(void)
 {
     unsigned int score = gb_ai_get_score() + key_score;
     player_set_fitness(gb_ai.player, score);
-    printf("AI score: %u\n", score);
+    printd("AI score: %u\n", score);
 }
 
 static void gb_ai_run_game(void)
@@ -207,7 +208,7 @@ void gb_ai_main(void)
         printf("Epoch: %u\n", epoch);
         /* Make every player play the game once. */
         for (unsigned int i = 0; i < NUM_PLAYERS; ++i) {
-            printf("Current player: %u\n", i + 1);
+            printd("Current player: %u\n", i + 1);
             gb_ai.player = population_get_player(gb_ai.pop, i);
             gb_ai_run_game();
         }

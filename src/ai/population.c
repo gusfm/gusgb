@@ -61,12 +61,20 @@ static int compare_sort(const void *first, const void *second)
 
 static void population_debug(population_t *pop)
 {
-    printf("Population fitness after round:\n");
-    for (unsigned int i = 0; i < pop->num_players; ++i) {
-        printf("Player %u: fitness %u age %u\n", i + 1,
-               player_get_fitness(pop->players[i]),
-               player_get_age(pop->players[i]));
+    unsigned int half_pop = pop->num_players / 2;
+    unsigned int i;
+    printf("+----+---------+-------++----+---------+-------+\n");
+    printf("| Id | Fitness | Age   || Id | Fitness | Age   |\n");
+    printf("+----+---------+-------++----+---------+-------+\n");
+    for (i = 0; i < half_pop; ++i) {
+        unsigned int age = player_get_age(pop->players[i]);
+        printf("|%s%2u | %7u | %5u |", age == 0 ? "*" : " ", i + 1,
+               player_get_fitness(pop->players[i]), age);
+        age = player_get_age(pop->players[i + half_pop]);
+        printf("|%s%2u | %7u | %5u |\n", age != 0 ? "*" : " ", i + half_pop + 1,
+               player_get_fitness(pop->players[i + half_pop]), age);
     }
+    printf("+----+---------+-------++----+---------+-------+\n");
 }
 
 static void population_random_player(population_t *pop, unsigned int id)
@@ -184,7 +192,8 @@ void population_save(population_t *pop, const char *filename,
     fclose(f);
 }
 
-int population_load(population_t *pop, const char *filename, unsigned int *epoch)
+int population_load(population_t *pop, const char *filename,
+                    unsigned int *epoch)
 {
     printf("Loading players from %s\n", filename);
     FILE *f = fopen(filename, "r");

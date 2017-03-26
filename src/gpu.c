@@ -3,6 +3,7 @@
 #include <string.h>
 #include "interrupt.h"
 #include "mmu.h"
+#include "utils/debug.h"
 
 gpu_t GPU;
 gpu_gl_t GPU_GL;
@@ -134,7 +135,7 @@ uint8_t gpu_read_byte(uint16_t addr)
         case 0xff4b:
             return GPU.window_x;
         default:
-            printf("gpu_read_byte: not implemented: 0x%04x\n", addr);
+            printd("gpu_read_byte: not implemented: 0x%04x\n", addr);
             return GPU.reg[addr - 0xff40];
     }
 }
@@ -188,7 +189,7 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             GPU.window_x = val;
             break;
         default:
-            printf("gpu_write_byte: not implemented: 0x%04x=0x%02x\n", addr,
+            printd("gpu_write_byte: not implemented: 0x%04x=0x%02x\n", addr,
                    val);
             break;
     }
@@ -345,9 +346,12 @@ static void gpu_render_scanline(void)
     }
 }
 
+#define VIDEO
+
 static void gpu_render_framebuffer(void)
 {
     if (GPU_GL.gl_enabled) {
+#ifdef VIDEO
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
         glRasterPos2i(-1, 1);
@@ -355,6 +359,7 @@ static void gpu_render_framebuffer(void)
         glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, GPU.framebuffer);
         glfwSwapBuffers(GPU_GL.window);
         glfwPollEvents();
+#endif
         if (GPU_GL.callback)
             GPU_GL.callback();
     }
