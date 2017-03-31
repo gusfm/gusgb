@@ -230,7 +230,6 @@ int population_load(population_t *pop, const char *filename,
         return -1;
     }
     ret = fread(epoch, sizeof(*epoch), 1, f);
-    printf("%s:%d: epoch=%u\n", __func__, __LINE__, *epoch);
     if (ret != 1) {
         fprintf(stderr, "ERROR: could not read num_chromo\n");
         fclose(f);

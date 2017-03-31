@@ -1,6 +1,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "gb_ai.h"
 
 static void handler(int sig)
@@ -10,14 +11,39 @@ static void handler(int sig)
     exit(EXIT_SUCCESS);
 }
 
+static void print_help(const char *bin_name)
+{
+    fprintf(stderr, "Syntax: %s <rom path> [OPTIONS]\n", bin_name);
+    fprintf(stderr, "OPTIONS:\n");
+    fprintf(stderr, "\t-p: <population input file>\n");
+    fprintf(stderr, "\t-g: <training output file>\n");
+    exit(EXIT_FAILURE);
+}
+
 int main(int argc, char *argv[])
 {
-    const char *rom_path = argv[1];
-    const char *ai_filename = argv[2];
+    const char *ai_path = NULL;
+    const char *tr_path = NULL;
+    /* Parse args. */
     if (argc < 2) {
-        fprintf(stderr, "Syntax: %s <rom path> [ai file name]\n", argv[0]);
-        exit(EXIT_FAILURE);
+        print_help(argv[0]);
     }
+    if (argc > 2) {
+        if (strcmp(argv[2], "-p") == 0) {
+            ai_path = argv[3];
+            if (ai_path == NULL) {
+                print_help(argv[0]);
+            }
+        } else if (strcmp(argv[2], "-g") == 0) {
+            tr_path = argv[3];
+            if (tr_path == NULL) {
+                print_help(argv[0]);
+            }
+        } else {
+            print_help(argv[0]);
+        }
+    }
+    const char *rom_path = argv[1];
     /* Set handler for CTRL + C */
     struct sigaction act;
     act.sa_handler = &handler;
@@ -31,13 +57,11 @@ int main(int argc, char *argv[])
         fprintf(stderr, "ERROR: could not load ROM %s\n", rom_path);
         exit(EXIT_FAILURE);
     }
-    if (ai_filename != NULL) {
-        ret = gb_ai_load(ai_filename);
-        if (ret < 0) {
-            exit(EXIT_FAILURE);
-        }
+    if (tr_path == NULL) {
+        gb_ai_main(ai_path);
+    } else {
+        gb_ai_tr_main(tr_path);
     }
-    gb_ai_main();
     gb_ai_finish();
     return 0;
 }

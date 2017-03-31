@@ -1,4 +1,5 @@
 #include "gb_ai.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "game_boy.h"
@@ -10,6 +11,8 @@
 #define NUM_PLAYERS (32)
 #define GAME_TIMEOUT (5)
 #define GAME_TIMEOUT_FRAMES (60 * GAME_TIMEOUT)
+#define NUM_INPUTS ((160 * 144) / 4)
+#define NUM_OUTPUTS (6)
 
 /**
  * This file controls the game and AI initialization. For now it's hardcoded for
@@ -19,8 +22,6 @@ typedef struct {
     population_t *pop;
     player_t *player;
     double *screen;
-    unsigned int num_inputs;
-    unsigned int num_outputs;
     cpu_t *cpu;
     gpu_t *gpu;
 } gb_ai_t;
@@ -49,11 +50,6 @@ int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
     fb = gb_ai.gpu->framebuffer;
     /* Disable gl rendering until the end of intro logo. */
     gpu_gl_disable();
-    gb_ai.num_inputs = 80 * 72; /* 1/4 of original size. */
-    gb_ai.num_outputs = 6;
-    gb_ai.pop =
-        population_create(NUM_PLAYERS, gb_ai.num_inputs, gb_ai.num_outputs);
-    gb_ai.screen = (double *)malloc(sizeof(double) * gb_ai.num_inputs);
     return 0;
 }
 
@@ -62,7 +58,7 @@ int gb_ai_load(const char *filename)
     return population_load(gb_ai.pop, filename, &epoch);
 }
 
-static void get_input(double *inputs)
+static void get_screen(uint8_t *screen)
 {
     /* Resize image to reduce the number of inputs. */
     unsigned int i = 0, px, offs1, offs2;
@@ -74,15 +70,32 @@ static void get_input(double *inputs)
             px += fb[offs1++].r;
             px += fb[offs2++].r;
             px += fb[offs2++].r;
-            inputs[i++] = (double) px / (255.0 * 4.0);
+            screen[i++] = (uint8_t)(px / 4u);
         }
     }
 }
 
-static void check_player_keys(const double *outputs, unsigned int num_outputs)
+static void get_screen_norm(double *screen)
+{
+    /* Resize image to reduce the number of inputs. */
+    unsigned int i = 0, px, offs1, offs2;
+    for (unsigned int y = 0; y < 144; y += 2) {
+        offs1 = y * 160;
+        offs2 = (y + 1) * 160;
+        for (unsigned int x = 0; x < 160; x += 2) {
+            px = fb[offs1++].r;
+            px += fb[offs1++].r;
+            px += fb[offs2++].r;
+            px += fb[offs2++].r;
+            screen[i++] = (double)px / (255.0 * 4.0);
+        }
+    }
+}
+
+static void check_player_keys(const double *outputs)
 {
     key_e key = KEY_B;
-    for (unsigned int i = 0; i < num_outputs; ++i, ++key) {
+    for (unsigned int i = 0; i < NUM_OUTPUTS; ++i, ++key) {
         if (outputs[i] > 0.5) {
             if (!key_check_pressed(key)) {
                 /* Key pressed. */
@@ -163,17 +176,19 @@ void gb_ai_step(void)
 {
     if (++frame_cnt & 1) {
         /* Only calculate output every odd frame. */
-        get_input(gb_ai.screen);
+        get_screen_norm(gb_ai.screen);
         const double *keys = player_output(gb_ai.player, gb_ai.screen);
-        check_player_keys(keys, gb_ai.num_outputs);
+        check_player_keys(keys);
         /* Check game over. */
         unsigned int cur_score = gb_ai_get_score();
         if (cur_score > last_score) {
             last_score = cur_score;
             last_score_frame = frame_cnt;
         } else if (frame_cnt > last_score_frame + GAME_TIMEOUT_FRAMES) {
-            /* If after GAME_TIMEOUT seconds the score didn't change, timeout. */
-            printd("Player timeout after %u seconds without change in score\n", GAME_TIMEOUT);
+            /* If after GAME_TIMEOUT seconds the score didn't change, timeout.
+             */
+            printd("Player timeout after %u seconds without change in score\n",
+                   GAME_TIMEOUT);
             game_over = true;
         }
     }
@@ -197,13 +212,20 @@ static void gb_ai_run_game(void)
     cpu_reset();
     if (glfwWindowShouldClose(GB.window)) {
         /* Close program. */
+        population_save(gb_ai.pop, "population.out", epoch);
         gb_ai_finish();
         exit(EXIT_SUCCESS);
     }
 }
 
-void gb_ai_main(void)
+void gb_ai_main(const char *ai_path)
 {
+    gb_ai.pop = population_create(NUM_PLAYERS, NUM_INPUTS, NUM_OUTPUTS);
+    gb_ai.screen = (double *)malloc(sizeof(double) * NUM_INPUTS);
+    if (ai_path != NULL) {
+        int ret = gb_ai_load(ai_path);
+        assert(ret == 0);
+    }
     while (1) {
         printf("Epoch: %u\n", epoch);
         /* Make every player play the game once. */
@@ -224,6 +246,62 @@ void gb_ai_finish(void)
         glfwDestroyWindow(GB.window);
         glfwTerminate();
     }
-    population_save(gb_ai.pop, "population.out", epoch);
-    population_destroy(gb_ai.pop);
+    if (gb_ai.pop) {
+        population_destroy(gb_ai.pop);
+    }
+    if (gb_ai.screen) {
+        free(gb_ai.screen);
+    }
+}
+
+FILE *training_file = NULL;
+
+static void gb_ai_tr_write_inputs(void)
+{
+    uint8_t screen[NUM_INPUTS];
+    get_screen(screen);
+    size_t ret = fwrite(screen, 1, sizeof(screen), training_file);
+    assert(ret == NUM_INPUTS);
+}
+
+static void gb_ai_tr_write_outputs(void)
+{
+    key_e key = KEY_B;
+    uint8_t outputs = 0;
+    for (unsigned int i = 0; i < NUM_OUTPUTS; ++i, ++key) {
+        uint8_t val;
+        if (key_check_pressed(key)) {
+            val = 1;
+        } else {
+            val = 0;
+        }
+        outputs = (uint8_t)(outputs | (val << i));
+    }
+    size_t ret = fwrite(&outputs, 1, 1, training_file);
+    assert(ret == 1);
+}
+
+static void gb_ai_tr_step(void)
+{
+    if (++frame_cnt & 1) {
+        gb_ai_tr_write_inputs();
+        gb_ai_tr_write_outputs();
+    }
+}
+
+void gb_ai_tr_main(const char *tr_path)
+{
+    /* Wait 2 seconds before start to recording the training file. */
+    gpu_set_callback(start_game_step_cb);
+    gb_ai_wait_frames(120);
+    frame_cnt = 0;
+    training_file = fopen(tr_path, "w");
+    assert(training_file != NULL);
+    printf("Starting to record training file %s\n", tr_path);
+    gpu_set_callback(gb_ai_tr_step);
+    gb_main();
+    while (!glfwWindowShouldClose(GB.window)) {
+        cpu_emulate_cycle();
+    }
+    fclose(training_file);
 }
