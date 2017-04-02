@@ -93,9 +93,26 @@ set_target_properties(gusgbai-bin
         OUTPUT_NAME gusgbai
         )
 
+# gusgbai-fann
+add_executable(gusgbai-fann
+    src/ai/fann/gb_ai_fann.c
+    src/ai/fann/main.c
+    )
+target_link_libraries(gusgbai-fann
+    gusgb
+    GL
+    glfw
+    fann
+    m
+    )
+set_target_properties(gusgbai-fann
+    PROPERTIES
+        COMPILE_FLAGS ${WARNINGS}
+        )
+
 # gusgbai-training
 add_executable(gusgbai-training
-    src/ai/training.c
+    src/ai/fann/training.c
     )
 target_link_libraries(gusgbai-training
     fann

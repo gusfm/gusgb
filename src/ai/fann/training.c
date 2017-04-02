@@ -102,12 +102,12 @@ static void tr_destroy(tr_t *tr)
 
 static void tr_main(tr_t *tr, unsigned int max_epochs)
 {
-    const unsigned int num_layers = 3;
+    const unsigned int num_layers = 5;
     const unsigned int num_inputs = NUM_INPUTS;
     const unsigned int num_outputs = NUM_OUTPUTS;
 
     struct fann *ann =
-        fann_create_standard(num_layers, num_inputs, 20, num_outputs);
+        fann_create_standard(num_layers, num_inputs, 20, 15, 10, num_outputs);
 
     const float desired_error = (const float)0.001;
     const unsigned int epochs_between_reports = 100;
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
     if (tr == NULL) {
         fprintf(stderr, "ERROR: could not load training file %s\n", argv[1]);
     }
-    tr_main(tr, 1000);
+    tr_main(tr, 10000);
     tr_destroy(tr);
     return 0;
 }

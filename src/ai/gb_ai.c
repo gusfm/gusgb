@@ -58,23 +58,6 @@ int gb_ai_load(const char *filename)
     return population_load(gb_ai.pop, filename, &epoch);
 }
 
-static void get_screen(uint8_t *screen)
-{
-    /* Resize image to reduce the number of inputs. */
-    unsigned int i = 0, px, offs1, offs2;
-    for (unsigned int y = 0; y < 144; y += 2) {
-        offs1 = y * 160;
-        offs2 = (y + 1) * 160;
-        for (unsigned int x = 0; x < 160; x += 2) {
-            px = fb[offs1++].r;
-            px += fb[offs1++].r;
-            px += fb[offs2++].r;
-            px += fb[offs2++].r;
-            screen[i++] = (uint8_t)(px / 4u);
-        }
-    }
-}
-
 static void get_screen_norm(double *screen)
 {
     /* Resize image to reduce the number of inputs. */
@@ -252,68 +235,4 @@ void gb_ai_finish(void)
     if (gb_ai.screen) {
         free(gb_ai.screen);
     }
-}
-
-FILE *training_file = NULL;
-unsigned int num_data = 0;
-
-static void gb_ai_tr_write_inputs(void)
-{
-    uint8_t screen[NUM_INPUTS];
-    get_screen(screen);
-    size_t ret = fwrite(screen, 1, sizeof(screen), training_file);
-    assert(ret == NUM_INPUTS);
-}
-
-static void gb_ai_tr_write_outputs(void)
-{
-    key_e key = KEY_B;
-    uint8_t outputs = 0;
-    for (unsigned int i = 0; i < NUM_OUTPUTS; ++i, ++key) {
-        uint8_t val;
-        if (key_check_pressed(key)) {
-            val = 1;
-        } else {
-            val = 0;
-        }
-        outputs = (uint8_t)(outputs | (val << i));
-    }
-    size_t ret = fwrite(&outputs, 1, 1, training_file);
-    assert(ret == 1);
-}
-
-static void gb_ai_tr_step(void)
-{
-    if (++frame_cnt & 1) {
-        gb_ai_tr_write_inputs();
-        gb_ai_tr_write_outputs();
-        ++num_data;
-    }
-}
-
-void gb_ai_tr_main(const char *tr_path)
-{
-    /* Wait 2 seconds before start to recording the training file. */
-    gpu_set_callback(start_game_step_cb);
-    gb_ai_wait_frames(120);
-    frame_cnt = 0;
-    training_file = fopen(tr_path, "w");
-    assert(training_file != NULL);
-    /* Save space for number of data. */
-    if (fwrite(&num_data, sizeof(num_data), 1, training_file) != 1) {
-        fprintf(stderr, "ERROR: could not write num_data %u\n", num_data);
-    }
-    printf("Starting to record training file %s\n", tr_path);
-    gpu_set_callback(gb_ai_tr_step);
-    gb_main();
-    while (!glfwWindowShouldClose(GB.window)) {
-        cpu_emulate_cycle();
-    }
-    /* Write correct number of data written. */
-    rewind(training_file);
-    if (fwrite(&num_data, sizeof(num_data), 1, training_file) != 1) {
-        fprintf(stderr, "ERROR: could not write num_data %u\n", num_data);
-    }
-    printf("File %s written with %u training data\n", tr_path, num_data);
-    fclose(training_file);
 }
