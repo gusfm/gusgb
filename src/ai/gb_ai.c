@@ -255,6 +255,7 @@ void gb_ai_finish(void)
 }
 
 FILE *training_file = NULL;
+unsigned int num_data = 0;
 
 static void gb_ai_tr_write_inputs(void)
 {
@@ -286,6 +287,7 @@ static void gb_ai_tr_step(void)
     if (++frame_cnt & 1) {
         gb_ai_tr_write_inputs();
         gb_ai_tr_write_outputs();
+        ++num_data;
     }
 }
 
@@ -297,11 +299,21 @@ void gb_ai_tr_main(const char *tr_path)
     frame_cnt = 0;
     training_file = fopen(tr_path, "w");
     assert(training_file != NULL);
+    /* Save space for number of data. */
+    if (fwrite(&num_data, sizeof(num_data), 1, training_file) != 1) {
+        fprintf(stderr, "ERROR: could not write num_data %u\n", num_data);
+    }
     printf("Starting to record training file %s\n", tr_path);
     gpu_set_callback(gb_ai_tr_step);
     gb_main();
     while (!glfwWindowShouldClose(GB.window)) {
         cpu_emulate_cycle();
     }
+    /* Write correct number of data written. */
+    rewind(training_file);
+    if (fwrite(&num_data, sizeof(num_data), 1, training_file) != 1) {
+        fprintf(stderr, "ERROR: could not write num_data %u\n", num_data);
+    }
+    printf("File %s written with %u training data\n", tr_path, num_data);
     fclose(training_file);
 }

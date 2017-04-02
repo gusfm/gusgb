@@ -93,6 +93,19 @@ set_target_properties(gusgbai-bin
         OUTPUT_NAME gusgbai
         )
 
+# gusgbai-training
+add_executable(gusgbai-training
+    src/ai/training.c
+    )
+target_link_libraries(gusgbai-training
+    fann
+    m
+    )
+set_target_properties(gusgbai-training
+    PROPERTIES
+        COMPILE_FLAGS ${WARNINGS}
+        )
+
 enable_testing()
 # gusgbai test
 add_executable(gusgbaitest
