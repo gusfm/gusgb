@@ -213,6 +213,11 @@ void gb_ai_main(const char *ai_path)
         }
         /* Select the best fitting players, and reproduce them. */
         population_natural_selection(gb_ai.pop);
+        if (epoch >= 1000) {
+            population_save(gb_ai.pop, "population.out", epoch);
+            gb_ai_finish();
+            exit(EXIT_SUCCESS);
+        }
         ++epoch;
     }
 }

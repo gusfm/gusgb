@@ -351,7 +351,7 @@ static void gpu_render_scanline(void)
     }
 }
 
-#define VIDEO
+//#define VIDEO
 
 static void gpu_render_framebuffer(void)
 {
