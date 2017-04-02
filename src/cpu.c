@@ -409,6 +409,11 @@ int cpu_init(const char *rom_path, float screen_zoom)
     return mmu_init(rom_path);
 }
 
+void cpu_finish(void)
+{
+    mmu_finish();
+}
+
 void cpu_reset(void)
 {
     memset(&g_cpu, 0x0, sizeof(g_cpu));

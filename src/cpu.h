@@ -105,6 +105,7 @@ typedef struct {
 } cpu_t;
 
 int cpu_init(const char *rom_path, float screen_zoom);
+void cpu_finish(void);
 void cpu_reset(void);
 void cpu_emulate_cycle(void);
 cpu_t *cpu_get_instance(void);

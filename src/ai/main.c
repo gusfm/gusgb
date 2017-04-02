@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
     const char *rom_path = argv[1];
     /* Set handler for CTRL + C */
     struct sigaction act;
+    memset(&act, 0, sizeof(act));
     act.sa_handler = &handler;
     if (sigaction(SIGINT, &act, NULL) < 0) {
         perror("sigaction");

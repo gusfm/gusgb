@@ -22,8 +22,6 @@ typedef struct {
     population_t *pop;
     player_t *player;
     double *screen;
-    cpu_t *cpu;
-    gpu_t *gpu;
 } gb_ai_t;
 
 unsigned int vblank_cnt;
@@ -32,7 +30,6 @@ unsigned int last_score_frame;
 unsigned int key_score;
 unsigned int frame_cnt;
 unsigned int epoch = 0;
-uint16_t *pc;
 rgb_t *fb;
 bool game_over;
 
@@ -43,11 +40,8 @@ int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
     int ret = gb_init(width, height, window_zoom, rom_path);
     if (ret != 0)
         return ret;
-    /* Get instance of CPU and GPU. */
-    gb_ai.cpu = cpu_get_instance();
-    gb_ai.gpu = gpu_get_instance();
-    pc = &gb_ai.cpu->reg.pc;
-    fb = gb_ai.gpu->framebuffer;
+    /* Get frame buffer. */
+    fb = gpu_get_framebuffer();
     /* Disable gl rendering until the end of intro logo. */
     gpu_gl_disable();
     return 0;

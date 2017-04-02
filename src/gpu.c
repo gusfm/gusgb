@@ -56,6 +56,11 @@ void gpu_gl_disable(void)
     GPU_GL.gl_enabled = false;
 }
 
+rgb_t *gpu_get_framebuffer(void)
+{
+    return GPU.framebuffer;
+}
+
 static bool gpu_check_vram_io(void)
 {
     // return !GPU.display_on || GPU.linemode == GPU_MODE_HBLANK || GPU.linemode

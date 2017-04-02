@@ -100,6 +100,7 @@ void gb_finish(void)
         glfwDestroyWindow(GB.window);
         glfwTerminate();
     }
+    cpu_finish();
 }
 
 static void gb_gl_init(void)

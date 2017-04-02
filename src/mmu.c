@@ -44,6 +44,11 @@ int mmu_init(const char *rom_path)
     return 0;
 }
 
+void mmu_finish(void)
+{
+    cart_unload();
+}
+
 void mmu_reset(void)
 {
     memset(MMU.wram, 0, sizeof(MMU.wram));

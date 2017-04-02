@@ -18,6 +18,7 @@ player_t *player_create(unsigned int num_inputs, unsigned int num_outputs)
 void player_destroy(player_t *p)
 {
     neural_net_destroy(p->nn);
+    free(p);
 }
 
 unsigned int player_get_chromosome_lenght(player_t *p)

@@ -93,6 +93,7 @@ void gpu_set_callback(render_callback_t cb);
 void gpu_set_glfw_window(GLFWwindow *window);
 void gpu_gl_enable(void);
 void gpu_gl_disable(void);
+rgb_t *gpu_get_framebuffer(void);
 uint8_t gpu_read_byte(uint16_t addr);
 void gpu_write_byte(uint16_t addr, uint8_t val);
 uint8_t gpu_read_vram(uint16_t addr);
