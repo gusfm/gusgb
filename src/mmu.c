@@ -272,3 +272,17 @@ void mmu_write_word(uint16_t addr, uint16_t value)
     mmu_write_byte(addr, (uint8_t)(value & 0x00ff));
     mmu_write_byte(addrh, (uint8_t)((value & 0xff00) >> 8));
 }
+
+void mmu_dump(uint16_t addr, uint16_t offset)
+{
+    addr = addr - (addr % 16);
+    uint16_t end = addr + offset;
+    printf("MMU dump:");
+    while (addr < end) {
+        if (addr % 16 == 0) {
+            printf("\n%.2hx: ", addr);
+        }
+        printf("%.2hhx ", mmu_read_byte(addr++));
+    }
+    printf("\n");
+}

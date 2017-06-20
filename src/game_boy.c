@@ -74,9 +74,9 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
                 GB.paused = !GB.paused;
             break;
         case GLFW_KEY_D:
-            /* Debug GPU. */
+            /* Debug CPU. */
             if (action == GLFW_PRESS)
-                gpu_dump();
+                cpu_dump();
             break;
         case GLFW_KEY_Q:
             /* Quit. */

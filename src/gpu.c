@@ -451,6 +451,16 @@ void gpu_step(uint32_t clock_step)
 
 void gpu_dump(void)
 {
+    printf("GPU dump:");
+    printf("display_on=%hhu\n", GPU.display_on);
+    printf("bg_on=%hhu\n", GPU.bg_on);
+    printf("sprites_on=%hhu\n", GPU.sprites_on);
+    printf("window_on=%hhu\n", GPU.window_on);
+    printf("window_x=%hhu\n", GPU.window_x);
+    printf("window_y=%hhu\n", GPU.window_y);
+    printf("scroll_x=%hhu\n", GPU.scroll_x);
+    printf("scroll_y=%hhu\n", GPU.scroll_y);
+    printf("scanline=%hhu\n", GPU.scanline);
     /* Dump OAM. */
     printf("OAM dump:\n");
     for (uint32_t i = 0; i < 40; i++) {
