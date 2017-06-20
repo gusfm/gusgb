@@ -1,4 +1,5 @@
 #include "gpu.h"
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include "cart.h"
@@ -179,11 +180,26 @@ uint8_t gpu_read_byte(uint16_t addr)
     }
 }
 
+static void gpu_clear_screen(void)
+{
+    for (int y = 0; y < 144; ++y) {
+        for (int x = 0; x < 160; ++x) {
+            int px = y * 160 + x;
+            GPU.framebuffer[px] = g_palette[0];
+        }
+    }
+}
+
 void gpu_write_byte(uint16_t addr, uint8_t val)
 {
     GPU.reg[addr - 0xff40] = val;
     switch (addr) {
         case 0xff40:
+            if (GPU.display_on && !(val & 0x80)) {
+                assert(GPU.linemode == GPU_MODE_VBLANK);
+                /* Clear screen when it's disabled. */
+                gpu_clear_screen();
+            }
             GPU.control = val;
             break;
         case 0xff41:
