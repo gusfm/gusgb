@@ -4,16 +4,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+typedef void (*switch_ext_rom_cb_t)(void);
+
 typedef struct {
     uint8_t wram[0x2000]; /* Working RAM. */
     uint8_t zram[0x80];   /* Zero-page RAM. */
     uint8_t io[0x100];    /* Memory-mapped I/O. */
     uint8_t read_ext_rom;
     uint8_t cart_type;
+    switch_ext_rom_cb_t switch_ext_rom_cb;
 } mmu_t;
 
 /* Init MMU subsystem. */
-int mmu_init(const char *rom_path);
+int mmu_init(const char *rom_path, switch_ext_rom_cb_t cb);
 
 /* Free cartridge memory. */
 void mmu_finish(void);

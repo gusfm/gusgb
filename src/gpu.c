@@ -1,6 +1,7 @@
 #include "gpu.h"
 #include <stdio.h>
 #include <string.h>
+#include "cart.h"
 #include "interrupt.h"
 #include "mmu.h"
 #include "utils/debug.h"
@@ -49,6 +50,14 @@ void gpu_set_glfw_window(GLFWwindow *window)
 void gpu_gl_enable(void)
 {
     GPU_GL.gl_enabled = true;
+    /* Fix GPU startup values. */
+    /* TODO: Check if it's not a bug. */
+    GPU.lcd_status |= 0x80;
+    GPU.scanline = 0x90;
+    if (!cart_is_cgb()) {
+        gpu_write_byte(0xff48, 0xFF);
+        gpu_write_byte(0xff49, 0xFF);
+    }
 }
 
 void gpu_gl_disable(void)
@@ -124,6 +133,17 @@ static void gpu_set_sprite_palette1(uint8_t value)
     }
 }
 
+static void gpu_set_cgb_bg_palette(uint8_t value)
+{
+    uint8_t reg = GPU.cgb_bg_pal_idx;
+    unsigned int i = reg & 0x3f;
+    GPU.bg_palette_data[i] = value;
+    /* TODO: fix GBC colors. */
+    GPU.bg_palette[i >> 1].r = (GPU.bg_palette_data[i + 1] << 8) + value;
+    /* Auto increment index. */
+    GPU.cgb_bg_pal_idx = (reg & ~0x3f) | ((i + (reg >> 7)) & 0x3f);
+}
+
 uint8_t gpu_read_byte(uint16_t addr)
 {
     switch (addr) {
@@ -141,10 +161,18 @@ uint8_t gpu_read_byte(uint16_t addr)
             return GPU.scanline;
         case 0xff45:
             return GPU.raster;
+        case 0xff47:
+        case 0xff48:
+        case 0xff49:
+            return GPU.reg[addr - 0xff40];
         case 0xff4a:
             return GPU.window_y;
         case 0xff4b:
             return GPU.window_x;
+        case 0xff68:
+            return GPU.cgb_bg_pal_idx;
+        case 0xff69:
+            return GPU.bg_palette_data[GPU.cgb_bg_pal_idx & 0x3f];
         default:
             printd("gpu_read_byte: not implemented: 0x%04x\n", addr);
             return GPU.reg[addr - 0xff40];
@@ -198,6 +226,14 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 0xff4b:
             /* Window X position. */
             GPU.window_x = val;
+            break;
+        case 0xff68:
+            /* GBC: BG palette index. */
+            GPU.cgb_bg_pal_idx = val;
+            break;
+        case 0xff69:
+            /* GBC: BG palette data. */
+            gpu_set_cgb_bg_palette(val);
             break;
         default:
             printd("gpu_write_byte: not implemented: 0x%04x=0x%02x\n", addr,
@@ -451,7 +487,7 @@ void gpu_step(uint32_t clock_step)
 
 void gpu_dump(void)
 {
-    printf("GPU dump:");
+    printf("GPU dump:\n");
     printf("display_on=%hhu\n", GPU.display_on);
     printf("bg_on=%hhu\n", GPU.bg_on);
     printf("sprites_on=%hhu\n", GPU.sprites_on);
@@ -461,6 +497,18 @@ void gpu_dump(void)
     printf("scroll_x=%hhu\n", GPU.scroll_x);
     printf("scroll_y=%hhu\n", GPU.scroll_y);
     printf("scanline=%hhu\n", GPU.scanline);
+    printf("BG palettes:\n");
+    for (int i = 0; i < 8; ++i) {
+        printf("BG %d: ", i);
+        for (int j = 0; j < 4; ++j) {
+            rgb_t *pal = &GPU.bg_palette[i * 4 + j];
+            printf("(%u, %u, %u)", pal->r, pal->g, pal->b);
+        }
+        printf("\n");
+    }
+    for (uint16_t addr = 0xff40; addr <= 0xff4b; ++addr) {
+        printf("[$%hx] = $%hhx\n", addr, gpu_read_byte(addr));
+    }
     /* Dump OAM. */
     printf("OAM dump:\n");
     for (uint32_t i = 0; i < 40; i++) {

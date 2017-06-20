@@ -54,12 +54,14 @@ typedef struct {
     uint8_t window_y;
     uint8_t scanline;
     uint8_t raster;
+    uint8_t cgb_bg_pal_idx;
     uint32_t modeclock;
     gpu_mode_e linemode;
     uint8_t vram[0x2000]; /* Video RAM. */
     uint8_t oam[0xa0];    /* Sprite info. */
     rgb_t framebuffer[160 * 144];
-    rgb_t bg_palette[4];
+    rgb_t bg_palette[8 * 4];
+    uint8_t bg_palette_data[8 * 8];
     rgb_t sprite_palette[2][4];
 } gpu_t;
 

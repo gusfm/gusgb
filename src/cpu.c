@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cart.h"
 #include "cpu_ext_ops.h"
 #include "cpu_opcodes.h"
 #include "gpu.h"
@@ -398,12 +399,19 @@ void cpu_dump(void)
     mmu_dump(0xc000, 128);
 }
 
+static void cpu_switch_ext_rom(void)
+{
+    if (cart_is_cgb()) {
+        g_cpu.reg.a = 0x11;
+    }
+}
+
 int cpu_init(const char *rom_path, float screen_zoom)
 {
     memset(&g_cpu, 0x0, sizeof(g_cpu));
     timer_init();
     gpu_init(screen_zoom);
-    return mmu_init(rom_path);
+    return mmu_init(rom_path, cpu_switch_ext_rom);
 }
 
 void cpu_finish(void)

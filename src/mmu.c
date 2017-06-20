@@ -1,4 +1,5 @@
 #include "mmu.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,8 +35,10 @@ const uint8_t g_internal_rom[0x100] = {
 
 mmu_t MMU;
 
-int mmu_init(const char *rom_path)
+int mmu_init(const char *rom_path, switch_ext_rom_cb_t cb)
 {
+    assert(cb != NULL);
+    MMU.switch_ext_rom_cb = cb;
     int ret = cart_load(rom_path);
     if (ret < 0) {
         return -1;
@@ -177,7 +180,12 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
         if (addr >= 0xff30 && addr <= 0xff3f) {
             return;
         } else if (addr == 0xff50) {
+            /* Disable internal ROM. */
+            assert(MMU.read_ext_rom == 0);
             MMU.read_ext_rom = value;
+            MMU.switch_ext_rom_cb();
+            /* Enable rendering if disabled. */
+            gpu_gl_enable();
         } else if (addr >= 0xff40 && addr < 0xff80) {
             gpu_write_byte(addr, value);
         } else {
@@ -195,10 +203,6 @@ uint8_t mmu_read_byte(uint16_t addr)
     if (addr < 0x4000) {
         /* 256B Internal ROM accessed after reset. */
         if (MMU.read_ext_rom == 0 && addr < 0x0100) {
-            if (addr == 0xff) {
-                /* Last internal rom access. Enable rendering if disabled. */
-                gpu_gl_enable();
-            }
             return g_internal_rom[addr];
         }
         /* 16kB ROM bank 0. */
