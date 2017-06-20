@@ -10,12 +10,12 @@ extern unsigned int pc;
 const char *regs[REG_LEN] = {"a", "f", "b",  "c",  "d",  "e",
                              "h", "l", "af", "bc", "de", "hl"};
 
-void error_register(register_e reg)
+static void error_register(register_e reg)
 {
     fprintf(stderr, "%u: invalid register: %s\n", linenum, regs[reg]);
 }
 
-void error_bit(unsigned int bit)
+static void error_bit(unsigned int bit)
 {
     fprintf(stderr, "%u: invalid bit: %u\n", linenum, bit);
     exit(EXIT_FAILURE);
@@ -91,7 +91,7 @@ static inline void op_write_cb(uint8_t opcode)
 void ascii(char *str)
 {
     size_t size = strlen(str) - 1;
-    for (int i = 1; i < size; ++i) {
+    for (size_t i = 1; i < size; ++i) {
         if (str[i] == '\\') {
             switch (str[i + 1]) {
                 case '0':

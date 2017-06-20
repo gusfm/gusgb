@@ -4,11 +4,11 @@ project(${PROJECT_NAME} C CXX)
 
 find_package(Threads REQUIRED)
 
-SET (WARNINGS "-Werror -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wuninitialized -Wconversion -Wstrict-prototypes")
+SET (WARNINGS "-Werror -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wuninitialized -Wstrict-prototypes")
 
 #set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -g")
 #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -g")
-set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -O3 -fno-strict-aliasing")
+set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -O3 -fno-strict-aliasing ${WARNINGS}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O3 -fno-strict-aliasing")
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(SYSTEM "/usr/include/freetype2")
@@ -37,7 +37,6 @@ add_executable(gusgb-bin
 target_link_libraries(gusgb-bin gusgb GL glfw)
 set_target_properties(gusgb-bin
     PROPERTIES
-        COMPILE_FLAGS ${WARNINGS}
         OUTPUT_NAME gusgb
         )
 
@@ -72,10 +71,6 @@ add_library(gusgbai SHARED
     src/ai/population.c
     )
 target_link_libraries(gusgbai m)
-set_target_properties(gusgbai
-    PROPERTIES
-        COMPILE_FLAGS ${WARNINGS}
-        )
 
 # gusgbai
 add_executable(gusgbai-bin
@@ -89,7 +84,6 @@ target_link_libraries(gusgbai-bin
     )
 set_target_properties(gusgbai-bin
     PROPERTIES
-        COMPILE_FLAGS ${WARNINGS}
         OUTPUT_NAME gusgbai
         )
 
@@ -105,10 +99,6 @@ target_link_libraries(gusgbai-fann
     fann
     m
     )
-set_target_properties(gusgbai-fann
-    PROPERTIES
-        COMPILE_FLAGS ${WARNINGS}
-        )
 
 # gusgbai-training
 add_executable(gusgbai-training
@@ -118,10 +108,6 @@ target_link_libraries(gusgbai-training
     fann
     m
     )
-set_target_properties(gusgbai-training
-    PROPERTIES
-        COMPILE_FLAGS ${WARNINGS}
-        )
 
 enable_testing()
 # gusgbai test

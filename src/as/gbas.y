@@ -7,7 +7,7 @@
 #include "cart.h"
 
 /* stuff from flex that bison needs to know about */
-extern int yylex();
+extern int yylex(void);
 extern FILE *yyin;
 FILE *output;
 extern unsigned int linenum;
