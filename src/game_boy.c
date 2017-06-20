@@ -19,15 +19,6 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
     (void)scancode;
     (void)mods;
     switch (key) {
-        case GLFW_KEY_ESCAPE:
-            /* Pause emulation. */
-            if (action == GLFW_PRESS)
-                GB.paused = !GB.paused;
-            break;
-        case GLFW_KEY_Q:
-            /* Quit. */
-            glfwSetWindowShouldClose(window, GL_TRUE);
-            break;
         /* Game keys. */
         case GLFW_KEY_A:
             if (action == GLFW_PRESS)
@@ -77,7 +68,20 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
             else if (action == GLFW_RELEASE)
                 key_release(KEY_RIGHT);
             break;
-
+        case GLFW_KEY_ESCAPE:
+            /* Pause emulation. */
+            if (action == GLFW_PRESS)
+                GB.paused = !GB.paused;
+            break;
+        case GLFW_KEY_D:
+            /* Debug GPU. */
+            if (action == GLFW_PRESS)
+                gpu_dump();
+            break;
+        case GLFW_KEY_Q:
+            /* Quit. */
+            glfwSetWindowShouldClose(window, GL_TRUE);
+            break;
         default:
             break;
     }

@@ -442,3 +442,20 @@ void gpu_step(uint32_t clock_step)
             break;
     }
 }
+
+void gpu_dump(void)
+{
+    /* Dump OAM. */
+    printf("OAM dump:\n");
+    for (uint32_t i = 0; i < 40; i++) {
+        sprite_t s = ((sprite_t *)GPU.oam)[i];
+        printf("sprite %2u: ", i);
+        printf("%.2hhx %.2hhx %.2hhx %.2hhx: ", s.y, s.x, s.tile, s.options);
+        printf("xy=(%3d, %3d) ", (int)s.x - 8, (int)s.y - 16);
+        printf("tile=0x%.2hhx ", s.tile);
+        printf("OAM addr=0x%.4x, tile addr=0x%.4x ", 0xfe00 + i * 4,
+               GPU.vram[s.tile]);
+        printf("options=[palette=%d, xflip=%d, yflip=%d, priority=%d]\n",
+               s.palette, s.xflip, s.yflip, s.priority);
+    }
+}
