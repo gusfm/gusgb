@@ -61,12 +61,10 @@ rgb_t *gpu_get_framebuffer(void)
     return GPU.framebuffer;
 }
 
+/* Check if the CPU can access VRAM. */
 static bool gpu_check_vram_io(void)
 {
-    // return !GPU.display_on || GPU.linemode == GPU_MODE_HBLANK || GPU.linemode
-    // == GPU_MODE_VBLANK;
-    // FIXME: Allow IO to vram for now since this was causing problems.
-    return true;
+    return !GPU.display_on || GPU.linemode != GPU_MODE_VRAM;
 }
 
 uint8_t gpu_read_vram(uint16_t addr)
@@ -83,17 +81,25 @@ void gpu_write_vram(uint16_t addr, uint8_t val)
         GPU.vram[addr & 0x1fff] = val;
 }
 
+/* Check if the CPU can access OAM. */
+bool gpu_check_oam_io(void)
+{
+    return !GPU.display_on || GPU.linemode == GPU_MODE_HBLANK ||
+           GPU.linemode == GPU_MODE_VBLANK;
+}
+
 uint8_t gpu_read_oam(uint16_t addr)
 {
-    if (gpu_check_vram_io())
+    if (gpu_check_oam_io()) {
         return GPU.oam[addr & 0xff];
-    else
+    } else {
         return 0xFF;
+    }
 }
 
 void gpu_write_oam(uint16_t addr, uint8_t val)
 {
-    if (gpu_check_vram_io())
+    if (gpu_check_oam_io())
         GPU.oam[addr & 0xff] = val;
 }
 
