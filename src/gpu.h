@@ -101,5 +101,6 @@ void gpu_write_vram(uint16_t addr, uint8_t val);
 uint8_t gpu_read_oam(uint16_t addr);
 void gpu_write_oam(uint16_t addr, uint8_t val);
 void gpu_step(uint32_t cpu_tick);
+void gpu_render_framebuffer(void);
 
 #endif /* __GPU_H__ */

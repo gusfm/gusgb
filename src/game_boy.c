@@ -19,12 +19,15 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
     (void)scancode;
     (void)mods;
     switch (key) {
-        case GLFW_KEY_Q:
         case GLFW_KEY_ESCAPE:
+            /* Pause emulation. */
+            if (action == GLFW_PRESS)
+                GB.paused = !GB.paused;
+            break;
+        case GLFW_KEY_Q:
             /* Quit. */
             glfwSetWindowShouldClose(window, GL_TRUE);
             break;
-
         /* Game keys. */
         case GLFW_KEY_A:
             if (action == GLFW_PRESS)
@@ -149,6 +152,7 @@ int gb_init(int width, int height, float window_zoom, const char *rom_path)
 {
     GB.width = width;
     GB.height = height;
+    GB.paused = false;
     /* Create window. */
     GB.window = gb_create_window("gusgb");
     if (GB.window == NULL) {
@@ -170,6 +174,10 @@ int gb_init(int width, int height, float window_zoom, const char *rom_path)
 void gb_main(void)
 {
     while (!glfwWindowShouldClose(GB.window)) {
-        cpu_emulate_cycle();
+        if (GB.paused) {
+            gpu_render_framebuffer();
+        } else {
+            cpu_emulate_cycle();
+        }
     }
 }

@@ -353,7 +353,7 @@ static void gpu_render_scanline(void)
 
 #define VIDEO
 
-static void gpu_render_framebuffer(void)
+void gpu_render_framebuffer(void)
 {
     if (GPU_GL.gl_enabled) {
 #ifdef VIDEO

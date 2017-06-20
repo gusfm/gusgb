@@ -9,6 +9,7 @@ typedef struct {
     int width;
     int height;
     GLFWwindow *window;
+    bool paused;
 } game_boy_t;
 
 extern game_boy_t GB;
