@@ -124,8 +124,8 @@ static uint16_t add16(uint16_t val1, uint16_t val2)
  * Flags affected:
  * Z - Set if result is zero.
  * N - Set.
- * H - Set if no borrow from bit 4.
- * C - Set if no borrow.
+ * H - Set if borrow from bit 4.
+ * C - Set if borrow.
  */
 static void sub(uint8_t val)
 {
@@ -211,8 +211,8 @@ static void or8(uint8_t val)
  * Flags affected:
  * Z - Set if result is zero. (Set if A = n.)
  * N - Set.
- * H - Set if no borrow from bit 4.
- * C - Set for no borrow. (Set if A < n.)
+ * H - Set if borrow from bit 4.
+ * C - Set for borrow. (Set if A < n.)
  */
 static void cp(uint8_t val)
 {
@@ -1769,7 +1769,7 @@ void ldh_a_n(uint8_t val)
 /* 0xf1: Pop two bytes off stack into register pair nn. */
 void pop_af(void)
 {
-    g_cpu.reg.af = pop();
+    g_cpu.reg.af = pop() & 0xfff0;
 }
 
 /* 0xf2: Put value at address $FF00 + register C into A. */
