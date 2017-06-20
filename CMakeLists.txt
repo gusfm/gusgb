@@ -8,8 +8,8 @@ SET (WARNINGS "-Werror -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-a
 
 #set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -g")
 #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -g")
-set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -O3")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O3")
+set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -O3 -fno-strict-aliasing")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O3 -fno-strict-aliasing")
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(SYSTEM "/usr/include/freetype2")
 
