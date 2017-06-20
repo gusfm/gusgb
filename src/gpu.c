@@ -9,10 +9,10 @@ gpu_t GPU;
 gpu_gl_t GPU_GL;
 
 const rgb_t g_palette[4] = {
-    {255, 255, 255},  // off
-    {192, 192, 192},  // 33% on
-    {96, 96, 96},     // 66% on
-    {0, 0, 0},        // on
+    {0xe0, 0xf8, 0xd0},  // off
+    {0x88, 0xc0, 0x70},  // 33% on
+    {0x34, 0x68, 0x56},  // 66% on
+    {0x00, 0x00, 0x00},  // on
 };
 
 void gpu_init(float zoom)
