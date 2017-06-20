@@ -132,8 +132,8 @@ add_executable(gusgbaitest
     )
 target_link_libraries(gusgbaitest
     gusgbai
-    /usr/lib/libgtest.a
-    /usr/lib/libgtest_main.a
+    gtest
+    gtest_main
     ${CMAKE_THREAD_LIBS_INIT}
     )
 add_test(test gusgbaitest)
