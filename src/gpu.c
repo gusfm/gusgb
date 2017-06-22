@@ -338,14 +338,14 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
         tile_line_t tile_line = get_tile_line(tile_id, bg_y);
         /* Iterate over remaining pixels of the tile. */
         for (int tile_x = bg_x & 0x7; tile_x < 8; ++tile_x) {
+            if (screen_x >= 160) {
+                return;
+            }
             /* Get tile color number for coordinate. */
             uint32_t color_num = gpu_get_tile_color(tile_line, tile_x);
             scanline_row[screen_x] = (uint8_t)color_num;
             /* Copy color to frame buffer. */
-            GPU.framebuffer[pixeloffs].r = GPU.bg_palette[color_num].r;
-            GPU.framebuffer[pixeloffs].g = GPU.bg_palette[color_num].g;
-            GPU.framebuffer[pixeloffs].b = GPU.bg_palette[color_num].b;
-            ++pixeloffs;
+            GPU.framebuffer[pixeloffs + screen_x] = GPU.bg_palette[color_num];
             ++screen_x;
             ++bg_x;
         }
@@ -384,9 +384,7 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
                     uint32_t color = gpu_get_tile_color(tile_line, tile_x_flip);
                     if (color != 0) {
                         /* Only show sprite of color not 0. */
-                        GPU.framebuffer[pixeloffs].r = pal[color].r;
-                        GPU.framebuffer[pixeloffs].g = pal[color].g;
-                        GPU.framebuffer[pixeloffs].b = pal[color].b;
+                        GPU.framebuffer[pixeloffs] = pal[color];
                     }
                 }
             }
@@ -459,12 +457,14 @@ void gpu_step(uint32_t clock_step)
     GPU.modeclock += clock_step;
     switch (GPU.linemode) {
         case GPU_MODE_OAM:
+            /* Mode 2 takes between 77 and 83 clocks. */
             if (GPU.modeclock >= 20) {
                 GPU.modeclock -= 20;
                 gpu_change_mode(GPU_MODE_VRAM);
             }
             break;
         case GPU_MODE_VRAM:
+            /* Mode 3 takes between 169 and 175 clocks. */
             if (GPU.modeclock >= 43) {
                 GPU.modeclock -= 43;
                 gpu_change_mode(GPU_MODE_HBLANK);
@@ -473,6 +473,7 @@ void gpu_step(uint32_t clock_step)
             }
             break;
         case GPU_MODE_HBLANK:
+            /* Mode 0 takes between 201 and 207 clocks. */
             if (GPU.modeclock >= 51) {
                 GPU.modeclock -= 51;
                 GPU.scanline++;
@@ -480,7 +481,7 @@ void gpu_step(uint32_t clock_step)
                     GPU.lcd_status & LCD_INT_LY_LYC) {
                     interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
                 }
-                if (GPU.scanline == 143) {
+                if (GPU.scanline == 144) {
                     gpu_change_mode(GPU_MODE_VBLANK);
                     gpu_render_framebuffer();
                 } else {
@@ -489,12 +490,14 @@ void gpu_step(uint32_t clock_step)
             }
             break;
         case GPU_MODE_VBLANK:
+            /* Mode 1 takes between 4560 clocks. */
             if (GPU.modeclock >= 114) {
                 GPU.modeclock -= 114;
-                GPU.scanline++;
                 if (GPU.scanline > 153) {
                     GPU.scanline = 0;
                     gpu_change_mode(GPU_MODE_OAM);
+                } else {
+                    GPU.scanline++;
                 }
             }
             break;
