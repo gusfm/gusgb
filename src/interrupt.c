@@ -62,35 +62,35 @@ static void vblank(void)
 {
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x40;
-    g_cpu.clock.step += 3;
+    g_cpu.clock.step += 12;
 }
 
 static void lcd_stat(void)
 {
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x48;
-    g_cpu.clock.step += 3;
+    g_cpu.clock.step += 12;
 }
 
 static void timer(void)
 {
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x50;
-    g_cpu.clock.step += 3;
+    g_cpu.clock.step += 12;
 }
 
 static void serial(void)
 {
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x58;
-    g_cpu.clock.step += 3;
+    g_cpu.clock.step += 12;
 }
 
 static void joypad(void)
 {
     push(g_cpu.reg.pc);
     g_cpu.reg.pc = 0x60;
-    g_cpu.clock.step += 3;
+    g_cpu.clock.step += 12;
 }
 
 void interrupt_step(void)

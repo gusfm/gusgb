@@ -59,12 +59,12 @@ void timer_step(uint32_t clock_step)
 {
     TIMER.clock.sub += clock_step;
     /* Internal timer clock counts at 1/4 of main clock. */
-    if (TIMER.clock.sub >= 4) {
-        TIMER.clock.sub -= 4;
+    if (TIMER.clock.sub >= 16) {
+        TIMER.clock.sub -= 16;
         TIMER.clock.main++;
         TIMER.clock.div++;
         /* DIV runs at 1/16 of timer main clock. */
-        if (TIMER.clock.div == 16) {
+        if (TIMER.clock.div == 64) {
             TIMER.clock.div = 0;
             TIMER.div++;
         }

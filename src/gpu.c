@@ -458,15 +458,15 @@ void gpu_step(uint32_t clock_step)
     switch (GPU.linemode) {
         case GPU_MODE_OAM:
             /* Mode 2 takes between 77 and 83 clocks. */
-            if (GPU.modeclock >= 20) {
-                GPU.modeclock -= 20;
+            if (GPU.modeclock >= 80) {
+                GPU.modeclock -= 80;
                 gpu_change_mode(GPU_MODE_VRAM);
             }
             break;
         case GPU_MODE_VRAM:
             /* Mode 3 takes between 169 and 175 clocks. */
-            if (GPU.modeclock >= 43) {
-                GPU.modeclock -= 43;
+            if (GPU.modeclock >= 172) {
+                GPU.modeclock -= 172;
                 gpu_change_mode(GPU_MODE_HBLANK);
                 /* End of scanline. Write a scanline to framebuffer. */
                 gpu_render_scanline();
@@ -474,8 +474,8 @@ void gpu_step(uint32_t clock_step)
             break;
         case GPU_MODE_HBLANK:
             /* Mode 0 takes between 201 and 207 clocks. */
-            if (GPU.modeclock >= 51) {
-                GPU.modeclock -= 51;
+            if (GPU.modeclock >= 204) {
+                GPU.modeclock -= 204;
                 GPU.scanline++;
                 if (GPU.scanline == GPU.raster &&
                     GPU.lcd_status & LCD_INT_LY_LYC) {
@@ -491,8 +491,8 @@ void gpu_step(uint32_t clock_step)
             break;
         case GPU_MODE_VBLANK:
             /* Mode 1 takes between 4560 clocks. */
-            if (GPU.modeclock >= 114) {
-                GPU.modeclock -= 114;
+            if (GPU.modeclock >= 456) {
+                GPU.modeclock -= 456;
                 if (GPU.scanline > 153) {
                     GPU.scanline = 0;
                     gpu_change_mode(GPU_MODE_OAM);
