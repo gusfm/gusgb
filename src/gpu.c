@@ -1,6 +1,7 @@
 #include "gpu.h"
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "cart.h"
 #include "interrupt.h"
@@ -29,7 +30,7 @@ void gpu_init(float zoom)
 void gpu_reset(void)
 {
     memset(&GPU, 0, sizeof(GPU));
-    GPU.linemode = GPU_MODE_OAM;
+    GPU.mode_flag = GPU_MODE_OAM;
     GPU_GL.gl_enabled = false;
 }
 
@@ -53,8 +54,8 @@ void gpu_gl_enable(void)
     GPU_GL.gl_enabled = true;
     /* Fix GPU startup values. */
     /* TODO: Check if it's not a bug. */
-    GPU.lcd_status |= 0x80;
-    GPU.scanline = 0x90;
+    GPU.lcd_status = 0x85;
+    GPU.scanline = 0x00;
     if (!cart_is_cgb()) {
         gpu_write_byte(0xff48, 0xFF);
         gpu_write_byte(0xff49, 0xFF);
@@ -74,7 +75,7 @@ rgb_t *gpu_get_framebuffer(void)
 /* Check if the CPU can access VRAM. */
 static bool gpu_check_vram_io(void)
 {
-    return !GPU.display_on || GPU.linemode != GPU_MODE_VRAM;
+    return !GPU.lcd_enable || GPU.mode_flag != GPU_MODE_VRAM;
 }
 
 uint8_t gpu_read_vram(uint16_t addr)
@@ -94,8 +95,8 @@ void gpu_write_vram(uint16_t addr, uint8_t val)
 /* Check if the CPU can access OAM. */
 static bool gpu_check_oam_io(void)
 {
-    return !GPU.display_on || GPU.linemode == GPU_MODE_HBLANK ||
-           GPU.linemode == GPU_MODE_VBLANK;
+    return !GPU.lcd_enable || GPU.mode_flag == GPU_MODE_HBLANK ||
+           GPU.mode_flag == GPU_MODE_VBLANK;
 }
 
 uint8_t gpu_read_oam(uint16_t addr)
@@ -149,11 +150,11 @@ uint8_t gpu_read_byte(uint16_t addr)
 {
     switch (addr) {
         case 0xff40:
-            return GPU.control;
+            return GPU.lcd_control;
         case 0xff41:
             return (uint8_t)(GPU.lcd_status |
                              (GPU.scanline == GPU.raster ? 4u : 0u) |
-                             GPU.linemode);
+                             GPU.mode_flag);
         case 0xff42:
             return GPU.scroll_y;
         case 0xff43:
@@ -162,10 +163,14 @@ uint8_t gpu_read_byte(uint16_t addr)
             return GPU.scanline;
         case 0xff45:
             return GPU.raster;
+        case 0xff46:
+            return GPU.dma;
         case 0xff47:
+            return GPU.bgp;
         case 0xff48:
+            return GPU.obp0;
         case 0xff49:
-            return GPU.reg[addr - 0xff40];
+            return GPU.obp1;
         case 0xff4a:
             return GPU.window_y;
         case 0xff4b:
@@ -175,8 +180,8 @@ uint8_t gpu_read_byte(uint16_t addr)
         case 0xff69:
             return GPU.bg_palette_data[GPU.cgb_bg_pal_idx & 0x3f];
         default:
-            printd("gpu_read_byte: not implemented: 0x%04x\n", addr);
-            return GPU.reg[addr - 0xff40];
+            fprintf(stderr, "gpu_read_byte: not implemented: 0x%04x\n", addr);
+            abort();
     }
 }
 
@@ -192,19 +197,17 @@ static void gpu_clear_screen(void)
 
 void gpu_write_byte(uint16_t addr, uint8_t val)
 {
-    GPU.reg[addr - 0xff40] = val;
     switch (addr) {
         case 0xff40:
-            if (GPU.display_on && !(val & 0x80)) {
-                assert(GPU.linemode == GPU_MODE_VBLANK);
+            if (GPU.lcd_enable && !(val & 0x80)) {
+                assert(GPU.mode_flag == GPU_MODE_VBLANK);
                 /* Clear screen when it's disabled. */
                 gpu_clear_screen();
             }
-            GPU.control = val;
+            GPU.lcd_control = val;
             break;
         case 0xff41:
-            GPU.lcd_status =
-                (uint8_t)((val & 0xf8u) | (GPU.lcd_status & 0x07u));
+            GPU.lcd_status = (val & 0xf8) | (GPU.lcd_status & 0x07);
             break;
         case 0xff42:
             GPU.scroll_y = val;
@@ -212,11 +215,14 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 0xff43:
             GPU.scroll_x = val;
             break;
+        case 0xff44:
+            break;
         case 0xff45:
             GPU.raster = val;
             break;
         case 0xff46:
             /* OAM DMA. */
+            GPU.dma = val;
             for (int i = 0; i < 160; i++) {
                 uint16_t dma_addr = (uint16_t)((val << 8) + i);
                 uint8_t v = mmu_read_byte(dma_addr);
@@ -225,14 +231,17 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             break;
         case 0xff47:
             /* BG palette mapping. */
+            GPU.bgp = val;
             gpu_set_bg_palette(val);
             break;
         case 0xff48:
             /* OBJ0 palette mapping. */
+            GPU.obp0 = val;
             gpu_set_sprite_palette0(val);
             break;
         case 0xff49:
             /* OBJ1 palette mapping. */
+            GPU.obp1 = val;
             gpu_set_sprite_palette1(val);
             break;
         case 0xff4a:
@@ -251,10 +260,14 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             /* GBC: BG palette data. */
             gpu_set_cgb_bg_palette(val);
             break;
-        default:
-            printd("gpu_write_byte: not implemented: 0x%04x=0x%02x\n", addr,
-                   val);
+        case 0xff7f:
+            fprintf(stderr, "gpu_write_byte: not implemented: 0x%04x=0x%02x\n",
+                    addr, val);
             break;
+        default:
+            fprintf(stderr, "gpu_write_byte: not implemented: 0x%04x=0x%02x\n",
+                    addr, val);
+            abort();
     }
 }
 
@@ -317,7 +330,7 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
     int mapoffs, bg_x, bg_y;
     /* Get background xy coordinate, and Get map offset relative to vram array.
      */
-    if (GPU.window_on && GPU.window_y <= GPU.scanline) {
+    if (GPU.window_enable && GPU.window_y <= GPU.scanline) {
         bg_x = -GPU.window_x;
         bg_y = GPU.scanline - GPU.window_y;
         mapoffs = (GPU.window_tile_map) ? 0x1c00 : 0x1800;
@@ -354,7 +367,7 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
 
 static void gpu_update_fb_sprite(uint8_t *scanline_row)
 {
-    uint32_t ysize = GPU.sprites_size ? 16 : 8;
+    uint32_t ysize = GPU.obj_size ? 16 : 8;
     int sprites = 0;
     /* Iterate over the first 10 sprites on the scanline. */
     for (uint32_t i = 0; i < 40; i++) {
@@ -398,11 +411,11 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
 static void gpu_render_scanline(void)
 {
     /* Only render if display is on. */
-    if (GPU.display_on) {
+    if (GPU.lcd_enable) {
         uint8_t scanline_row[160];
-        if (GPU.bg_on)
+        if (GPU.bg_display)
             gpu_update_fb_bg(scanline_row);
-        if (GPU.sprites_on)
+        if (GPU.obj_enable)
             gpu_update_fb_sprite(scanline_row);
     }
 }
@@ -428,20 +441,20 @@ void gpu_render_framebuffer(void)
 
 static void gpu_change_mode(gpu_mode_e new_mode)
 {
-    GPU.linemode = new_mode;
+    GPU.mode_flag = new_mode;
     switch (new_mode) {
         case GPU_MODE_HBLANK:
-            if (GPU.lcd_status & LCD_INT_HBLANK)
+            if (GPU.hblank_int)
                 interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
             break;
         case GPU_MODE_VBLANK:
             if (interrupt_is_enable(INTERRUPTS_VBLANK))
                 interrupt_set_flag_bit(INTERRUPTS_VBLANK);
-            if (GPU.lcd_status & LCD_INT_VBLANK)
+            if (GPU.vblank_int)
                 interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
             break;
         case GPU_MODE_OAM:
-            if (GPU.lcd_status & LCD_INT_OAM)
+            if (GPU.oam_int)
                 interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
             break;
         case GPU_MODE_VRAM:
@@ -455,7 +468,7 @@ static void gpu_change_mode(gpu_mode_e new_mode)
 void gpu_step(uint32_t clock_step)
 {
     GPU.modeclock += clock_step;
-    switch (GPU.linemode) {
+    switch (GPU.mode_flag) {
         case GPU_MODE_OAM:
             /* Mode 2 takes between 77 and 83 clocks. */
             if (GPU.modeclock >= 80) {
@@ -477,8 +490,7 @@ void gpu_step(uint32_t clock_step)
             if (GPU.modeclock >= 204) {
                 GPU.modeclock -= 204;
                 GPU.scanline++;
-                if (GPU.scanline == GPU.raster &&
-                    GPU.lcd_status & LCD_INT_LY_LYC) {
+                if (GPU.coincidence_int && GPU.scanline == GPU.raster) {
                     interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
                 }
                 if (GPU.scanline == 144) {
@@ -507,10 +519,10 @@ void gpu_step(uint32_t clock_step)
 void gpu_dump(void)
 {
     printf("GPU dump:\n");
-    printf("display_on=%hhu\n", GPU.display_on);
-    printf("bg_on=%hhu\n", GPU.bg_on);
-    printf("sprites_on=%hhu\n", GPU.sprites_on);
-    printf("window_on=%hhu\n", GPU.window_on);
+    printf("lcd_enable=%hhu\n", GPU.lcd_enable);
+    printf("bg_display=%hhu\n", GPU.bg_display);
+    printf("obj_enable=%hhu\n", GPU.obj_enable);
+    printf("window_enable=%hhu\n", GPU.window_enable);
     printf("window_x=%hhu\n", GPU.window_x);
     printf("window_y=%hhu\n", GPU.window_y);
     printf("scroll_x=%hhu\n", GPU.scroll_x);

@@ -5,20 +5,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define GPU_CONTROL_BGENABLE (1 << 0)
-#define GPU_CONTROL_SPRITEENABLE (1 << 1)
-#define GPU_CONTROL_SPRITEVDOUBLE (1 << 2)
-#define GPU_CONTROL_TILEMAP (1 << 3)
-#define GPU_CONTROL_TILESET (1 << 4)
-#define GPU_CONTROL_WINDOWENABLE (1 << 5)
-#define GPU_CONTROL_WINDOWTILEMAP (1 << 6)
-#define GPU_CONTROL_DISPLAYENABLE (1 << 7)
-
-#define LCD_INT_HBLANK 0x08  // HBLANK interrupt
-#define LCD_INT_VBLANK 0x10  // VBLANK interrupt
-#define LCD_INT_OAM 0x20     // OAM interrupt
-#define LCD_INT_LY_LYC 0x40  // LY/LYC coincidence interrupt
-
 typedef enum {
     GPU_MODE_HBLANK = 0,
     GPU_MODE_VBLANK = 1,
@@ -33,30 +19,56 @@ typedef struct {
 typedef void (*render_callback_t)(void);
 
 typedef struct {
-    uint8_t reg[0x100];
+    /* 0xff40 - LCDC - LCD Control (R/W) */
     union {
+        uint8_t lcd_control;
         struct {
-            uint8_t bg_on : 1;
-            uint8_t sprites_on : 1;
-            uint8_t sprites_size : 1;
+            uint8_t bg_display : 1;
+            uint8_t obj_enable : 1;
+            uint8_t obj_size : 1;
             uint8_t bg_tile_map : 1;
             uint8_t bg_tile_set : 1;
-            uint8_t window_on : 1;
+            uint8_t window_enable : 1;
             uint8_t window_tile_map : 1;
-            uint8_t display_on : 1;
+            uint8_t lcd_enable : 1;
         };
-        uint8_t control;
     };
-    uint8_t lcd_status;
-    uint8_t scroll_x;
+    /* 0xff41 - STAT - LCDC Status (R/W) */
+    union {
+        uint8_t lcd_status;
+        struct {
+            uint8_t mode_flag : 2;
+            uint8_t coincidence_flag : 1;
+            uint8_t hblank_int : 1;
+            uint8_t vblank_int : 1;
+            uint8_t oam_int : 1;
+            uint8_t coincidence_int : 1;
+            uint8_t unused1 : 1;
+        };
+    };
+    /* 0xff42 - SCY - Scroll Y (R/W) */
     uint8_t scroll_y;
-    uint8_t window_x;
-    uint8_t window_y;
+    /* 0xff43 - SCX - Scroll X (R/W) */
+    uint8_t scroll_x;
+    /* 0xff44 - LY - LCDC Y-Coordinate (R) */
     uint8_t scanline;
+    /* 0xff45 - LYC - LY Compare (R/W) */
     uint8_t raster;
+    /* 0xff46 - DMA - DMA Transfer and Start Address (W) */
+    uint8_t dma;
+    /* 0xff47 - BGP - BG Palette Data (R/W) - Non CGB Mode Only */
+    uint8_t bgp;
+    /* 0xff48 - OBP0 - Object Palette 0 Data (R/W) - Non CGB Mode Only */
+    uint8_t obp0;
+    /* 0xff49 - OBP1 - Object Palette 1 Data (R/W) - Non CGB Mode Only */
+    uint8_t obp1;
+    /* 0xff4a - WY - Window Y Position (R/W) */
+    uint8_t window_y;
+    /* 0xff4b - WX - Window X Position minus 7 (R/W) */
+    uint8_t window_x;
+    /* FF68 - BCPS/BGPI - CGB Mode Only - Background Palette Index */
     uint8_t cgb_bg_pal_idx;
     uint32_t modeclock;
-    gpu_mode_e linemode;
     uint8_t vram[0x2000]; /* Video RAM. */
     uint8_t oam[0xa0];    /* Sprite info. */
     rgb_t framebuffer[160 * 144];
