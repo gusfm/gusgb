@@ -185,13 +185,18 @@ uint8_t gpu_read_byte(uint16_t addr)
     }
 }
 
+static void gpu_clear_line(int y)
+{
+    for (int x = 0; x < 160; ++x) {
+        int px = y * 160 + x;
+        GPU.framebuffer[px] = g_palette[0];
+    }
+}
+
 static void gpu_clear_screen(void)
 {
     for (int y = 0; y < 144; ++y) {
-        for (int x = 0; x < 160; ++x) {
-            int px = y * 160 + x;
-            GPU.framebuffer[px] = g_palette[0];
-        }
+        gpu_clear_line(y);
     }
 }
 
@@ -390,7 +395,7 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
                 /* If pixel is on screen. */
                 if (px >= 0 && px < 160) {
                     /* Check if pixel is hidden. */
-                    if (sprite.priority == 1 && scanline_row[px] != 0)
+                    if (GPU.bg_display && sprite.priority == 1 && scanline_row[px] != 0)
                         continue;
                     /* Check if sprite is x-flipped. */
                     int tile_x_flip = sprite.xflip ? 7 - tile_x : tile_x;
@@ -413,8 +418,17 @@ static void gpu_render_scanline(void)
     /* Only render if display is on. */
     if (GPU.lcd_enable) {
         uint8_t scanline_row[160];
-        if (GPU.bg_display)
+        if (cart_is_cgb()) {
+            /* In CGB mode when Bit 0 is cleared, the background and window
+             * lose their priority. */
             gpu_update_fb_bg(scanline_row);
+        } else {
+            if (GPU.bg_display) {
+                gpu_update_fb_bg(scanline_row);
+            } else {
+                gpu_clear_line(GPU.scanline);
+            }
+        }
         if (GPU.obj_enable)
             gpu_update_fb_sprite(scanline_row);
     }
