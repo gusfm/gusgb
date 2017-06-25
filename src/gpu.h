@@ -75,7 +75,8 @@ typedef struct {
     /* FF6B - OCPD/OBPD - CGB Mode Only - Sprite Palette Data */
     uint8_t cgb_sprite_pal_data[8 * 8];
     uint32_t modeclock;
-    uint8_t vram[0x2000]; /* Video RAM. */
+    uint8_t *vram; /* Video RAM. */
+    uint8_t vram_bank[2][0x2000];
     uint8_t oam[0xa0];    /* Sprite info. */
     rgb_t framebuffer[160 * 144];
     rgb_t bg_palette[8 * 4];

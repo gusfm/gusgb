@@ -31,6 +31,7 @@ void gpu_reset(void)
 {
     memset(&GPU, 0, sizeof(GPU));
     GPU.mode_flag = GPU_MODE_OAM;
+    GPU.vram = GPU.vram_bank[0];
     GPU_GL.gl_enabled = false;
 }
 
@@ -279,6 +280,10 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 0xff4b:
             /* Window X position. */
             GPU.window_x = val;
+            break;
+        case 0xff4f:
+            /* Select VRAM bank. */
+            GPU.vram = GPU.vram_bank[val & 1];
             break;
         case 0xff68:
             /* GBC: BG palette index. */
