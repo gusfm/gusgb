@@ -66,6 +66,8 @@ typedef struct {
     uint8_t window_y;
     /* 0xff4b - WX - Window X Position minus 7 (R/W) */
     uint8_t window_x;
+    /* FF4F - VBK - CGB Mode Only - VRAM Bank */
+    uint8_t vram_bank;
     /* FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch */
     uint8_t speed_switch;
     /* FF68 - BCPS/BGPI - CGB Mode Only - Background Palette Index */
@@ -77,8 +79,7 @@ typedef struct {
     /* FF6B - OCPD/OBPD - CGB Mode Only - Sprite Palette Data */
     uint8_t cgb_sprite_pal_data[8 * 8];
     uint32_t modeclock;
-    uint8_t *vram; /* Video RAM. */
-    uint8_t vram_bank[2][0x2000];
+    uint8_t vram[2][0x2000]; /* Video RAM. */
     uint8_t oam[0xa0];    /* Sprite info. */
     rgb_t framebuffer[160 * 144];
     rgb_t bg_palette[8 * 4];
@@ -100,7 +101,8 @@ typedef struct {
     union {
         uint8_t options;
         struct {
-            uint8_t unused : 4;
+            uint8_t cgb_palette : 3;
+            uint8_t cgb_vram_bank : 1;
             uint8_t palette : 1;
             uint8_t xflip : 1;
             uint8_t yflip : 1;
