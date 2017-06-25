@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "cpu.h"
+#include "gpu.h"
 #include "cpu_utils.h"
 #include "interrupt.h"
 #include "mmu.h"
@@ -360,6 +361,7 @@ void rrca(void)
  * button is pressed. */
 void stop(void)
 {
+    gpu_stop();
     printf("Received STOP command!\n");
 }
 

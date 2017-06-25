@@ -32,6 +32,7 @@ void gpu_reset(void)
     memset(&GPU, 0, sizeof(GPU));
     GPU.mode_flag = GPU_MODE_OAM;
     GPU.vram = GPU.vram_bank[0];
+    GPU.speed = 1;
     GPU_GL.gl_enabled = false;
 }
 
@@ -195,6 +196,8 @@ uint8_t gpu_read_byte(uint16_t addr)
             return GPU.window_y;
         case 0xff4b:
             return GPU.window_x;
+        case 0xff4d:
+            return GPU.speed_switch;
         case 0xff68:
             return GPU.cgb_bg_pal_idx;
         case 0xff69:
@@ -280,6 +283,9 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 0xff4b:
             /* Window X position. */
             GPU.window_x = val;
+            break;
+        case 0xff4d:
+            GPU.speed_switch = (GPU.speed_switch & 0xfe) | (val & 1);
             break;
         case 0xff4f:
             /* Select VRAM bank. */
@@ -431,7 +437,8 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
                 /* If pixel is on screen. */
                 if (px >= 0 && px < 160) {
                     /* Check if pixel is hidden. */
-                    if (GPU.bg_display && sprite.priority == 1 && scanline_row[px] != 0)
+                    if (GPU.bg_display && sprite.priority == 1 &&
+                        scanline_row[px] != 0)
                         continue;
                     /* Check if sprite is x-flipped. */
                     int tile_x_flip = sprite.xflip ? 7 - tile_x : tile_x;
@@ -521,15 +528,15 @@ void gpu_step(uint32_t clock_step)
     switch (GPU.mode_flag) {
         case GPU_MODE_OAM:
             /* Mode 2 takes between 77 and 83 clocks. */
-            if (GPU.modeclock >= 80) {
-                GPU.modeclock -= 80;
+            if (GPU.modeclock >= 80 * GPU.speed) {
+                GPU.modeclock -= 80 * GPU.speed;
                 gpu_change_mode(GPU_MODE_VRAM);
             }
             break;
         case GPU_MODE_VRAM:
             /* Mode 3 takes between 169 and 175 clocks. */
-            if (GPU.modeclock >= 172) {
-                GPU.modeclock -= 172;
+            if (GPU.modeclock >= 172 * GPU.speed) {
+                GPU.modeclock -= 172 * GPU.speed;
                 gpu_change_mode(GPU_MODE_HBLANK);
                 /* End of scanline. Write a scanline to framebuffer. */
                 gpu_render_scanline();
@@ -537,8 +544,8 @@ void gpu_step(uint32_t clock_step)
             break;
         case GPU_MODE_HBLANK:
             /* Mode 0 takes between 201 and 207 clocks. */
-            if (GPU.modeclock >= 204) {
-                GPU.modeclock -= 204;
+            if (GPU.modeclock >= 204 * GPU.speed) {
+                GPU.modeclock -= 204 * GPU.speed;
                 GPU.scanline++;
                 if (GPU.coincidence_int && GPU.scanline == GPU.raster) {
                     interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
@@ -553,8 +560,8 @@ void gpu_step(uint32_t clock_step)
             break;
         case GPU_MODE_VBLANK:
             /* Mode 1 takes between 4560 clocks. */
-            if (GPU.modeclock >= 456) {
-                GPU.modeclock -= 456;
+            if (GPU.modeclock >= 456 * GPU.speed) {
+                GPU.modeclock -= 456 * GPU.speed;
                 if (GPU.scanline > 153) {
                     GPU.scanline = 0;
                     gpu_change_mode(GPU_MODE_OAM);
@@ -563,6 +570,14 @@ void gpu_step(uint32_t clock_step)
                 }
             }
             break;
+    }
+}
+
+void gpu_stop(void)
+{
+    if (GPU.speed_switch & 1) {
+        GPU.speed_switch = (!GPU.speed_switch) & 0x80;
+        GPU.speed = 1 + (GPU.speed_switch >> 7);
     }
 }
 
