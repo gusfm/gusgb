@@ -68,13 +68,18 @@ typedef struct {
     uint8_t window_x;
     /* FF68 - BCPS/BGPI - CGB Mode Only - Background Palette Index */
     uint8_t cgb_bg_pal_idx;
+    /* FF69 - BCPD/BGPD - CGB Mode Only - Background Palette Data */
+    uint8_t cgb_bg_pal_data[8 * 8];
+    /* FF6A - OCPS/OBPI - CGB Mode Only - Sprite Palette Index */
+    uint8_t cgb_sprite_pal_idx;
+    /* FF6B - OCPD/OBPD - CGB Mode Only - Sprite Palette Data */
+    uint8_t cgb_sprite_pal_data[8 * 8];
     uint32_t modeclock;
     uint8_t vram[0x2000]; /* Video RAM. */
     uint8_t oam[0xa0];    /* Sprite info. */
     rgb_t framebuffer[160 * 144];
     rgb_t bg_palette[8 * 4];
-    uint8_t bg_palette_data[8 * 8];
-    rgb_t sprite_palette[2][4];
+    rgb_t sprite_palette[8 * 4];
 } gpu_t;
 
 typedef struct {

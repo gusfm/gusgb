@@ -124,14 +124,14 @@ static void gpu_set_bg_palette(uint8_t value)
 static void gpu_set_sprite_palette0(uint8_t value)
 {
     for (int i = 0; i < 4; ++i) {
-        GPU.sprite_palette[0][i] = g_palette[(value >> (i << 1)) & 3];
+        GPU.sprite_palette[i] = g_palette[(value >> (i << 1)) & 3];
     }
 }
 
 static void gpu_set_sprite_palette1(uint8_t value)
 {
     for (int i = 0; i < 4; ++i) {
-        GPU.sprite_palette[1][i] = g_palette[(value >> (i << 1)) & 3];
+        GPU.sprite_palette[i + 4] = g_palette[(value >> (i << 1)) & 3];
     }
 }
 
@@ -139,11 +139,30 @@ static void gpu_set_cgb_bg_palette(uint8_t value)
 {
     uint8_t reg = GPU.cgb_bg_pal_idx;
     unsigned int i = reg & 0x3f;
-    GPU.bg_palette_data[i] = value;
-    /* TODO: fix GBC colors. */
-    GPU.bg_palette[i >> 1].r = (GPU.bg_palette_data[i + 1] << 8) + value;
+    GPU.cgb_bg_pal_data[i] = value;
+    uint16_t color = (GPU.cgb_bg_pal_data[i + 1] << 8) | value;
+    rgb_t rgb;
+    rgb.r = (color & 0x1f) * 255 / 31;
+    rgb.g = ((color >> 5) & 0x1f) * 255 / 31;
+    rgb.b = ((color >> 10) & 0x1f) * 255 / 31;
+    GPU.bg_palette[i >> 1] = rgb;
     /* Auto increment index. */
     GPU.cgb_bg_pal_idx = (reg & ~0x3f) | ((i + (reg >> 7)) & 0x3f);
+}
+
+static void gpu_set_cgb_sprite_palette(uint8_t value)
+{
+    uint8_t reg = GPU.cgb_sprite_pal_idx;
+    unsigned int i = reg & 0x3f;
+    GPU.cgb_sprite_pal_data[i] = value;
+    uint16_t color = (GPU.cgb_sprite_pal_data[i + 1] << 8) | value;
+    rgb_t rgb;
+    rgb.r = (color & 0x1f) * 255 / 31;
+    rgb.g = ((color >> 5) & 0x1f) * 255 / 31;
+    rgb.b = ((color >> 10) & 0x1f) * 255 / 31;
+    GPU.sprite_palette[i >> 1] = rgb;
+    /* Auto increment index. */
+    GPU.cgb_sprite_pal_idx = (reg & ~0x3f) | ((i + (reg >> 7)) & 0x3f);
 }
 
 uint8_t gpu_read_byte(uint16_t addr)
@@ -178,7 +197,11 @@ uint8_t gpu_read_byte(uint16_t addr)
         case 0xff68:
             return GPU.cgb_bg_pal_idx;
         case 0xff69:
-            return GPU.bg_palette_data[GPU.cgb_bg_pal_idx & 0x3f];
+            return GPU.cgb_bg_pal_data[GPU.cgb_bg_pal_idx & 0x3f];
+        case 0xff6a:
+            return GPU.cgb_sprite_pal_idx;
+        case 0xff6b:
+            return GPU.cgb_sprite_pal_data[GPU.cgb_sprite_pal_idx & 0x3f];
         default:
             fprintf(stderr, "gpu_read_byte: not implemented: 0x%04x\n", addr);
             abort();
@@ -264,6 +287,14 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 0xff69:
             /* GBC: BG palette data. */
             gpu_set_cgb_bg_palette(val);
+            break;
+        case 0xff6a:
+            /* GBC: sprite palette index. */
+            GPU.cgb_sprite_pal_idx = val;
+            break;
+        case 0xff6b:
+            /* GBC: sprite palette data. */
+            gpu_set_cgb_sprite_palette(val);
             break;
         case 0xff7f:
             fprintf(stderr, "gpu_write_byte: not implemented: 0x%04x=0x%02x\n",
@@ -382,7 +413,7 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
         /* If sprite is on scanline. */
         if (sy <= GPU.scanline && (sy + (int)ysize) > GPU.scanline) {
             /* Get palette for this sprite. */
-            rgb_t *pal = GPU.sprite_palette[sprite.palette];
+            rgb_t *pal = &GPU.sprite_palette[sprite.palette * 4];
             /* Get frame buffer pixel offset. */
             tile_line_t tile_line =
                 get_tile_line_sprite(sprite.tile, sy, sprite.yflip, ysize);
