@@ -23,6 +23,7 @@ add_library(gusgb SHARED
     src/cart.c
     src/gpu.c
     src/keys.c
+    src/sound.c
     src/mmu.c
     src/cpu_utils.c
     src/cpu_opcodes.c

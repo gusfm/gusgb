@@ -7,6 +7,7 @@
 #include "gpu.h"
 #include "interrupt.h"
 #include "keys.h"
+#include "sound.h"
 #include "timer.h"
 
 const uint8_t g_internal_rom[0x100] = {
@@ -62,18 +63,8 @@ void mmu_reset(void)
     keys_init();
 }
 
-static uint8_t mmu_read_byte_ffxx(uint16_t addr)
+static uint8_t mmu_io_read_byte(uint16_t addr)
 {
-    if (addr == 0xffff) {
-        /* Interrupt Enable Register. */
-        return interrupt_get_enable();
-    } else if (addr > 0xff7f) {
-        /* Internal RAM. */
-        return MMU.zram[addr & 0x007f];
-    } else if (addr >= 0xff04 && addr <= 0xff07) {
-        /* Timer. */
-        return timer_read_byte(addr);
-    }
     /* I/O Registers. */
     switch (addr) {
         case 0xff00:
@@ -81,43 +72,22 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
             return keys_read();
         case 0xff01:
             /* SB (R/W): Serial transfer data. */
-            break;
+            return 0;
         case 0xff02:
             /* SC (R/W): SIO control. */
-            /* Not implemented registers. */
-            break;
+            return 0;
         case 0xff0f:
             /* IF (R/W): Interrupt flag. */
             return interrupt_get_flag();
-        case 0xff10:
-        case 0xff11:
-        case 0xff12:
-        case 0xff13:
-        case 0xff14:
-        case 0xff16:
-        case 0xff17:
-        case 0xff18:
-        case 0xff19:
-        case 0xff1a:
-        case 0xff1b:
-        case 0xff1c:
-        case 0xff1d:
-        case 0xff1e:
-        case 0xff20:
-        case 0xff21:
-        case 0xff22:
-        case 0xff23:
-        case 0xff24:
-        case 0xff25:
-        case 0xff26:
-            return 0;
+        case 0xff50:
+            return MMU.read_ext_rom;
+        case 0xff70:
+            return MMU.wram_bank;
     }
-    if (addr >= 0xff30 && addr <= 0xff3f) {
-        return 0;
-    } else if (addr == 0xff50) {
-        return MMU.read_ext_rom;
-    } else if (addr == 0xff70) {
-        return MMU.wram_bank;
+    if (addr >= 0xff04 && addr <= 0xff07) {
+        return timer_read_byte(addr);
+    } else if (addr >= 0xff10 && addr <= 0xff3f) {
+        return sound_read_byte(addr);
     } else if (addr >= 0xff40 && addr < 0xff80) {
         return gpu_read_byte(addr);
     } else {
@@ -128,77 +98,74 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
     }
 }
 
-static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
+static uint8_t mmu_read_byte_ffxx(uint16_t addr)
 {
     if (addr == 0xffff) {
         /* Interrupt Enable Register. */
-        interrupt_set_enable(value);
+        return interrupt_get_enable();
     } else if (addr > 0xff7f) {
         /* Internal RAM. */
-        MMU.zram[addr & 0x007f] = value;
-    } else if (addr >= 0xff04 && addr <= 0xff07) {
-        /* Timer. */
-        timer_write_byte(addr, value);
+        return MMU.zram[addr & 0x007f];
     } else {
-        /* I/O Registers. */
-        switch (addr) {
-            case 0xff00:
-                /* P1 (R/W): Register for reading joy pad info. */
-                keys_write(value);
-                return;
-            case 0xff01:
-                /* SB (R/W): Serial transfer data. */
-                break;
-            case 0xff02:
-                /* SC (R/W): SIO control. */
-                /* Not implemented registers. */
-                break;
-            case 0xff0f:
-                /* IF (R/W): Interrupt flag. */
-                interrupt_set_flag(value);
-                return;
-            case 0xff10:
-            case 0xff11:
-            case 0xff12:
-            case 0xff13:
-            case 0xff14:
-            case 0xff16:
-            case 0xff17:
-            case 0xff18:
-            case 0xff19:
-            case 0xff1a:
-            case 0xff1b:
-            case 0xff1c:
-            case 0xff1d:
-            case 0xff1e:
-            case 0xff20:
-            case 0xff21:
-            case 0xff22:
-            case 0xff23:
-            case 0xff24:
-            case 0xff25:
-            case 0xff26:
-                return;
-        }
-        if (addr >= 0xff30 && addr <= 0xff3f) {
+        return mmu_io_read_byte(addr);
+    }
+}
+
+static void mmu_io_write_byte(uint16_t addr, uint8_t value)
+{
+    /* I/O Registers. */
+    switch (addr) {
+        case 0xff00:
+            /* P1 (R/W): Register for reading joy pad info. */
+            keys_write(value);
             return;
-        } else if (addr == 0xff50) {
+        case 0xff01:
+            /* SB (R/W): Serial transfer data. */
+            return;
+        case 0xff02:
+            /* SC (R/W): SIO control. */
+            /* Not implemented registers. */
+            return;
+        case 0xff0f:
+            /* IF (R/W): Interrupt flag. */
+            interrupt_set_flag(value);
+            return;
+        case 0xff50:
             /* Disable internal ROM. */
             assert(MMU.read_ext_rom == 0);
             MMU.read_ext_rom = value;
             MMU.switch_ext_rom_cb();
             /* Enable rendering if disabled. */
             gpu_gl_enable();
-        } else if (addr == 0xff70) {
+            return;
+        case 0xff70:
             MMU.wram_bank = value & 7;
-        } else if (addr >= 0xff40 && addr < 0xff80) {
-            gpu_write_byte(addr, value);
-        } else {
-            /* I/O ports. */
-            printf("IO W addr=0x%04x, i=0x%04x, value=0x%02x\n", addr,
-                   addr - 0xff00, value);
-            MMU.io[addr - 0xff00] = value;
-        }
+            return;
+    }
+    if (addr >= 0xff04 && addr <= 0xff07) {
+        timer_write_byte(addr, value);
+    } else if (addr >= 0xff10 && addr <= 0xff3f) {
+        sound_write_byte(addr, value);
+    } else if (addr >= 0xff40 && addr < 0xff80) {
+        gpu_write_byte(addr, value);
+    } else {
+        /* I/O ports. */
+        printf("IO W addr=0x%04x, i=0x%04x, value=0x%02x\n", addr,
+               addr - 0xff00, value);
+        MMU.io[addr - 0xff00] = value;
+    }
+}
+
+static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
+{
+    if (addr == 0xffff) {
+        /* Interrupt Enable Register. */
+        interrupt_set_enable(value);
+    } else if (addr >= 0xff80) {
+        /* Internal RAM. */
+        MMU.zram[addr & 0x007f] = value;
+    } else {
+        mmu_io_write_byte(addr, value);
     }
 }
 
