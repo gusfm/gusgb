@@ -57,6 +57,7 @@ void mmu_reset(void)
     memset(MMU.wram, 0, sizeof(MMU.wram));
     memset(MMU.zram, 0, sizeof(MMU.zram));
     MMU.read_ext_rom = 0;
+    MMU.wram_bank = 0;
     interrupt_init();
     keys_init();
 }
@@ -115,6 +116,8 @@ static uint8_t mmu_read_byte_ffxx(uint16_t addr)
         return 0;
     } else if (addr == 0xff50) {
         return MMU.read_ext_rom;
+    } else if (addr == 0xff70) {
+        return MMU.wram_bank;
     } else if (addr >= 0xff40 && addr < 0xff80) {
         return gpu_read_byte(addr);
     } else {
@@ -186,6 +189,8 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
             MMU.switch_ext_rom_cb();
             /* Enable rendering if disabled. */
             gpu_gl_enable();
+        } else if (addr == 0xff70) {
+            MMU.wram_bank = value & 7;
         } else if (addr >= 0xff40 && addr < 0xff80) {
             gpu_write_byte(addr, value);
         } else {
@@ -195,6 +200,13 @@ static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
             MMU.io[addr - 0xff00] = value;
         }
     }
+}
+
+static uint8_t wram_get_bank(void)
+{
+    if (MMU.wram_bank == 0)
+        return 1;
+    return MMU.wram_bank;
 }
 
 /* Read 8-bit byte from a given address */
@@ -216,12 +228,15 @@ uint8_t mmu_read_byte(uint16_t addr)
     } else if (addr < 0xc000) {
         /* 8kB Switchable RAM bank. */
         return cart_read_ram(addr);
+    } else if (addr < 0xd000) {
+        /* 4KB Work RAM Bank 0 (WRAM). */
+        return MMU.wram[0][addr & 0x0fff];
     } else if (addr < 0xe000) {
-        /* 8kB Internal RAM. */
-        return MMU.wram[addr & 0x1fff];
+        /* 4KB Work RAM Bank 1 (Switchable WRAM). */
+        return MMU.wram[wram_get_bank()][addr & 0x0fff];
     } else if (addr < 0xfe00) {
         /* Echo of 8kB Internal RAM; */
-        return MMU.wram[addr & 0x1fff];
+        return MMU.wram[0][addr & 0x1fff];
     } else if (addr < 0xff00) {
         /* Sprite Attrib Memory (OAM). */
         if (addr < 0xfea0) {
@@ -253,12 +268,15 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
     } else if (addr < 0xc000) {
         /* 8kB Switchable RAM bank. */
         cart_write_ram(addr, value);
+    } else if (addr < 0xd000) {
+        /* 4KB Work RAM Bank 0 (WRAM). */
+        MMU.wram[0][addr & 0x0fff] = value;
     } else if (addr < 0xe000) {
-        /* 8kB Internal RAM. */
-        MMU.wram[addr & 0x1fff] = value;
+        /* 4KB Work RAM Bank 1 (Switchable WRAM). */
+        MMU.wram[wram_get_bank()][addr & 0x0fff] = value;
     } else if (addr < 0xfe00) {
-        /* Echo of 8kB Internal RAM; */
-        MMU.wram[addr & 0x1fff] = value;
+        /* 4KB Work RAM Bank 0 (WRAM). */
+        MMU.wram[0][addr & 0x1fff] = value;
     } else if (addr < 0xff00) {
         /* Sprite Attrib Memory (OAM). */
         if (addr < 0xfea0) {
