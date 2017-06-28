@@ -68,8 +68,6 @@ typedef struct {
     uint8_t window_x;
     /* FF4F - VBK - CGB Mode Only - VRAM Bank */
     uint8_t vram_bank;
-    /* FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch */
-    uint8_t speed_switch;
     /* FF68 - BCPS/BGPI - CGB Mode Only - Background Palette Index */
     uint8_t cgb_bg_pal_idx;
     /* FF69 - BCPD/BGPD - CGB Mode Only - Background Palette Data */
@@ -127,7 +125,7 @@ uint8_t gpu_read_oam(uint16_t addr);
 void gpu_write_oam(uint16_t addr, uint8_t val);
 void gpu_step(uint32_t cpu_tick);
 void gpu_render_framebuffer(void);
-void gpu_stop(void);
+void gpu_change_speed(unsigned int speed);
 void gpu_dump(void);
 
 #endif /* __GPU_H__ */

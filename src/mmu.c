@@ -79,6 +79,8 @@ static uint8_t mmu_io_read_byte(uint16_t addr)
         case 0xff0f:
             /* IF (R/W): Interrupt flag. */
             return interrupt_get_flag();
+        case 0xff4d:
+            return MMU.speed_switch;
         case 0xff50:
             return MMU.read_ext_rom;
         case 0xff70:
@@ -129,6 +131,9 @@ static void mmu_io_write_byte(uint16_t addr, uint8_t value)
         case 0xff0f:
             /* IF (R/W): Interrupt flag. */
             interrupt_set_flag(value);
+            return;
+        case 0xff4d:
+            MMU.speed_switch = (MMU.speed_switch & 0xfe) | (value & 1);
             return;
         case 0xff50:
             /* Disable internal ROM. */
@@ -260,6 +265,14 @@ void mmu_write_word(uint16_t addr, uint16_t value)
     uint16_t addrh = (uint16_t)(addr + 1);
     mmu_write_byte(addr, (uint8_t)(value & 0x00ff));
     mmu_write_byte(addrh, (uint8_t)((value & 0xff00) >> 8));
+}
+
+void mmu_stop(void)
+{
+    if (MMU.speed_switch & 1) {
+        MMU.speed_switch = (~MMU.speed_switch) & 0x80;
+        gpu_change_speed(MMU.speed_switch >> 7);
+    }
 }
 
 void mmu_dump(uint16_t addr, uint16_t offset)

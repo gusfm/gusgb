@@ -12,6 +12,9 @@ typedef struct {
     uint8_t io[0x100];    /* Memory-mapped I/O. */
     uint8_t read_ext_rom;
     uint8_t cart_type;
+    /* FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch */
+    uint8_t speed_switch;
+    /* FF70 - SVBK - CGB Mode Only - WRAM Bank */
     unsigned int wram_bank;
     switch_ext_rom_cb_t switch_ext_rom_cb;
 } mmu_t;
@@ -36,6 +39,9 @@ void mmu_write_byte(uint16_t addr, uint8_t value);
 
 /* Write word to a given address. */
 void mmu_write_word(uint16_t addr, uint16_t value);
+
+/* Stop MMU, and change speed if requested. */
+void mmu_stop(void);
 
 /* Debug MMU. */
 void mmu_dump(uint16_t addr, uint16_t offset);

@@ -196,8 +196,6 @@ uint8_t gpu_read_byte(uint16_t addr)
             return GPU.window_y;
         case 0xff4b:
             return GPU.window_x;
-        case 0xff4d:
-            return GPU.speed_switch;
         case 0xff4f:
             return GPU.vram_bank;
         case 0xff68:
@@ -285,9 +283,6 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 0xff4b:
             /* Window X position. */
             GPU.window_x = val;
-            break;
-        case 0xff4d:
-            GPU.speed_switch = (GPU.speed_switch & 0xfe) | (val & 1);
             break;
         case 0xff4f:
             /* Select VRAM bank. */
@@ -584,12 +579,9 @@ void gpu_step(uint32_t clock_step)
     }
 }
 
-void gpu_stop(void)
+void gpu_change_speed(unsigned int speed)
 {
-    if (GPU.speed_switch & 1) {
-        GPU.speed_switch = (!GPU.speed_switch) & 0x80;
-        GPU.speed = 1 + (GPU.speed_switch >> 7);
-    }
+    GPU.speed = speed + 1;
 }
 
 void gpu_dump(void)
