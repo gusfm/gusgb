@@ -21,6 +21,7 @@ typedef struct {
     const char *asm1;
     const char *asm2;
     uint8_t operand_length;
+    uint8_t clock_cycles;
     func0 exec0;
     func8 exec1;
     func16 exec2;
@@ -29,132 +30,132 @@ typedef struct {
 const instruction_t g_instr[256] = {
     {"NOP", NULL, 0, nop, NULL, NULL},                    // 0x00
     {"LD BC, $", NULL, 2, NULL, NULL, ld_bc_nn},          // 0x01
-    {"LD (BC), A", NULL, 0, ld_bcp_a, NULL, NULL},        // 0x02
+    {"LD (BC), A", NULL, 0, 8, ld_bcp_a, NULL, NULL},        // 0x02
     {"INC BC", NULL, 0, inc_bc, NULL, NULL},              // 0x03
     {"INC B", NULL, 0, inc_b, NULL, NULL},                // 0x04
     {"DEC B", NULL, 0, dec_b, NULL, NULL},                // 0x05
-    {"LD B, $", NULL, 1, NULL, ld_b_n, NULL},             // 0x06
+    {"LD B, $", NULL, 1, 8, NULL, ld_b_n, NULL},             // 0x06
     {"RLCA", NULL, 0, rlca, NULL, NULL},                  // 0x07
     {"LD ($", "), SP", 2, NULL, NULL, ld_nnp_sp},         // 0x08
     {"ADD HL, BC", NULL, 0, add_hl_bc, NULL, NULL},       // 0x09
-    {"LD A, (BC)", NULL, 0, ld_a_bcp, NULL, NULL},        // 0x0a
+    {"LD A, (BC)", NULL, 0, 8, ld_a_bcp, NULL, NULL},        // 0x0a
     {"DEC BC", NULL, 0, dec_bc, NULL, NULL},              // 0x0b
     {"INC C", NULL, 0, inc_c, NULL, NULL},                // 0x0c
     {"DEC C", NULL, 0, dec_c, NULL, NULL},                // 0x0d
-    {"LD C, $", NULL, 1, NULL, ld_c_n, NULL},             // 0x0e
+    {"LD C, $", NULL, 1, 8, NULL, ld_c_n, NULL},             // 0x0e
     {"RRCA", NULL, 0, rrca, NULL, NULL},                  // 0x0f
     {"STOP", NULL, 0, stop, NULL, NULL},                  // 0x10
     {"LD DE, $", NULL, 2, NULL, NULL, ld_de_nn},          // 0x11
-    {"LD (DE), A", NULL, 0, ld_dep_a, NULL, NULL},        // 0x12
+    {"LD (DE), A", NULL, 0, 8, ld_dep_a, NULL, NULL},        // 0x12
     {"INC DE", NULL, 0, inc_de, NULL, NULL},              // 0x13
     {"INC D", NULL, 0, inc_d, NULL, NULL},                // 0x14
     {"DEC D", NULL, 0, dec_d, NULL, NULL},                // 0x15
-    {"LD D, $", NULL, 1, NULL, ld_d_n, NULL},             // 0x16
+    {"LD D, $", NULL, 1, 8, NULL, ld_d_n, NULL},             // 0x16
     {"RLA", NULL, 0, rla, NULL, NULL},                    // 0x17
     {"JR $", NULL, 1, NULL, jr_n, NULL},                  // 0x18
     {"ADD HL, DE", NULL, 0, add_hl_de, NULL, NULL},       // 0x19
-    {"LD A, (DE)", NULL, 0, ld_a_dep, NULL, NULL},        // 0x1a
+    {"LD A, (DE)", NULL, 0, 8, ld_a_dep, NULL, NULL},        // 0x1a
     {"DEC DE", NULL, 0, dec_de, NULL, NULL},              // 0x1b
     {"INC E", NULL, 0, inc_e, NULL, NULL},                // 0x1c
     {"DEC E", NULL, 0, dec_e, NULL, NULL},                // 0x1d
-    {"LD E, $", NULL, 1, NULL, ld_e_n, NULL},             // 0x1e
+    {"LD E, $", NULL, 1, 8, NULL, ld_e_n, NULL},             // 0x1e
     {"RRA", NULL, 0, rra, NULL, NULL},                    // 0x1f
     {"JR NZ, $", NULL, 1, NULL, jr_nz_n, NULL},           // 0x20
     {"LD HL, $", NULL, 2, NULL, NULL, ld_hl_nn},          // 0x21
-    {"LDI (HL), A", NULL, 0, ldi_hlp_a, NULL, NULL},      // 0x22
+    {"LDI (HL), A", NULL, 0, 8, ldi_hlp_a, NULL, NULL},      // 0x22
     {"INC HL", NULL, 0, inc_hl, NULL, NULL},              // 0x23
     {"INC H", NULL, 0, inc_h, NULL, NULL},                // 0x24
     {"DEC H", NULL, 0, dec_h, NULL, NULL},                // 0x25
-    {"LD H, $", NULL, 1, NULL, ld_h_n, NULL},             // 0x26
+    {"LD H, $", NULL, 1, 8, NULL, ld_h_n, NULL},             // 0x26
     {"DAA", NULL, 0, daa, NULL, NULL},                    // 0x27
     {"JR Z, $", NULL, 1, NULL, jr_z_n, NULL},             // 0x28
     {"ADD HL, HL", NULL, 0, add_hl_hl, NULL, NULL},       // 0x29
-    {"LDI A, (HL)", NULL, 0, ldi_a_hlp, NULL, NULL},      // 0x2a
+    {"LDI A, (HL)", NULL, 0, 8, ldi_a_hlp, NULL, NULL},      // 0x2a
     {"DEC HL", NULL, 0, dec_hl, NULL, NULL},              // 0x2b
     {"INC L", NULL, 0, inc_l, NULL, NULL},                // 0x2c
     {"DEC L", NULL, 0, dec_l, NULL, NULL},                // 0x2d
-    {"LD L, $", NULL, 1, NULL, ld_l_n, NULL},             // 0x2e
+    {"LD L, $", NULL, 1, 8, NULL, ld_l_n, NULL},             // 0x2e
     {"CPL", NULL, 0, cpl, NULL, NULL},                    // 0x2f
     {"JR NC, $", NULL, 1, NULL, jr_nc_n, NULL},           // 0x30
     {"LD SP, $", NULL, 2, NULL, NULL, ld_sp_nn},          // 0x31
-    {"LDD (HL), A", NULL, 0, ldd_hlp_a, NULL, NULL},      // 0x32
+    {"LDD (HL), A", NULL, 0, 8, ldd_hlp_a, NULL, NULL},      // 0x32
     {"INC SP", NULL, 0, inc_sp, NULL, NULL},              // 0x33
     {"INC (HL)", NULL, 0, inc_hlp, NULL, NULL},           // 0x34
     {"DEC (HL)", NULL, 0, dec_hlp, NULL, NULL},           // 0x35
-    {"LD (HL), $", NULL, 1, NULL, ld_hlp_n, NULL},        // 0x36
+    {"LD (HL), $", NULL, 1, 12, NULL, ld_hlp_n, NULL},        // 0x36
     {"SCF", NULL, 0, scf, NULL, NULL},                    // 0x37
     {"JR C, $", NULL, 1, NULL, jr_c_n, NULL},             // 0x38
     {"ADD HL, SP", NULL, 0, add_hl_sp, NULL, NULL},       // 0x39
-    {"LDD A, (HL)", NULL, 0, ldd_a_hlp, NULL, NULL},      // 0x3a
+    {"LDD A, (HL)", NULL, 0, 8, ldd_a_hlp, NULL, NULL},      // 0x3a
     {"DEC SP", NULL, 0, dec_sp, NULL, NULL},              // 0x3b
     {"INC A", NULL, 0, inc_a, NULL, NULL},                // 0x3c
     {"DEC A", NULL, 0, dec_a, NULL, NULL},                // 0x3d
-    {"LD A, $", NULL, 1, NULL, ld_a_n, NULL},             // 0x3e
+    {"LD A, $", NULL, 1, 8, NULL, ld_a_n, NULL},             // 0x3e
     {"CCF", NULL, 0, ccf, NULL, NULL},                    // 0x3f
-    {"LD B, B", NULL, 0, nop, NULL, NULL},                // 0x40
-    {"LD B, C", NULL, 0, ld_b_c, NULL, NULL},             // 0x41
-    {"LD B, D", NULL, 0, ld_b_d, NULL, NULL},             // 0x42
-    {"LD B, E", NULL, 0, ld_b_e, NULL, NULL},             // 0x43
-    {"LD B, H", NULL, 0, ld_b_h, NULL, NULL},             // 0x44
-    {"LD B, L", NULL, 0, ld_b_l, NULL, NULL},             // 0x45
-    {"LD B, (HL)", NULL, 0, ld_b_hlp, NULL, NULL},        // 0x46
-    {"LD B, A", NULL, 0, ld_b_a, NULL, NULL},             // 0x47
-    {"LD C, B", NULL, 0, ld_c_b, NULL, NULL},             // 0x48
-    {"LD C, C", NULL, 0, nop, NULL, NULL},                // 0x49
-    {"LD C, D", NULL, 0, ld_c_d, NULL, NULL},             // 0x4a
-    {"LD C, E", NULL, 0, ld_c_e, NULL, NULL},             // 0x4b
-    {"LD C, H", NULL, 0, ld_c_h, NULL, NULL},             // 0x4c
-    {"LD C, L", NULL, 0, ld_c_l, NULL, NULL},             // 0x4d
-    {"LD C, (HL)", NULL, 0, ld_c_hlp, NULL, NULL},        // 0x4e
-    {"LD C, A", NULL, 0, ld_c_a, NULL, NULL},             // 0x4f
-    {"LD D, B", NULL, 0, ld_d_b, NULL, NULL},             // 0x50
-    {"LD D, C", NULL, 0, ld_d_c, NULL, NULL},             // 0x51
-    {"LD D, D", NULL, 0, nop, NULL, NULL},                // 0x52
-    {"LD D, E", NULL, 0, ld_d_e, NULL, NULL},             // 0x53
-    {"LD D, H", NULL, 0, ld_d_h, NULL, NULL},             // 0x54
-    {"LD D, L", NULL, 0, ld_d_l, NULL, NULL},             // 0x55
-    {"LD D, (HL)", NULL, 0, ld_d_hlp, NULL, NULL},        // 0x56
-    {"LD D, A", NULL, 0, ld_d_a, NULL, NULL},             // 0x57
-    {"LD E, B", NULL, 0, ld_e_b, NULL, NULL},             // 0x58
-    {"LD E, C", NULL, 0, ld_e_c, NULL, NULL},             // 0x59
-    {"LD E, D", NULL, 0, ld_e_d, NULL, NULL},             // 0x5a
-    {"LD E, E", NULL, 0, nop, NULL, NULL},                // 0x5b
-    {"LD E, H", NULL, 0, ld_e_h, NULL, NULL},             // 0x5c
-    {"LD E, L", NULL, 0, ld_e_l, NULL, NULL},             // 0x5d
-    {"LD E, (HL)", NULL, 0, ld_e_hlp, NULL, NULL},        // 0x5e
-    {"LD E, A", NULL, 0, ld_e_a, NULL, NULL},             // 0x5f
-    {"LD H, B", NULL, 0, ld_h_b, NULL, NULL},             // 0x60
-    {"LD H, C", NULL, 0, ld_h_c, NULL, NULL},             // 0x61
-    {"LD H, D", NULL, 0, ld_h_d, NULL, NULL},             // 0x62
-    {"LD H, E", NULL, 0, ld_h_e, NULL, NULL},             // 0x63
-    {"LD H, H", NULL, 0, nop, NULL, NULL},                // 0x64
-    {"LD H, L", NULL, 0, ld_h_l, NULL, NULL},             // 0x65
-    {"LD H, (HL)", NULL, 0, ld_h_hlp, NULL, NULL},        // 0x66
-    {"LD H, A", NULL, 0, ld_h_a, NULL, NULL},             // 0x67
-    {"LD L, B", NULL, 0, ld_l_b, NULL, NULL},             // 0x68
-    {"LD L, C", NULL, 0, ld_l_c, NULL, NULL},             // 0x69
-    {"LD L, D", NULL, 0, ld_l_d, NULL, NULL},             // 0x6a
-    {"LD L, E", NULL, 0, ld_l_e, NULL, NULL},             // 0x6b
-    {"LD L, H", NULL, 0, ld_l_h, NULL, NULL},             // 0x6c
-    {"LD L, L", NULL, 0, nop, NULL, NULL},                // 0x6d
-    {"LD L, (HL)", NULL, 0, ld_l_hlp, NULL, NULL},        // 0x6e
-    {"LD L, A", NULL, 0, ld_l_a, NULL, NULL},             // 0x6f
-    {"LD (HL), B", NULL, 0, ld_hlp_b, NULL, NULL},        // 0x70
-    {"LD (HL), C", NULL, 0, ld_hlp_c, NULL, NULL},        // 0x71
-    {"LD (HL), D", NULL, 0, ld_hlp_d, NULL, NULL},        // 0x72
-    {"LD (HL), E", NULL, 0, ld_hlp_e, NULL, NULL},        // 0x73
-    {"LD (HL), H", NULL, 0, ld_hlp_h, NULL, NULL},        // 0x74
-    {"LD (HL), L", NULL, 0, ld_hlp_l, NULL, NULL},        // 0x75
+    {"LD B, B", NULL, 0, 4, nop, NULL, NULL},                // 0x40
+    {"LD B, C", NULL, 0, 4, ld_b_c, NULL, NULL},             // 0x41
+    {"LD B, D", NULL, 0, 4, ld_b_d, NULL, NULL},             // 0x42
+    {"LD B, E", NULL, 0, 4, ld_b_e, NULL, NULL},             // 0x43
+    {"LD B, H", NULL, 0, 4, ld_b_h, NULL, NULL},             // 0x44
+    {"LD B, L", NULL, 0, 4, ld_b_l, NULL, NULL},             // 0x45
+    {"LD B, (HL)", NULL, 0, 8, ld_b_hlp, NULL, NULL},        // 0x46
+    {"LD B, A", NULL, 0, 4, ld_b_a, NULL, NULL},             // 0x47
+    {"LD C, B", NULL, 0, 4, ld_c_b, NULL, NULL},             // 0x48
+    {"LD C, C", NULL, 0, 4, nop, NULL, NULL},                // 0x49
+    {"LD C, D", NULL, 0, 4, ld_c_d, NULL, NULL},             // 0x4a
+    {"LD C, E", NULL, 0, 4, ld_c_e, NULL, NULL},             // 0x4b
+    {"LD C, H", NULL, 0, 4, ld_c_h, NULL, NULL},             // 0x4c
+    {"LD C, L", NULL, 0, 4, ld_c_l, NULL, NULL},             // 0x4d
+    {"LD C, (HL)", NULL, 0, 8, ld_c_hlp, NULL, NULL},        // 0x4e
+    {"LD C, A", NULL, 0, 4, ld_c_a, NULL, NULL},             // 0x4f
+    {"LD D, B", NULL, 0, 4, ld_d_b, NULL, NULL},             // 0x50
+    {"LD D, C", NULL, 0, 4, ld_d_c, NULL, NULL},             // 0x51
+    {"LD D, D", NULL, 0, 4, nop, NULL, NULL},                // 0x52
+    {"LD D, E", NULL, 0, 4, ld_d_e, NULL, NULL},             // 0x53
+    {"LD D, H", NULL, 0, 4, ld_d_h, NULL, NULL},             // 0x54
+    {"LD D, L", NULL, 0, 4, ld_d_l, NULL, NULL},             // 0x55
+    {"LD D, (HL)", NULL, 0, 8, ld_d_hlp, NULL, NULL},        // 0x56
+    {"LD D, A", NULL, 0, 4, ld_d_a, NULL, NULL},             // 0x57
+    {"LD E, B", NULL, 0, 4, ld_e_b, NULL, NULL},             // 0x58
+    {"LD E, C", NULL, 0, 4, ld_e_c, NULL, NULL},             // 0x59
+    {"LD E, D", NULL, 0, 4, ld_e_d, NULL, NULL},             // 0x5a
+    {"LD E, E", NULL, 0, 4, nop, NULL, NULL},                // 0x5b
+    {"LD E, H", NULL, 0, 4, ld_e_h, NULL, NULL},             // 0x5c
+    {"LD E, L", NULL, 0, 4, ld_e_l, NULL, NULL},             // 0x5d
+    {"LD E, (HL)", NULL, 0, 8, ld_e_hlp, NULL, NULL},        // 0x5e
+    {"LD E, A", NULL, 0, 4, ld_e_a, NULL, NULL},             // 0x5f
+    {"LD H, B", NULL, 0, 4, ld_h_b, NULL, NULL},             // 0x60
+    {"LD H, C", NULL, 0, 4, ld_h_c, NULL, NULL},             // 0x61
+    {"LD H, D", NULL, 0, 4, ld_h_d, NULL, NULL},             // 0x62
+    {"LD H, E", NULL, 0, 4, ld_h_e, NULL, NULL},             // 0x63
+    {"LD H, H", NULL, 0, 4, nop, NULL, NULL},                // 0x64
+    {"LD H, L", NULL, 0, 4, ld_h_l, NULL, NULL},             // 0x65
+    {"LD H, (HL)", NULL, 0, 8, ld_h_hlp, NULL, NULL},        // 0x66
+    {"LD H, A", NULL, 0, 4, ld_h_a, NULL, NULL},             // 0x67
+    {"LD L, B", NULL, 0, 4, ld_l_b, NULL, NULL},             // 0x68
+    {"LD L, C", NULL, 0, 4, ld_l_c, NULL, NULL},             // 0x69
+    {"LD L, D", NULL, 0, 4, ld_l_d, NULL, NULL},             // 0x6a
+    {"LD L, E", NULL, 0, 4, ld_l_e, NULL, NULL},             // 0x6b
+    {"LD L, H", NULL, 0, 4, ld_l_h, NULL, NULL},             // 0x6c
+    {"LD L, L", NULL, 0, 4, nop, NULL, NULL},                // 0x6d
+    {"LD L, (HL)", NULL, 0, 8, ld_l_hlp, NULL, NULL},        // 0x6e
+    {"LD L, A", NULL, 0, 4, ld_l_a, NULL, NULL},             // 0x6f
+    {"LD (HL), B", NULL, 0, 8, ld_hlp_b, NULL, NULL},        // 0x70
+    {"LD (HL), C", NULL, 0, 8, ld_hlp_c, NULL, NULL},        // 0x71
+    {"LD (HL), D", NULL, 0, 8, ld_hlp_d, NULL, NULL},        // 0x72
+    {"LD (HL), E", NULL, 0, 8, ld_hlp_e, NULL, NULL},        // 0x73
+    {"LD (HL), H", NULL, 0, 8, ld_hlp_h, NULL, NULL},        // 0x74
+    {"LD (HL), L", NULL, 0, 8, ld_hlp_l, NULL, NULL},        // 0x75
     {"HALT", NULL, 0, halt, NULL, NULL},                  // 0x76
-    {"LD (HL), A", NULL, 0, ld_hlp_a, NULL, NULL},        // 0x77
-    {"LD A, B", NULL, 0, ld_a_b, NULL, NULL},             // 0x78
-    {"LD A, C", NULL, 0, ld_a_c, NULL, NULL},             // 0x79
-    {"LD A, D", NULL, 0, ld_a_d, NULL, NULL},             // 0x7a
-    {"LD A, E", NULL, 0, ld_a_e, NULL, NULL},             // 0x7b
-    {"LD A, H", NULL, 0, ld_a_h, NULL, NULL},             // 0x7c
-    {"LD A, L", NULL, 0, ld_a_l, NULL, NULL},             // 0x7d
-    {"LD A, (HL)", NULL, 0, ld_a_hlp, NULL, NULL},        // 0x7e
-    {"LD A, A", NULL, 0, nop, NULL, NULL},                // 0x7f
+    {"LD (HL), A", NULL, 0, 8, ld_hlp_a, NULL, NULL},        // 0x77
+    {"LD A, B", NULL, 0, 4, ld_a_b, NULL, NULL},             // 0x78
+    {"LD A, C", NULL, 0, 4, ld_a_c, NULL, NULL},             // 0x79
+    {"LD A, D", NULL, 0, 4, ld_a_d, NULL, NULL},             // 0x7a
+    {"LD A, E", NULL, 0, 4, ld_a_e, NULL, NULL},             // 0x7b
+    {"LD A, H", NULL, 0, 4, ld_a_h, NULL, NULL},             // 0x7c
+    {"LD A, L", NULL, 0, 4, ld_a_l, NULL, NULL},             // 0x7d
+    {"LD A, (HL)", NULL, 0, 8, ld_a_hlp, NULL, NULL},        // 0x7e
+    {"LD A, A", NULL, 0, 4, nop, NULL, NULL},                // 0x7f
     {"ADD A, B", NULL, 0, add_a_b, NULL, NULL},           // 0x80
     {"ADD A, C", NULL, 0, add_a_c, NULL, NULL},           // 0x81
     {"ADD A, D", NULL, 0, add_a_d, NULL, NULL},           // 0x82
@@ -251,9 +252,9 @@ const instruction_t g_instr[256] = {
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xdd
     {"SBC $", NULL, 1, NULL, sbc_n, NULL},                // 0xde
     {"RST $18", NULL, 0, rst_18, NULL, NULL},             // 0xdf
-    {"LD ($FF00 + $", "), A", 1, NULL, ldh_n_a, NULL},    // 0xe0
+    {"LD ($FF00 + $", "), A", 1, 12, NULL, ldh_n_a, NULL},    // 0xe0
     {"POP HL", NULL, 0, pop_hl, NULL, NULL},              // 0xe1
-    {"LD ($FF00 + C), A", NULL, 0, ld_cp_a, NULL, NULL},  // 0xe2
+    {"LD ($FF00 + C), A", NULL, 0, 8, ld_cp_a, NULL, NULL},  // 0xe2
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xe3
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xe4
     {"PUSH HL", NULL, 0, push_hl, NULL, NULL},            // 0xe5
@@ -261,15 +262,15 @@ const instruction_t g_instr[256] = {
     {"RST $20", NULL, 0, rst_20, NULL, NULL},             // 0xe7
     {"ADD SP,$", NULL, 1, NULL, add_sp_n, NULL},          // 0xe8
     {"JP HL", NULL, 0, jp_hl, NULL, NULL},                // 0xe9
-    {"LD ($", "), A", 2, NULL, NULL, ld_nnp_a},           // 0xea
+    {"LD ($", "), A", 2, 16, NULL, NULL, ld_nnp_a},           // 0xea
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xeb
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xec
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xed
     {"XOR $", NULL, 1, NULL, xor_n, NULL},                // 0xee
     {"RST $28", NULL, 0, rst_28, NULL, NULL},             // 0xef
-    {"LD A, ($FF00 + $", ")", 1, NULL, ldh_a_n, NULL},    // 0xf0
+    {"LD A, ($FF00 + $", ")", 1, 12, NULL, ldh_a_n, NULL},    // 0xf0
     {"POP AF", NULL, 0, pop_af, NULL, NULL},              // 0xf1
-    {"LD A, ($FF00 + C)", NULL, 0, ld_a_cp, NULL, NULL},  // 0xf2
+    {"LD A, ($FF00 + C)", NULL, 0, 8, ld_a_cp, NULL, NULL},  // 0xf2
     {"DI", NULL, 0, di, NULL, NULL},                      // 0xf3
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xf4
     {"PUSH AF", NULL, 0, push_af, NULL, NULL},            // 0xf5
@@ -277,7 +278,7 @@ const instruction_t g_instr[256] = {
     {"RST $30", NULL, 0, rst_30, NULL, NULL},             // 0xf7
     {"LD HL, SP+$", NULL, 1, NULL, ldhl_sp_n, NULL},      // 0xf8
     {"LD SP, HL", NULL, 0, ld_sp_hl, NULL, NULL},         // 0xf9
-    {"LD A, ($", ")", 2, NULL, NULL, ld_a_nnp},           // 0xfa
+    {"LD A, ($", ")", 2, 16, NULL, NULL, ld_a_nnp},           // 0xfa
     {"EI", NULL, 0, ei, NULL, NULL},                      // 0xfb
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xfc
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xfd
