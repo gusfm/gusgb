@@ -28,7 +28,7 @@ typedef struct {
 } instruction_t;
 
 const instruction_t g_instr[256] = {
-    {"NOP", NULL, 0, nop, NULL, NULL},                    // 0x00
+    {"NOP", NULL, 0, 4, nop, NULL, NULL},                    // 0x00
     {"LD BC, $", NULL, 2, 12, NULL, NULL, ld_bc_nn},          // 0x01
     {"LD (BC), A", NULL, 0, 8, ld_bcp_a, NULL, NULL},        // 0x02
     {"INC BC", NULL, 0, 8, inc_bc, NULL, NULL},              // 0x03
@@ -44,7 +44,7 @@ const instruction_t g_instr[256] = {
     {"DEC C", NULL, 0, 4, dec_c, NULL, NULL},                // 0x0d
     {"LD C, $", NULL, 1, 8, NULL, ld_c_n, NULL},             // 0x0e
     {"RRCA", NULL, 0, 4, rrca, NULL, NULL},                  // 0x0f
-    {"STOP", NULL, 0, stop, NULL, NULL},                  // 0x10
+    {"STOP", NULL, 0, 0, stop, NULL, NULL},                  // 0x10
     {"LD DE, $", NULL, 2, 12, NULL, NULL, ld_de_nn},          // 0x11
     {"LD (DE), A", NULL, 0, 8, ld_dep_a, NULL, NULL},        // 0x12
     {"INC DE", NULL, 0, 8, inc_de, NULL, NULL},              // 0x13
@@ -83,7 +83,7 @@ const instruction_t g_instr[256] = {
     {"INC (HL)", NULL, 0, 12, inc_hlp, NULL, NULL},           // 0x34
     {"DEC (HL)", NULL, 0, 12, dec_hlp, NULL, NULL},           // 0x35
     {"LD (HL), $", NULL, 1, 12, NULL, ld_hlp_n, NULL},        // 0x36
-    {"SCF", NULL, 0, scf, NULL, NULL},                    // 0x37
+    {"SCF", NULL, 0, 4, scf, NULL, NULL},                    // 0x37
     {"JR C, $", NULL, 1, NULL, jr_c_n, NULL},             // 0x38
     {"ADD HL, SP", NULL, 0, 8, add_hl_sp, NULL, NULL},       // 0x39
     {"LDD A, (HL)", NULL, 0, 8, ldd_a_hlp, NULL, NULL},      // 0x3a
@@ -91,7 +91,7 @@ const instruction_t g_instr[256] = {
     {"INC A", NULL, 0, 4, inc_a, NULL, NULL},                // 0x3c
     {"DEC A", NULL, 0, 4, dec_a, NULL, NULL},                // 0x3d
     {"LD A, $", NULL, 1, 8, NULL, ld_a_n, NULL},             // 0x3e
-    {"CCF", NULL, 0, ccf, NULL, NULL},                    // 0x3f
+    {"CCF", NULL, 0, 4, ccf, NULL, NULL},                    // 0x3f
     {"LD B, B", NULL, 0, 4, nop, NULL, NULL},                // 0x40
     {"LD B, C", NULL, 0, 4, ld_b_c, NULL, NULL},             // 0x41
     {"LD B, D", NULL, 0, 4, ld_b_d, NULL, NULL},             // 0x42
@@ -146,7 +146,7 @@ const instruction_t g_instr[256] = {
     {"LD (HL), E", NULL, 0, 8, ld_hlp_e, NULL, NULL},        // 0x73
     {"LD (HL), H", NULL, 0, 8, ld_hlp_h, NULL, NULL},        // 0x74
     {"LD (HL), L", NULL, 0, 8, ld_hlp_l, NULL, NULL},        // 0x75
-    {"HALT", NULL, 0, halt, NULL, NULL},                  // 0x76
+    {"HALT", NULL, 0, 4, halt, NULL, NULL},                  // 0x76
     {"LD (HL), A", NULL, 0, 8, ld_hlp_a, NULL, NULL},        // 0x77
     {"LD A, B", NULL, 0, 4, ld_a_b, NULL, NULL},             // 0x78
     {"LD A, C", NULL, 0, 4, ld_a_c, NULL, NULL},             // 0x79
@@ -271,7 +271,7 @@ const instruction_t g_instr[256] = {
     {"LD A, ($FF00 + $", ")", 1, 12, NULL, ldh_a_n, NULL},    // 0xf0
     {"POP AF", NULL, 0, 12, pop_af, NULL, NULL},              // 0xf1
     {"LD A, ($FF00 + C)", NULL, 0, 8, ld_a_cp, NULL, NULL},  // 0xf2
-    {"DI", NULL, 0, di, NULL, NULL},                      // 0xf3
+    {"DI", NULL, 0, 4, di, NULL, NULL},                      // 0xf3
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xf4
     {"PUSH AF", NULL, 0, 16, push_af, NULL, NULL},            // 0xf5
     {"OR $", NULL, 1, 8, NULL, or_n, NULL},                  // 0xf6
@@ -279,7 +279,7 @@ const instruction_t g_instr[256] = {
     {"LD HL, SP+$", NULL, 1, 12, NULL, ldhl_sp_n, NULL},      // 0xf8
     {"LD SP, HL", NULL, 0, 8, ld_sp_hl, NULL, NULL},         // 0xf9
     {"LD A, ($", ")", 2, 16, NULL, NULL, ld_a_nnp},           // 0xfa
-    {"EI", NULL, 0, ei, NULL, NULL},                      // 0xfb
+    {"EI", NULL, 0, 4, ei, NULL, NULL},                      // 0xfb
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xfc
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xfd
     {"CP $", NULL, 1, 8, NULL, cp_n, NULL},                  // 0xfe
