@@ -8,74 +8,75 @@ extern cpu_t g_cpu;
 
 typedef struct {
     const char *asm1;
+    uint8_t clock_cycles;
     void (*execute)(void);
 } ext_instruction_t;
 
 const ext_instruction_t g_ext_instr[256] = {
-    {"RLC B", rlc_b},            // 0x00
-    {"RLC C", rlc_c},            // 0x01
-    {"RLC D", rlc_d},            // 0x02
-    {"RLC E", rlc_e},            // 0x03
-    {"RLC H", rlc_h},            // 0x04
-    {"RLC L", rlc_l},            // 0x05
-    {"RLC (HL)", rlc_hlp},       // 0x06
-    {"RLC A", rlc_a},            // 0x07
-    {"RRC B", rrc_b},            // 0x08
-    {"RRC C", rrc_c},            // 0x09
-    {"RRC D", rrc_d},            // 0x0a
-    {"RRC E", rrc_e},            // 0x0b
-    {"RRC H", rrc_h},            // 0x0c
-    {"RRC L", rrc_l},            // 0x0d
-    {"RRC (HL)", rrc_hlp},       // 0x0e
-    {"RRC A", rrc_a},            // 0x0f
-    {"RL B", rl_b},              // 0x10
-    {"RL C", rl_c},              // 0x11
-    {"RL D", rl_d},              // 0x12
-    {"RL E", rl_e},              // 0x13
-    {"RL H", rl_h},              // 0x14
-    {"RL L", rl_l},              // 0x15
-    {"RL (HL)", rl_hlp},         // 0x16
-    {"RL A", rl_a},              // 0x17
-    {"RR B", rr_b},              // 0x18
-    {"RR C", rr_c},              // 0x19
-    {"RR D", rr_d},              // 0x1a
-    {"RR E", rr_e},              // 0x1b
-    {"RR H", rr_h},              // 0x1c
-    {"RR L", rr_l},              // 0x1d
-    {"RR (HL)", rr_hlp},         // 0x1e
-    {"RR A", rr_a},              // 0x1f
-    {"SLA B", sla_b},            // 0x20
-    {"SLA C", sla_c},            // 0x21
-    {"SLA D", sla_d},            // 0x22
-    {"SLA E", sla_e},            // 0x23
-    {"SLA H", sla_h},            // 0x24
-    {"SLA L", sla_l},            // 0x25
-    {"SLA (HL)", sla_hlp},       // 0x26
-    {"SLA A", sla_a},            // 0x27
-    {"SRA B", sra_b},            // 0x28
-    {"SRA C", sra_c},            // 0x29
-    {"SRA D", sra_d},            // 0x2a
-    {"SRA E", sra_e},            // 0x2b
-    {"SRA H", sra_h},            // 0x2c
-    {"SRA L", sra_l},            // 0x2d
-    {"SRA (HL)", sra_hlp},       // 0x2e
-    {"SRA A", sra_a},            // 0x2f
-    {"SWAP B", swap_b},          // 0x30
-    {"SWAP C", swap_c},          // 0x31
-    {"SWAP D", swap_d},          // 0x32
-    {"SWAP E", swap_e},          // 0x33
-    {"SWAP H", swap_h},          // 0x34
-    {"SWAP L", swap_l},          // 0x35
-    {"SWAP (HL)", swap_hlp},     // 0x36
-    {"SWAP A", swap_a},          // 0x37
-    {"SRL B", srl_b},            // 0x38
-    {"SRL C", srl_c},            // 0x39
-    {"SRL D", srl_d},            // 0x3a
-    {"SRL E", srl_e},            // 0x3b
-    {"SRL H", srl_h},            // 0x3c
-    {"SRL L", srl_l},            // 0x3d
-    {"SRL (HL)", srl_hlp},       // 0x3e
-    {"SRL A", srl_a},            // 0x3f
+    {"RLC B", 8, rlc_b},            // 0x00
+    {"RLC C", 8, rlc_c},            // 0x01
+    {"RLC D", 8, rlc_d},            // 0x02
+    {"RLC E", 8, rlc_e},            // 0x03
+    {"RLC H", 8, rlc_h},            // 0x04
+    {"RLC L", 8, rlc_l},            // 0x05
+    {"RLC (HL)", 16, rlc_hlp},       // 0x06
+    {"RLC A", 8, rlc_a},            // 0x07
+    {"RRC B", 8, rrc_b},            // 0x08
+    {"RRC C", 8, rrc_c},            // 0x09
+    {"RRC D", 8, rrc_d},            // 0x0a
+    {"RRC E", 8, rrc_e},            // 0x0b
+    {"RRC H", 8, rrc_h},            // 0x0c
+    {"RRC L", 8, rrc_l},            // 0x0d
+    {"RRC (HL)", 16, rrc_hlp},       // 0x0e
+    {"RRC A", 8, rrc_a},            // 0x0f
+    {"RL B", 8, rl_b},              // 0x10
+    {"RL C", 8, rl_c},              // 0x11
+    {"RL D", 8, rl_d},              // 0x12
+    {"RL E", 8, rl_e},              // 0x13
+    {"RL H", 8, rl_h},              // 0x14
+    {"RL L", 8, rl_l},              // 0x15
+    {"RL (HL)", 16, rl_hlp},         // 0x16
+    {"RL A", 8, rl_a},              // 0x17
+    {"RR B", 8, rr_b},              // 0x18
+    {"RR C", 8, rr_c},              // 0x19
+    {"RR D", 8, rr_d},              // 0x1a
+    {"RR E", 8, rr_e},              // 0x1b
+    {"RR H", 8, rr_h},              // 0x1c
+    {"RR L", 8, rr_l},              // 0x1d
+    {"RR (HL)", 16, rr_hlp},         // 0x1e
+    {"RR A", 8, rr_a},              // 0x1f
+    {"SLA B", 8, sla_b},            // 0x20
+    {"SLA C", 8, sla_c},            // 0x21
+    {"SLA D", 8, sla_d},            // 0x22
+    {"SLA E", 8, sla_e},            // 0x23
+    {"SLA H", 8, sla_h},            // 0x24
+    {"SLA L", 8, sla_l},            // 0x25
+    {"SLA (HL)", 16, sla_hlp},       // 0x26
+    {"SLA A", 8, sla_a},            // 0x27
+    {"SRA B", 8, sra_b},            // 0x28
+    {"SRA C", 8, sra_c},            // 0x29
+    {"SRA D", 8, sra_d},            // 0x2a
+    {"SRA E", 8, sra_e},            // 0x2b
+    {"SRA H", 8, sra_h},            // 0x2c
+    {"SRA L", 8, sra_l},            // 0x2d
+    {"SRA (HL)", 16, sra_hlp},       // 0x2e
+    {"SRA A", 8, sra_a},            // 0x2f
+    {"SWAP B", 8, swap_b},          // 0x30
+    {"SWAP C", 8, swap_c},          // 0x31
+    {"SWAP D", 8, swap_d},          // 0x32
+    {"SWAP E", 8, swap_e},          // 0x33
+    {"SWAP H", 8, swap_h},          // 0x34
+    {"SWAP L", 8, swap_l},          // 0x35
+    {"SWAP (HL)", 16, swap_hlp},     // 0x36
+    {"SWAP A", 8, swap_a},          // 0x37
+    {"SRL B", 8, srl_b},            // 0x38
+    {"SRL C", 8, srl_c},            // 0x39
+    {"SRL D", 8, srl_d},            // 0x3a
+    {"SRL E", 8, srl_e},            // 0x3b
+    {"SRL H", 8, srl_h},            // 0x3c
+    {"SRL L", 8, srl_l},            // 0x3d
+    {"SRL (HL)", 16, srl_hlp},       // 0x3e
+    {"SRL A", 8, srl_a},            // 0x3f
     {"BIT 0, B", bit_0_b},       // 0x40
     {"BIT 0, C", bit_0_c},       // 0x41
     {"BIT 0, D", bit_0_d},       // 0x42

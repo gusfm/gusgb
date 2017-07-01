@@ -35,7 +35,7 @@ const instruction_t g_instr[256] = {
     {"INC B", NULL, 0, 4, inc_b, NULL, NULL},                // 0x04
     {"DEC B", NULL, 0, 4, dec_b, NULL, NULL},                // 0x05
     {"LD B, $", NULL, 1, 8, NULL, ld_b_n, NULL},             // 0x06
-    {"RLCA", NULL, 0, rlca, NULL, NULL},                  // 0x07
+    {"RLCA", NULL, 0, 4, rlca, NULL, NULL},                  // 0x07
     {"LD ($", "), SP", 2, NULL, NULL, ld_nnp_sp},         // 0x08
     {"ADD HL, BC", NULL, 0, 8, add_hl_bc, NULL, NULL},       // 0x09
     {"LD A, (BC)", NULL, 0, 8, ld_a_bcp, NULL, NULL},        // 0x0a
@@ -43,7 +43,7 @@ const instruction_t g_instr[256] = {
     {"INC C", NULL, 0, 4, inc_c, NULL, NULL},                // 0x0c
     {"DEC C", NULL, 0, 4, dec_c, NULL, NULL},                // 0x0d
     {"LD C, $", NULL, 1, 8, NULL, ld_c_n, NULL},             // 0x0e
-    {"RRCA", NULL, 0, rrca, NULL, NULL},                  // 0x0f
+    {"RRCA", NULL, 0, 4, rrca, NULL, NULL},                  // 0x0f
     {"STOP", NULL, 0, stop, NULL, NULL},                  // 0x10
     {"LD DE, $", NULL, 2, 12, NULL, NULL, ld_de_nn},          // 0x11
     {"LD (DE), A", NULL, 0, 8, ld_dep_a, NULL, NULL},        // 0x12
@@ -51,7 +51,7 @@ const instruction_t g_instr[256] = {
     {"INC D", NULL, 0, 4, inc_d, NULL, NULL},                // 0x14
     {"DEC D", NULL, 0, 4, dec_d, NULL, NULL},                // 0x15
     {"LD D, $", NULL, 1, 8, NULL, ld_d_n, NULL},             // 0x16
-    {"RLA", NULL, 0, rla, NULL, NULL},                    // 0x17
+    {"RLA", NULL, 0, 4, rla, NULL, NULL},                    // 0x17
     {"JR $", NULL, 1, NULL, jr_n, NULL},                  // 0x18
     {"ADD HL, DE", NULL, 0, 8, add_hl_de, NULL, NULL},       // 0x19
     {"LD A, (DE)", NULL, 0, 8, ld_a_dep, NULL, NULL},        // 0x1a
@@ -59,7 +59,7 @@ const instruction_t g_instr[256] = {
     {"INC E", NULL, 0, 4, inc_e, NULL, NULL},                // 0x1c
     {"DEC E", NULL, 0, 4, dec_e, NULL, NULL},                // 0x1d
     {"LD E, $", NULL, 1, 8, NULL, ld_e_n, NULL},             // 0x1e
-    {"RRA", NULL, 0, rra, NULL, NULL},                    // 0x1f
+    {"RRA", NULL, 0, 4, rra, NULL, NULL},                    // 0x1f
     {"JR NZ, $", NULL, 1, NULL, jr_nz_n, NULL},           // 0x20
     {"LD HL, $", NULL, 2, 12, NULL, NULL, ld_hl_nn},          // 0x21
     {"LDI (HL), A", NULL, 0, 8, ldi_hlp_a, NULL, NULL},      // 0x22
