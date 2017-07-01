@@ -29,7 +29,7 @@ typedef struct {
 
 const instruction_t g_instr[256] = {
     {"NOP", NULL, 0, nop, NULL, NULL},                    // 0x00
-    {"LD BC, $", NULL, 2, NULL, NULL, ld_bc_nn},          // 0x01
+    {"LD BC, $", NULL, 2, 12, NULL, NULL, ld_bc_nn},          // 0x01
     {"LD (BC), A", NULL, 0, 8, ld_bcp_a, NULL, NULL},        // 0x02
     {"INC BC", NULL, 0, inc_bc, NULL, NULL},              // 0x03
     {"INC B", NULL, 0, inc_b, NULL, NULL},                // 0x04
@@ -45,7 +45,7 @@ const instruction_t g_instr[256] = {
     {"LD C, $", NULL, 1, 8, NULL, ld_c_n, NULL},             // 0x0e
     {"RRCA", NULL, 0, rrca, NULL, NULL},                  // 0x0f
     {"STOP", NULL, 0, stop, NULL, NULL},                  // 0x10
-    {"LD DE, $", NULL, 2, NULL, NULL, ld_de_nn},          // 0x11
+    {"LD DE, $", NULL, 2, 12, NULL, NULL, ld_de_nn},          // 0x11
     {"LD (DE), A", NULL, 0, 8, ld_dep_a, NULL, NULL},        // 0x12
     {"INC DE", NULL, 0, inc_de, NULL, NULL},              // 0x13
     {"INC D", NULL, 0, inc_d, NULL, NULL},                // 0x14
@@ -61,7 +61,7 @@ const instruction_t g_instr[256] = {
     {"LD E, $", NULL, 1, 8, NULL, ld_e_n, NULL},             // 0x1e
     {"RRA", NULL, 0, rra, NULL, NULL},                    // 0x1f
     {"JR NZ, $", NULL, 1, NULL, jr_nz_n, NULL},           // 0x20
-    {"LD HL, $", NULL, 2, NULL, NULL, ld_hl_nn},          // 0x21
+    {"LD HL, $", NULL, 2, 12, NULL, NULL, ld_hl_nn},          // 0x21
     {"LDI (HL), A", NULL, 0, 8, ldi_hlp_a, NULL, NULL},      // 0x22
     {"INC HL", NULL, 0, inc_hl, NULL, NULL},              // 0x23
     {"INC H", NULL, 0, inc_h, NULL, NULL},                // 0x24
@@ -77,7 +77,7 @@ const instruction_t g_instr[256] = {
     {"LD L, $", NULL, 1, 8, NULL, ld_l_n, NULL},             // 0x2e
     {"CPL", NULL, 0, cpl, NULL, NULL},                    // 0x2f
     {"JR NC, $", NULL, 1, NULL, jr_nc_n, NULL},           // 0x30
-    {"LD SP, $", NULL, 2, NULL, NULL, ld_sp_nn},          // 0x31
+    {"LD SP, $", NULL, 2, 12, NULL, NULL, ld_sp_nn},          // 0x31
     {"LDD (HL), A", NULL, 0, 8, ldd_hlp_a, NULL, NULL},      // 0x32
     {"INC SP", NULL, 0, inc_sp, NULL, NULL},              // 0x33
     {"INC (HL)", NULL, 0, inc_hlp, NULL, NULL},           // 0x34
@@ -221,11 +221,11 @@ const instruction_t g_instr[256] = {
     {"CP (HL)", NULL, 0, cp_hlp, NULL, NULL},             // 0xbe
     {"CP A", NULL, 0, cp_a, NULL, NULL},                  // 0xbf
     {"RET NZ", NULL, 0, ret_nz, NULL, NULL},              // 0xc0
-    {"POP BC", NULL, 0, pop_bc, NULL, NULL},              // 0xc1
+    {"POP BC", NULL, 0, 12, pop_bc, NULL, NULL},              // 0xc1
     {"JP NZ, $", NULL, 2, NULL, NULL, jp_nz_nn},          // 0xc2
     {"JP $", NULL, 2, NULL, NULL, jp_nn},                 // 0xc3
     {"CALL NZ, $", NULL, 2, NULL, NULL, call_nz_nn},      // 0xc4
-    {"PUSH BC", NULL, 0, push_bc, NULL, NULL},            // 0xc5
+    {"PUSH BC", NULL, 0, 16, push_bc, NULL, NULL},            // 0xc5
     {"ADD A, $", NULL, 1, NULL, add_a_n, NULL},           // 0xc6
     {"RST $00", NULL, 0, rst_00, NULL, NULL},             // 0xc7
     {"RET Z", NULL, 0, ret_z, NULL, NULL},                // 0xc8
@@ -237,11 +237,11 @@ const instruction_t g_instr[256] = {
     {"ADC $", NULL, 1, NULL, adc_n, NULL},                // 0xce
     {"RST $08", NULL, 0, rst_08, NULL, NULL},             // 0xcf
     {"RET NC", NULL, 0, ret_nc, NULL, NULL},              // 0xd0
-    {"POP DE", NULL, 0, pop_de, NULL, NULL},              // 0xd1
+    {"POP DE", NULL, 0, 12, pop_de, NULL, NULL},              // 0xd1
     {"JP NC, $", NULL, 2, NULL, NULL, jp_nc_nn},          // 0xd2
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xd3
     {"CALL NC, $", NULL, 2, NULL, NULL, call_nc_nn},      // 0xd4
-    {"PUSH DE", NULL, 0, push_de, NULL, NULL},            // 0xd5
+    {"PUSH DE", NULL, 0, 16, push_de, NULL, NULL},            // 0xd5
     {"SUB $", NULL, 1, NULL, sub_n, NULL},                // 0xd6
     {"RST $10", NULL, 0, rst_10, NULL, NULL},             // 0xd7
     {"RET C", NULL, 0, ret_c, NULL, NULL},                // 0xd8
@@ -253,11 +253,11 @@ const instruction_t g_instr[256] = {
     {"SBC $", NULL, 1, NULL, sbc_n, NULL},                // 0xde
     {"RST $18", NULL, 0, rst_18, NULL, NULL},             // 0xdf
     {"LD ($FF00 + $", "), A", 1, 12, NULL, ldh_n_a, NULL},    // 0xe0
-    {"POP HL", NULL, 0, pop_hl, NULL, NULL},              // 0xe1
+    {"POP HL", NULL, 0, 12, pop_hl, NULL, NULL},              // 0xe1
     {"LD ($FF00 + C), A", NULL, 0, 8, ld_cp_a, NULL, NULL},  // 0xe2
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xe3
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xe4
-    {"PUSH HL", NULL, 0, push_hl, NULL, NULL},            // 0xe5
+    {"PUSH HL", NULL, 0, 16, push_hl, NULL, NULL},            // 0xe5
     {"AND $", NULL, 1, NULL, and_n, NULL},                // 0xe6
     {"RST $20", NULL, 0, rst_20, NULL, NULL},             // 0xe7
     {"ADD SP,$", NULL, 1, NULL, add_sp_n, NULL},          // 0xe8
@@ -269,15 +269,15 @@ const instruction_t g_instr[256] = {
     {"XOR $", NULL, 1, NULL, xor_n, NULL},                // 0xee
     {"RST $28", NULL, 0, rst_28, NULL, NULL},             // 0xef
     {"LD A, ($FF00 + $", ")", 1, 12, NULL, ldh_a_n, NULL},    // 0xf0
-    {"POP AF", NULL, 0, pop_af, NULL, NULL},              // 0xf1
+    {"POP AF", NULL, 0, 12, pop_af, NULL, NULL},              // 0xf1
     {"LD A, ($FF00 + C)", NULL, 0, 8, ld_a_cp, NULL, NULL},  // 0xf2
     {"DI", NULL, 0, di, NULL, NULL},                      // 0xf3
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xf4
-    {"PUSH AF", NULL, 0, push_af, NULL, NULL},            // 0xf5
+    {"PUSH AF", NULL, 0, 16, push_af, NULL, NULL},            // 0xf5
     {"OR $", NULL, 1, NULL, or_n, NULL},                  // 0xf6
     {"RST $30", NULL, 0, rst_30, NULL, NULL},             // 0xf7
     {"LD HL, SP+$", NULL, 1, NULL, ldhl_sp_n, NULL},      // 0xf8
-    {"LD SP, HL", NULL, 0, ld_sp_hl, NULL, NULL},         // 0xf9
+    {"LD SP, HL", NULL, 0, 8, ld_sp_hl, NULL, NULL},         // 0xf9
     {"LD A, ($", ")", 2, 16, NULL, NULL, ld_a_nnp},           // 0xfa
     {"EI", NULL, 0, ei, NULL, NULL},                      // 0xfb
     {"UNKNOWN", NULL, 0, undefined, NULL, NULL},          // 0xfc
