@@ -29,14 +29,14 @@ typedef struct {
 
 const instruction_t g_instr[256] = {
     {"NOP", NULL, 0, 4, nop, NULL, NULL},                    // 0x00
-    {"LD BC, $", NULL, 2, 12, NULL, NULL, ld_bc_nn},          // 0x01
+    {"LD BC, $", NULL, 2, 12, NULL, NULL, ld_bc_nn},         // 0x01
     {"LD (BC), A", NULL, 0, 8, ld_bcp_a, NULL, NULL},        // 0x02
     {"INC BC", NULL, 0, 8, inc_bc, NULL, NULL},              // 0x03
     {"INC B", NULL, 0, 4, inc_b, NULL, NULL},                // 0x04
     {"DEC B", NULL, 0, 4, dec_b, NULL, NULL},                // 0x05
     {"LD B, $", NULL, 1, 8, NULL, ld_b_n, NULL},             // 0x06
     {"RLCA", NULL, 0, 4, rlca, NULL, NULL},                  // 0x07
-    {"LD ($", "), SP", 2, 20, NULL, NULL, ld_nnp_sp},         // 0x08
+    {"LD ($", "), SP", 2, 20, NULL, NULL, ld_nnp_sp},        // 0x08
     {"ADD HL, BC", NULL, 0, 8, add_hl_bc, NULL, NULL},       // 0x09
     {"LD A, (BC)", NULL, 0, 8, ld_a_bcp, NULL, NULL},        // 0x0a
     {"DEC BC", NULL, 0, 8, dec_bc, NULL, NULL},              // 0x0b
@@ -44,15 +44,15 @@ const instruction_t g_instr[256] = {
     {"DEC C", NULL, 0, 4, dec_c, NULL, NULL},                // 0x0d
     {"LD C, $", NULL, 1, 8, NULL, ld_c_n, NULL},             // 0x0e
     {"RRCA", NULL, 0, 4, rrca, NULL, NULL},                  // 0x0f
-    {"STOP", NULL, 0, 0, stop, NULL, NULL},                  // 0x10
-    {"LD DE, $", NULL, 2, 12, NULL, NULL, ld_de_nn},          // 0x11
+    {"STOP", NULL, 0, 4, stop, NULL, NULL},                  // 0x10
+    {"LD DE, $", NULL, 2, 12, NULL, NULL, ld_de_nn},         // 0x11
     {"LD (DE), A", NULL, 0, 8, ld_dep_a, NULL, NULL},        // 0x12
     {"INC DE", NULL, 0, 8, inc_de, NULL, NULL},              // 0x13
     {"INC D", NULL, 0, 4, inc_d, NULL, NULL},                // 0x14
     {"DEC D", NULL, 0, 4, dec_d, NULL, NULL},                // 0x15
     {"LD D, $", NULL, 1, 8, NULL, ld_d_n, NULL},             // 0x16
     {"RLA", NULL, 0, 4, rla, NULL, NULL},                    // 0x17
-    {"JR $", NULL, 1, 12, NULL, jr_n, NULL},                  // 0x18
+    {"JR $", NULL, 1, 12, NULL, jr_n, NULL},                 // 0x18
     {"ADD HL, DE", NULL, 0, 8, add_hl_de, NULL, NULL},       // 0x19
     {"LD A, (DE)", NULL, 0, 8, ld_a_dep, NULL, NULL},        // 0x1a
     {"DEC DE", NULL, 0, 8, dec_de, NULL, NULL},              // 0x1b
@@ -61,7 +61,7 @@ const instruction_t g_instr[256] = {
     {"LD E, $", NULL, 1, 8, NULL, ld_e_n, NULL},             // 0x1e
     {"RRA", NULL, 0, 4, rra, NULL, NULL},                    // 0x1f
     {"JR NZ, $", NULL, 1, 0, NULL, jr_nz_n, NULL},           // 0x20
-    {"LD HL, $", NULL, 2, 12, NULL, NULL, ld_hl_nn},          // 0x21
+    {"LD HL, $", NULL, 2, 12, NULL, NULL, ld_hl_nn},         // 0x21
     {"LDI (HL), A", NULL, 0, 8, ldi_hlp_a, NULL, NULL},      // 0x22
     {"INC HL", NULL, 0, 8, inc_hl, NULL, NULL},              // 0x23
     {"INC H", NULL, 0, 4, inc_h, NULL, NULL},                // 0x24
@@ -77,12 +77,12 @@ const instruction_t g_instr[256] = {
     {"LD L, $", NULL, 1, 8, NULL, ld_l_n, NULL},             // 0x2e
     {"CPL", NULL, 0, 4, cpl, NULL, NULL},                    // 0x2f
     {"JR NC, $", NULL, 1, 0, NULL, jr_nc_n, NULL},           // 0x30
-    {"LD SP, $", NULL, 2, 12, NULL, NULL, ld_sp_nn},          // 0x31
+    {"LD SP, $", NULL, 2, 12, NULL, NULL, ld_sp_nn},         // 0x31
     {"LDD (HL), A", NULL, 0, 8, ldd_hlp_a, NULL, NULL},      // 0x32
     {"INC SP", NULL, 0, 8, inc_sp, NULL, NULL},              // 0x33
-    {"INC (HL)", NULL, 0, 12, inc_hlp, NULL, NULL},           // 0x34
-    {"DEC (HL)", NULL, 0, 12, dec_hlp, NULL, NULL},           // 0x35
-    {"LD (HL), $", NULL, 1, 12, NULL, ld_hlp_n, NULL},        // 0x36
+    {"INC (HL)", NULL, 0, 12, inc_hlp, NULL, NULL},          // 0x34
+    {"DEC (HL)", NULL, 0, 12, dec_hlp, NULL, NULL},          // 0x35
+    {"LD (HL), $", NULL, 1, 12, NULL, ld_hlp_n, NULL},       // 0x36
     {"SCF", NULL, 0, 4, scf, NULL, NULL},                    // 0x37
     {"JR C, $", NULL, 1, 0, NULL, jr_c_n, NULL},             // 0x38
     {"ADD HL, SP", NULL, 0, 8, add_hl_sp, NULL, NULL},       // 0x39
@@ -221,93 +221,69 @@ const instruction_t g_instr[256] = {
     {"CP (HL)", NULL, 0, 8, cp_hlp, NULL, NULL},             // 0xbe
     {"CP A", NULL, 0, 4, cp_a, NULL, NULL},                  // 0xbf
     {"RET NZ", NULL, 0, 0, ret_nz, NULL, NULL},              // 0xc0
-    {"POP BC", NULL, 0, 12, pop_bc, NULL, NULL},              // 0xc1
+    {"POP BC", NULL, 0, 12, pop_bc, NULL, NULL},             // 0xc1
     {"JP NZ, $", NULL, 2, 0, NULL, NULL, jp_nz_nn},          // 0xc2
-    {"JP $", NULL, 2, 16, NULL, NULL, jp_nn},                 // 0xc3
+    {"JP $", NULL, 2, 16, NULL, NULL, jp_nn},                // 0xc3
     {"CALL NZ, $", NULL, 2, 0, NULL, NULL, call_nz_nn},      // 0xc4
-    {"PUSH BC", NULL, 0, 16, push_bc, NULL, NULL},            // 0xc5
+    {"PUSH BC", NULL, 0, 16, push_bc, NULL, NULL},           // 0xc5
     {"ADD A, $", NULL, 1, 8, NULL, add_a_n, NULL},           // 0xc6
-    {"RST $00", NULL, 0, 16, rst_00, NULL, NULL},             // 0xc7
+    {"RST $00", NULL, 0, 16, rst_00, NULL, NULL},            // 0xc7
     {"RET Z", NULL, 0, 0, ret_z, NULL, NULL},                // 0xc8
-    {"RET", NULL, 0, 16, ret, NULL, NULL},                    // 0xc9
+    {"RET", NULL, 0, 16, ret, NULL, NULL},                   // 0xc9
     {"JP Z, $", NULL, 2, 0, NULL, NULL, jp_z_nn},            // 0xca
     {"CB ", NULL, 1, 0, NULL, cb_n, NULL},                   // 0xcb
     {"CALL Z, $", NULL, 2, 0, NULL, NULL, call_z_nn},        // 0xcc
-    {"CALL $", NULL, 2, 24, NULL, NULL, call_nn},             // 0xcd
+    {"CALL $", NULL, 2, 24, NULL, NULL, call_nn},            // 0xcd
     {"ADC $", NULL, 1, 8, NULL, adc_n, NULL},                // 0xce
-    {"RST $08", NULL, 0, 16, rst_08, NULL, NULL},             // 0xcf
+    {"RST $08", NULL, 0, 16, rst_08, NULL, NULL},            // 0xcf
     {"RET NC", NULL, 0, 0, ret_nc, NULL, NULL},              // 0xd0
-    {"POP DE", NULL, 0, 12, pop_de, NULL, NULL},              // 0xd1
+    {"POP DE", NULL, 0, 12, pop_de, NULL, NULL},             // 0xd1
     {"JP NC, $", NULL, 2, 0, NULL, NULL, jp_nc_nn},          // 0xd2
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xd3
     {"CALL NC, $", NULL, 2, 0, NULL, NULL, call_nc_nn},      // 0xd4
-    {"PUSH DE", NULL, 0, 16, push_de, NULL, NULL},            // 0xd5
+    {"PUSH DE", NULL, 0, 16, push_de, NULL, NULL},           // 0xd5
     {"SUB $", NULL, 1, 8, NULL, sub_n, NULL},                // 0xd6
-    {"RST $10", NULL, 0, 16, rst_10, NULL, NULL},             // 0xd7
+    {"RST $10", NULL, 0, 16, rst_10, NULL, NULL},            // 0xd7
     {"RET C", NULL, 0, 0, ret_c, NULL, NULL},                // 0xd8
-    {"RETI", NULL, 0, 16, reti, NULL, NULL},                  // 0xd9
+    {"RETI", NULL, 0, 16, reti, NULL, NULL},                 // 0xd9
     {"JP C, $", NULL, 2, 0, NULL, NULL, jp_c_nn},            // 0xda
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xdb
     {"CALL C, $", NULL, 2, 0, NULL, NULL, call_c_nn},        // 0xdc
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xdd
     {"SBC $", NULL, 1, 8, NULL, sbc_n, NULL},                // 0xde
-    {"RST $18", NULL, 0, 16, rst_18, NULL, NULL},             // 0xdf
-    {"LD ($FF00 + $", "), A", 1, 12, NULL, ldh_n_a, NULL},    // 0xe0
-    {"POP HL", NULL, 0, 12, pop_hl, NULL, NULL},              // 0xe1
+    {"RST $18", NULL, 0, 16, rst_18, NULL, NULL},            // 0xdf
+    {"LD ($FF00 + $", "), A", 1, 12, NULL, ldh_n_a, NULL},   // 0xe0
+    {"POP HL", NULL, 0, 12, pop_hl, NULL, NULL},             // 0xe1
     {"LD ($FF00 + C), A", NULL, 0, 8, ld_cp_a, NULL, NULL},  // 0xe2
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xe3
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xe4
-    {"PUSH HL", NULL, 0, 16, push_hl, NULL, NULL},            // 0xe5
+    {"PUSH HL", NULL, 0, 16, push_hl, NULL, NULL},           // 0xe5
     {"AND $", NULL, 1, 8, NULL, and_n, NULL},                // 0xe6
-    {"RST $20", NULL, 0, 16, rst_20, NULL, NULL},             // 0xe7
-    {"ADD SP,$", NULL, 1, 16, NULL, add_sp_n, NULL},          // 0xe8
+    {"RST $20", NULL, 0, 16, rst_20, NULL, NULL},            // 0xe7
+    {"ADD SP,$", NULL, 1, 16, NULL, add_sp_n, NULL},         // 0xe8
     {"JP HL", NULL, 0, 4, jp_hl, NULL, NULL},                // 0xe9
-    {"LD ($", "), A", 2, 16, NULL, NULL, ld_nnp_a},           // 0xea
+    {"LD ($", "), A", 2, 16, NULL, NULL, ld_nnp_a},          // 0xea
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xeb
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xec
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xed
     {"XOR $", NULL, 1, 8, NULL, xor_n, NULL},                // 0xee
-    {"RST $28", NULL, 0, 16, rst_28, NULL, NULL},             // 0xef
-    {"LD A, ($FF00 + $", ")", 1, 12, NULL, ldh_a_n, NULL},    // 0xf0
-    {"POP AF", NULL, 0, 12, pop_af, NULL, NULL},              // 0xf1
+    {"RST $28", NULL, 0, 16, rst_28, NULL, NULL},            // 0xef
+    {"LD A, ($FF00 + $", ")", 1, 12, NULL, ldh_a_n, NULL},   // 0xf0
+    {"POP AF", NULL, 0, 12, pop_af, NULL, NULL},             // 0xf1
     {"LD A, ($FF00 + C)", NULL, 0, 8, ld_a_cp, NULL, NULL},  // 0xf2
     {"DI", NULL, 0, 4, di, NULL, NULL},                      // 0xf3
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xf4
-    {"PUSH AF", NULL, 0, 16, push_af, NULL, NULL},            // 0xf5
+    {"PUSH AF", NULL, 0, 16, push_af, NULL, NULL},           // 0xf5
     {"OR $", NULL, 1, 8, NULL, or_n, NULL},                  // 0xf6
-    {"RST $30", NULL, 0, 16, rst_30, NULL, NULL},             // 0xf7
-    {"LD HL, SP+$", NULL, 1, 12, NULL, ldhl_sp_n, NULL},      // 0xf8
+    {"RST $30", NULL, 0, 16, rst_30, NULL, NULL},            // 0xf7
+    {"LD HL, SP+$", NULL, 1, 12, NULL, ldhl_sp_n, NULL},     // 0xf8
     {"LD SP, HL", NULL, 0, 8, ld_sp_hl, NULL, NULL},         // 0xf9
-    {"LD A, ($", ")", 2, 16, NULL, NULL, ld_a_nnp},           // 0xfa
+    {"LD A, ($", ")", 2, 16, NULL, NULL, ld_a_nnp},          // 0xfa
     {"EI", NULL, 0, 4, ei, NULL, NULL},                      // 0xfb
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xfc
     {"UNKNOWN", NULL, 0, 0, undefined, NULL, NULL},          // 0xfd
     {"CP $", NULL, 1, 8, NULL, cp_n, NULL},                  // 0xfe
-    {"RST $38", NULL, 0, 16, rst_38, NULL, NULL},             // 0xff
-};
-
-/**
- * Gameboy CPU (LR35902) instruction cycles.
- * Values based in the table found in:
- * http://pastraiser.com/cpu/gameboy/gameboy_opcodes.html
- */
-const uint8_t instruction_ticks[256] = {
-    4,  12, 8, 8,  4,  4,  8,  4,  20, 8,  8,  8, 4, 4,  8, 4,   // 0x0_
-    4,  12, 8, 8,  4,  4,  8,  4,  12, 8,  8,  8, 4, 4,  8, 4,   // 0x1_
-    0,  12, 8, 8,  4,  4,  8,  4,  0,  8,  8,  8, 4, 4,  8, 4,   // 0x2_
-    0,  12, 8, 8,  12, 12, 12, 4,  0,  8,  8,  8, 4, 4,  8, 4,   // 0x3_
-    4,  4,  4, 4,  4,  4,  8,  4,  4,  4,  4,  4, 4, 4,  8, 4,   // 0x4_
-    4,  4,  4, 4,  4,  4,  8,  4,  4,  4,  4,  4, 4, 4,  8, 4,   // 0x5_
-    4,  4,  4, 4,  4,  4,  8,  4,  4,  4,  4,  4, 4, 4,  8, 4,   // 0x6_
-    8,  8,  8, 8,  8,  8,  4,  8,  4,  4,  4,  4, 4, 4,  8, 4,   // 0x7_
-    4,  4,  4, 4,  4,  4,  8,  4,  4,  4,  4,  4, 4, 4,  8, 4,   // 0x8_
-    4,  4,  4, 4,  4,  4,  8,  4,  4,  4,  4,  4, 4, 4,  8, 4,   // 0x9_
-    4,  4,  4, 4,  4,  4,  8,  4,  4,  4,  4,  4, 4, 4,  8, 4,   // 0xa_
-    4,  4,  4, 4,  4,  4,  8,  4,  4,  4,  4,  4, 4, 4,  8, 4,   // 0xb_
-    0,  12, 0, 16, 0,  16, 8,  16, 0,  16, 0,  0, 0, 12, 8, 16,  // 0xc_
-    0,  12, 0, 0,  0,  16, 8,  16, 0,  16, 0,  0, 0, 0,  8, 16,  // 0xd_
-    12, 12, 8, 0,  0,  16, 8,  16, 16, 4,  16, 0, 0, 0,  8, 16,  // 0xe_
-    12, 12, 8, 4,  0,  16, 8,  16, 12, 8,  16, 4, 0, 0,  8, 16,  // 0xf_
+    {"RST $38", NULL, 0, 16, rst_38, NULL, NULL},            // 0xff
 };
 
 cpu_t *cpu_get_instance(void)
@@ -458,7 +434,7 @@ static void cpu_decode_opcode(uint8_t opcode)
         fprintf(stderr, "ERROR: invalid operand length!\n");
         exit(EXIT_FAILURE);
     }
-    g_cpu.clock.step += instruction_ticks[opcode];
+    g_cpu.clock.step += g_instr[opcode].clock_cycles;
     g_cpu.cycle++;
 }
 
@@ -467,7 +443,7 @@ void cpu_emulate_cycle(void)
     g_cpu.clock.step = 0;
     if (g_cpu.halt) {
         /* Tick clock while halted. */
-        g_cpu.clock.step += instruction_ticks[0x76];
+        g_cpu.clock.step += g_instr[0x76].clock_cycles;
     } else {
         uint8_t opcode = cpu_fetch_opcode();
         cpu_decode_opcode(opcode);
