@@ -286,39 +286,6 @@ const instruction_t g_instr[256] = {
     {"RST $38", NULL, 0, 16, rst_38, NULL, NULL},            // 0xff
 };
 
-cpu_t *cpu_get_instance(void)
-{
-    return &g_cpu;
-}
-
-void cpu_debug_flags(char *str, size_t size)
-{
-    const char *fc = FLAG_IS_SET(FLAG_C) ? " [CARRY]" : "";
-    const char *fh = FLAG_IS_SET(FLAG_H) ? " [HALF CARRY]" : "";
-    const char *fn = FLAG_IS_SET(FLAG_N) ? " [SUBTRACT]" : "";
-    const char *fz = FLAG_IS_SET(FLAG_Z) ? " [ZERO]" : "";
-    snprintf(str, size, "FLAGS:%s%s%s%s", fc, fh, fn, fz);
-}
-
-static void cpu_debug_instr(uint16_t pc, char *str, size_t size)
-{
-    /* Get next opcode. */
-    uint8_t opcode = mmu_read_byte(pc++);
-    uint8_t oper_length = g_instr[opcode].operand_length;
-    const char *asm1 = g_instr[opcode].asm1;
-    const char *asm2 = g_instr[opcode].asm2 ? g_instr[opcode].asm2 : "";
-
-    if (oper_length == 0) {
-        snprintf(str, size, "0x%02x: %s", opcode, asm1);
-    } else if (oper_length == 1) {
-        uint8_t operand = mmu_read_byte(pc);
-        snprintf(str, size, "0x%02x: %s%02x%s", opcode, asm1, operand, asm2);
-    } else {
-        uint16_t operand = mmu_read_word(pc);
-        snprintf(str, size, "0x%02x: %s%04x%s", opcode, asm1, operand, asm2);
-    }
-}
-
 #ifdef DEBUG
 char debug_str[100];
 
@@ -348,23 +315,6 @@ static char *cpu_debug_instr2(char *str, uint8_t opcode, uint16_t operand)
     return str;
 }
 #endif
-
-void cpu_debug_last_instr(char *str, size_t size)
-{
-    snprintf(str, size, "Last: ");
-    cpu_debug_instr(g_cpu.last_pc, str + strlen(str), size);
-}
-
-void cpu_debug_next_instr(char *str, size_t size)
-{
-    snprintf(str, size, "Next: ");
-    cpu_debug_instr(g_cpu.reg.pc, str + strlen(str), size);
-}
-
-void cpu_debug_cycles(char *str, size_t size)
-{
-    snprintf(str, size, "Cycle: %u", g_cpu.cycle);
-}
 
 void cpu_dump(void)
 {
