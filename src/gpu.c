@@ -379,7 +379,7 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
         mapoffs = (GPU.window_tile_map) ? 0x1c00 : 0x1800;
     } else {
         bg_x = GPU.scroll_x;
-        bg_y = GPU.scanline + GPU.scroll_y;
+        bg_y = (GPU.scanline + GPU.scroll_y) & 0xff;
         mapoffs = (GPU.bg_tile_map) ? 0x1c00 : 0x1800;
     }
     /* Map row offset: (bg_y / 8) * 32. */
