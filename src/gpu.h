@@ -109,6 +109,20 @@ typedef struct {
     };
 } sprite_t;
 
+typedef struct {
+    union {
+        uint8_t attributes;
+        struct {
+            uint8_t pal_number : 3; /* BGP0-7 */
+            uint8_t vram_bank : 1; /* (0=Bank 0, 1=Bank 1) */
+            uint8_t unused : 1;
+            uint8_t hflip : 1; /* (0=Normal, 1=Mirror horizontally) */
+            uint8_t vflip : 1; /* (0=Normal, 1=Mirror vertically) */
+            uint8_t priority : 1; /* (0=Use OAM priority bit, 1=BG Priority) */
+        };
+    };
+} cgb_bg_attr_t;
+
 void gpu_init(float zoom);
 void gpu_reset(void);
 gpu_t *gpu_get_instance(void);

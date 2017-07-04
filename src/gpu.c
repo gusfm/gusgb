@@ -344,6 +344,17 @@ static tile_line_t get_tile_line(uint32_t tile_id, int y)
     return tile_line;
 }
 
+static uint32_t get_tile_palette(uint32_t tile_id)
+{
+    if (cart_is_cgb()) {
+        cgb_bg_attr_t bg_attr;
+        bg_attr.attributes = GPU.vram[1][tile_id];
+        return bg_attr.pal_number;
+    } else {
+        return 0;
+    }
+}
+
 static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy, uint32_t ysize)
 {
     tile_line_t tile_line;
@@ -392,6 +403,8 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
         uint32_t tile_id = gpu_get_tile_id(mapoffs, map_row, map_col);
         /* Get tile line data. */
         tile_line_t tile_line = get_tile_line(tile_id, bg_y);
+        /* Get correct palette. */
+        uint32_t palette_num = get_tile_palette(tile_id);
         /* Iterate over remaining pixels of the tile. */
         for (int tile_x = bg_x & 0x7; tile_x < 8; ++tile_x) {
             if (screen_x >= 160) {
@@ -401,7 +414,7 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
             uint32_t color_num = gpu_get_tile_color(tile_line, tile_x);
             scanline_row[screen_x] = (uint8_t)color_num;
             /* Copy color to frame buffer. */
-            GPU.framebuffer[pixeloffs + screen_x] = GPU.bg_palette[color_num];
+            GPU.framebuffer[pixeloffs + screen_x] = GPU.bg_palette[palette_num * 4 + color_num];
             ++screen_x;
             ++bg_x;
         }
