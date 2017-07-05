@@ -3,59 +3,61 @@
 #include "cpu.h"
 #include "cpu_opcodes.h"
 
-interrupt_t g_interrupt;
+interrupt_t INTERRUPT;
 extern cpu_t g_cpu;
 
 void interrupt_init(void)
 {
-    g_interrupt.master = 1;
-    g_interrupt.enable = 0;
-    g_interrupt.flags = 0;
+    INTERRUPT.master = 1;
+    INTERRUPT.enable = 0;
+    INTERRUPT.flags = 0;
 }
 
 uint8_t interrupt_is_enable(uint8_t bit)
 {
-    return g_interrupt.enable & bit;
+    return INTERRUPT.enable & bit;
 }
 
 uint8_t interrupt_get_enable(void)
 {
-    return g_interrupt.enable;
+    return INTERRUPT.enable;
 }
 
 void interrupt_set_enable(uint8_t value)
 {
-    g_interrupt.enable = value;
+    INTERRUPT.enable = value;
 }
 
 uint8_t interrupt_get_master(void)
 {
-    return g_interrupt.master;
+    return INTERRUPT.master;
 }
 
 void interrupt_set_master(uint8_t value)
 {
-    g_interrupt.master = value;
+    INTERRUPT.master = value;
 }
 
 uint8_t interrupt_get_flag(void)
 {
-    return g_interrupt.flags;
+    return INTERRUPT.flags;
 }
 
 void interrupt_set_flag(uint8_t value)
 {
-    g_interrupt.flags = value;
+    INTERRUPT.flags = value;
 }
 
-void interrupt_set_flag_bit(uint8_t bit)
+void interrupt_raise(uint8_t bit)
 {
-    g_interrupt.flags |= bit;
+    INTERRUPT.flags |= bit;
+    if (INTERRUPT.enable & bit)
+        g_cpu.halt = false;
 }
 
 void interrupt_clear_flag_bit(uint8_t bit)
 {
-    g_interrupt.flags = (uint8_t)(g_interrupt.flags & ~bit);
+    INTERRUPT.flags = (uint8_t)(INTERRUPT.flags & ~bit);
 }
 
 static void vblank(void)
@@ -95,11 +97,10 @@ static void joypad(void)
 
 void interrupt_step(void)
 {
-    if (g_interrupt.master) {
-        unsigned char fire = g_interrupt.enable & g_interrupt.flags;
+    if (INTERRUPT.master) {
+        unsigned char fire = INTERRUPT.enable & INTERRUPT.flags;
         if (fire) {
-            g_cpu.halt = false;
-            g_interrupt.master = 0;
+            INTERRUPT.master = 0;
             if (fire & INTERRUPTS_VBLANK) {
                 interrupt_clear_flag_bit(INTERRUPTS_VBLANK);
                 vblank();
@@ -122,4 +123,12 @@ void interrupt_step(void)
             }
         }
     }
+}
+
+void interrupt_dump(void)
+{
+    printf("Interrupts:\n");
+    printf("master=0x%.2x\n", INTERRUPT.master);
+    printf("enable=0x%.2x\n", INTERRUPT.enable);
+    printf("flags=0x%.2x\n", INTERRUPT.flags);
 }

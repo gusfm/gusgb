@@ -324,6 +324,7 @@ void cpu_dump(void)
            g_cpu.reg.bc, g_cpu.reg.de, g_cpu.reg.hl);
     gpu_dump();
     mmu_dump(0xc000, 128);
+    interrupt_dump();
 }
 
 static void cpu_switch_ext_rom(void)
@@ -390,6 +391,7 @@ static void cpu_decode_opcode(uint8_t opcode)
 
 void cpu_emulate_cycle(void)
 {
+    interrupt_step();
     g_cpu.clock.step = 0;
     if (g_cpu.halt) {
         /* Tick clock while halted. */
@@ -398,7 +400,6 @@ void cpu_emulate_cycle(void)
         uint8_t opcode = cpu_fetch_opcode();
         cpu_decode_opcode(opcode);
     }
-    interrupt_step();
     gpu_step(g_cpu.clock.step);
     timer_step(g_cpu.clock.step);
     g_cpu.clock.main += g_cpu.clock.step;

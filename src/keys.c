@@ -66,7 +66,7 @@ void key_press(key_e key)
             ;
             break;
     }
-    interrupt_set_flag_bit(INTERRUPTS_JOYPAD);
+    interrupt_raise(INTERRUPTS_JOYPAD);
 }
 
 void key_release(key_e key)
@@ -101,7 +101,7 @@ void key_release(key_e key)
             ;
             break;
     }
-    interrupt_set_flag_bit(INTERRUPTS_JOYPAD);
+    interrupt_raise(INTERRUPTS_JOYPAD);
 }
 
 bool key_check_pressed(key_e key)

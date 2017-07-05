@@ -47,7 +47,7 @@ static void timer_check(void)
                 /* If TIMA overflows, load it with TMA and generate interrupt.
                  */
                 TIMER.tima = TIMER.tma;
-                interrupt_set_flag_bit(INTERRUPTS_TIMER);
+                interrupt_raise(INTERRUPTS_TIMER);
             } else {
                 TIMER.tima++;
             }

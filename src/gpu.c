@@ -521,17 +521,17 @@ static void gpu_change_mode(gpu_mode_e new_mode)
     switch (new_mode) {
         case GPU_MODE_HBLANK:
             if (GPU.hblank_int)
-                interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
+                interrupt_raise(INTERRUPTS_LCDSTAT);
             break;
         case GPU_MODE_VBLANK:
             if (interrupt_is_enable(INTERRUPTS_VBLANK))
-                interrupt_set_flag_bit(INTERRUPTS_VBLANK);
+                interrupt_raise(INTERRUPTS_VBLANK);
             if (GPU.vblank_int)
-                interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
+                interrupt_raise(INTERRUPTS_LCDSTAT);
             break;
         case GPU_MODE_OAM:
             if (GPU.oam_int)
-                interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
+                interrupt_raise(INTERRUPTS_LCDSTAT);
             break;
         case GPU_MODE_VRAM:
             break;
@@ -567,7 +567,7 @@ void gpu_step(uint32_t clock_step)
                 GPU.modeclock -= 204 * GPU.speed;
                 GPU.scanline++;
                 if (GPU.coincidence_int && GPU.scanline == GPU.raster) {
-                    interrupt_set_flag_bit(INTERRUPTS_LCDSTAT);
+                    interrupt_raise(INTERRUPTS_LCDSTAT);
                 }
                 if (GPU.scanline == 144) {
                     gpu_change_mode(GPU_MODE_VBLANK);
