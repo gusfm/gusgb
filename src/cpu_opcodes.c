@@ -1720,19 +1720,18 @@ void rst_20(void)
 /* 0xe8: Add n to Stack Pointer (SP). */
 void add_sp_n(uint8_t val)
 {
-    uint32_t result = (uint32_t)(g_cpu.reg.sp + (int8_t)val);
-    if (result & 0xffff0000) {
+    if (((g_cpu.reg.sp & 0xff) + (val & 0xff)) > 0xff) {
         FLAG_SET(FLAG_C);
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp + (result & 0xffff));
     if (((g_cpu.reg.sp & 0x0f) + (val & 0x0f)) > 0x0f) {
         FLAG_SET(FLAG_H);
     } else {
         FLAG_CLEAR(FLAG_H);
     }
     FLAG_CLEAR(FLAG_Z | FLAG_N);
+    g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp + (int8_t)val);
 }
 
 /* 0xe9: Jump to address. */
@@ -1810,8 +1809,7 @@ void rst_30(void)
 /* 0xf8: Put SP + n effective address into HL. */
 void ldhl_sp_n(uint8_t val)
 {
-    uint32_t result = (uint32_t)(g_cpu.reg.sp + (int8_t)val);
-    if (result & 0xffff0000) {
+    if (((g_cpu.reg.sp & 0xff) + (val & 0xff)) > 0xff) {
         FLAG_SET(FLAG_C);
     } else {
         FLAG_CLEAR(FLAG_C);
@@ -1822,7 +1820,7 @@ void ldhl_sp_n(uint8_t val)
         FLAG_CLEAR(FLAG_H);
     }
     FLAG_CLEAR(FLAG_Z | FLAG_N);
-    g_cpu.reg.hl = (uint16_t)(result & 0xffff);
+    g_cpu.reg.hl = (uint16_t)(g_cpu.reg.sp + (int8_t)val);
 }
 
 /* 0xf9: Put HL into Stack Pointer (SP). */
