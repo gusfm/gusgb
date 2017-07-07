@@ -49,11 +49,7 @@ uint8_t rr(uint8_t value)
 /* Shift value left into Carry. */
 uint8_t sla(uint8_t value)
 {
-    if (value & 0x80) {
-        FLAG_SET(FLAG_C);
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
+    FLAG_SET_CARRY(value >> 7);
     value = (uint8_t)(value << 1);
     FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
@@ -63,11 +59,7 @@ uint8_t sla(uint8_t value)
 /* Shift value right into Carry flag. */
 uint8_t sra(uint8_t value)
 {
-    if (value & 0x01) {
-        FLAG_SET(FLAG_C);
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
+    FLAG_SET_CARRY(value);
     value = (uint8_t)((value & 0x80) | (value >> 1));
     FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
@@ -85,11 +77,7 @@ uint8_t swap(uint8_t value)
 /* Shift value right into Carry flag. MSB set to 0. */
 uint8_t srl(uint8_t value)
 {
-    if (value & 0x01) {
-        FLAG_SET(FLAG_C);
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
+    FLAG_SET_CARRY(value);
     value >>= 1;
     FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
