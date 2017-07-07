@@ -368,7 +368,10 @@ void ld_b_n(uint8_t val)
 /* 0x07: Rotate A left. Old bit 7 to Carry flag. */
 void rlca(void)
 {
-    g_cpu.reg.a = rlc(g_cpu.reg.a);
+    uint8_t a = g_cpu.reg.a;
+    FLAG_SET_CARRY((a & 0x80) >> 7);
+    FLAG_CLEAR(FLAG_Z | FLAG_N | FLAG_H);
+    g_cpu.reg.a = (a << 1) | (a >> 7);
 }
 
 /* 0x08: Save SP to given address. */
@@ -416,7 +419,10 @@ void ld_c_n(uint8_t val)
 /* 0x0f: Rotate A right. Old bit 0 to Carry flag. */
 void rrca(void)
 {
-    g_cpu.reg.a = rrc(g_cpu.reg.a);
+    uint8_t a = g_cpu.reg.a;
+    FLAG_SET_CARRY(a);
+    FLAG_CLEAR(FLAG_Z | FLAG_N | FLAG_H);
+    g_cpu.reg.a = (a << 7) | (a >> 1);
 }
 
 /* 0x10: The STOP command halts the GameBoy processor and screen until any
@@ -466,7 +472,11 @@ void ld_d_n(uint8_t val)
 /* 0x17: Rotate A left through Carry flag. */
 void rla(void)
 {
-    g_cpu.reg.a = rl(g_cpu.reg.a);
+    uint8_t old_carry = (uint8_t)(FLAG_IS_SET(FLAG_C) >> 4);
+    uint8_t a = g_cpu.reg.a;
+    FLAG_SET_CARRY((a & 0x80) >> 7);
+    FLAG_CLEAR(FLAG_Z | FLAG_N | FLAG_H);
+    g_cpu.reg.a = (a << 1) | old_carry;
 }
 
 /* 0x18: Relative jump by signed immediate. */
@@ -515,14 +525,10 @@ void ld_e_n(uint8_t val)
 void rra(void)
 {
     uint8_t old_carry = (uint8_t)(FLAG_IS_SET(FLAG_C) << 3);
-    if (g_cpu.reg.a & 0x01) {
-        FLAG_SET(FLAG_C);
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
-    g_cpu.reg.a >>= 1;
-    g_cpu.reg.a |= old_carry;
+    uint8_t a = g_cpu.reg.a;
+    FLAG_SET_CARRY(a);
     FLAG_CLEAR(FLAG_N | FLAG_Z | FLAG_H);
+    g_cpu.reg.a = old_carry | a >> 1;
 }
 
 /* 0x20: Jump if Z flag is not set. */
@@ -762,7 +768,7 @@ void ld_a_n(uint8_t val)
 void ccf(void)
 {
     g_cpu.reg.f ^= FLAG_C;
-    FLAG_SET(FLAG_N | FLAG_H);
+    FLAG_CLEAR(FLAG_N | FLAG_H);
 }
 
 /* 0x41: Copy C to B. */

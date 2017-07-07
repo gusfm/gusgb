@@ -42,6 +42,10 @@
 #define FLAG_IS_SET(flag) (uint8_t)(g_cpu.reg.f & flag)
 #define FLAG_SET(x) (g_cpu.reg.f |= (x))
 #define FLAG_CLEAR(x) (g_cpu.reg.f &= (uint8_t)(~(x)))
+#define FLAG_SET_ZERO(value) \
+    (g_cpu.reg.f = (uint8_t)((g_cpu.reg.f & 0x7f) | (((value) & 1) << 7)))
+#define FLAG_SET_CARRY(value) \
+    (g_cpu.reg.f = (uint8_t)((g_cpu.reg.f & 0xef) | (((value) & 1) << 4)))
 
 /**
  * Z80 registers struct.

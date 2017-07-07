@@ -7,18 +7,9 @@ extern cpu_t g_cpu;
 uint8_t rlc(uint8_t value)
 {
     uint8_t carry = (value & 0x80) >> 7;
-    if (carry) {
-        FLAG_SET(FLAG_C);
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
-    value = (uint8_t)(value << 1);
-    value = (uint8_t)(value + carry);
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_CARRY(carry);
+    value = (value << 1) | carry;
+    FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
@@ -26,19 +17,9 @@ uint8_t rlc(uint8_t value)
 /* Rotate value right. Old bit 0 to Carry flag. */
 uint8_t rrc(uint8_t value)
 {
-    uint8_t atmp = value;
-    value >>= 1;
-    if (atmp & 0x01) {
-        FLAG_SET(FLAG_C);
-        value |= 0x80;
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_CARRY(value);
+    value = (value << 7) | (value >> 1);
+    FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
@@ -47,18 +28,9 @@ uint8_t rrc(uint8_t value)
 uint8_t rl(uint8_t value)
 {
     uint8_t old_carry = (uint8_t)(FLAG_IS_SET(FLAG_C) >> 4);
-    if (value & 0x80) {
-        FLAG_SET(FLAG_C);
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
-    value = (uint8_t)(value << 1);
-    value |= old_carry;
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_CARRY((value & 0x80) >> 7);
+    value = (value << 1) | old_carry;
+    FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
@@ -67,18 +39,9 @@ uint8_t rl(uint8_t value)
 uint8_t rr(uint8_t value)
 {
     uint8_t old_carry = (uint8_t)(FLAG_IS_SET(FLAG_C) << 3);
-    if (value & 0x01) {
-        FLAG_SET(FLAG_C);
-    } else {
-        FLAG_CLEAR(FLAG_C);
-    }
-    value >>= 1;
-    value |= old_carry;
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_CARRY(value);
+    value = old_carry | value >> 1;
+    FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
