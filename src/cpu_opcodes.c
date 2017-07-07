@@ -120,6 +120,38 @@ static uint16_t add16(uint16_t val1, uint16_t val2)
 }
 
 /**
+ * Add n to nn with carry.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Reset.
+ * H - Set if carry from bit 3.
+ * C - Set if carry from bit 7.
+ */
+static void adc(uint8_t val)
+{
+    uint8_t carry = FLAG_IS_SET(FLAG_C) >> 4;
+    uint32_t result32 = (uint32_t)(g_cpu.reg.a + val + carry);
+    uint8_t result8 = (uint8_t)(result32 & 0xff);
+    FLAG_CLEAR(FLAG_N);
+    if (((g_cpu.reg.a & 0x0f) + (val & 0x0f) + carry) > 0x0f) {
+        FLAG_SET(FLAG_H);
+    } else {
+        FLAG_CLEAR(FLAG_H);
+    }
+    if (result32 & 0xff00) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    if (result8 == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+    g_cpu.reg.a = result8;
+}
+
+/**
  * Subtract n from A.
  * Flags affected:
  * Z - Set if result is zero.
@@ -141,6 +173,37 @@ static void sub(uint8_t val)
         FLAG_CLEAR(FLAG_C);
     }
     g_cpu.reg.a = (uint8_t)(g_cpu.reg.a - val);
+    if (g_cpu.reg.a == 0) {
+        FLAG_SET(FLAG_Z);
+    } else {
+        FLAG_CLEAR(FLAG_Z);
+    }
+}
+
+/**
+ * Subtract n from A with cary.
+ * Flags affected:
+ * Z - Set if result is zero.
+ * N - Set.
+ * H - Set if borrow from bit 4.
+ * C - Set if borrow.
+ */
+static void sbc(uint8_t val)
+{
+    FLAG_SET(FLAG_N);
+    uint8_t carry = FLAG_IS_SET(FLAG_C) >> 4;
+    if (((val & 0x0f) + carry > (g_cpu.reg.a & 0x0f))) {
+        FLAG_SET(FLAG_H);
+    } else {
+        FLAG_CLEAR(FLAG_H);
+    }
+    int nc = val + carry;
+    if (nc > g_cpu.reg.a) {
+        FLAG_SET(FLAG_C);
+    } else {
+        FLAG_CLEAR(FLAG_C);
+    }
+    g_cpu.reg.a -= nc;
     if (g_cpu.reg.a == 0) {
         FLAG_SET(FLAG_Z);
     } else {
@@ -1096,58 +1159,49 @@ void add_a_a(void)
 /* 0x88: Add B and carry flag to A. */
 void adc_b(void)
 {
-    uint8_t val = (uint8_t)(g_cpu.reg.b + (FLAG_IS_SET(FLAG_C) >> 4));
-    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+    adc(g_cpu.reg.b);
 }
 
 /* 0x89: Add C and carry flag to A. */
 void adc_c(void)
 {
-    uint8_t val = (uint8_t)(g_cpu.reg.c + (FLAG_IS_SET(FLAG_C) >> 4));
-    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+    adc(g_cpu.reg.c);
 }
 
 /* 0x8a: Add D and carry flag to A. */
 void adc_d(void)
 {
-    uint8_t val = (uint8_t)(g_cpu.reg.d + (FLAG_IS_SET(FLAG_C) >> 4));
-    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+    adc(g_cpu.reg.d);
 }
 
 /* 0x8b: Add E and carry flag to A. */
 void adc_e(void)
 {
-    uint8_t val = (uint8_t)(g_cpu.reg.e + (FLAG_IS_SET(FLAG_C) >> 4));
-    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+    adc(g_cpu.reg.e);
 }
 
 /* 0x8c: Add H and carry flag to A. */
 void adc_h(void)
 {
-    uint8_t val = (uint8_t)(g_cpu.reg.h + (FLAG_IS_SET(FLAG_C) >> 4));
-    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+    adc(g_cpu.reg.h);
 }
 
 /* 0x8d: Add L and carry flag to A. */
 void adc_l(void)
 {
-    uint8_t val = (uint8_t)(g_cpu.reg.l + (FLAG_IS_SET(FLAG_C) >> 4));
-    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+    adc(g_cpu.reg.l);
 }
 
 /* 0x8e: Add (HL) and carry flag to A. */
 void adc_hlp(void)
 {
-    uint8_t val =
-        (uint8_t)(mmu_read_byte(g_cpu.reg.hl) + (FLAG_IS_SET(FLAG_C) >> 4));
-    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+    adc(mmu_read_byte(g_cpu.reg.hl));
 }
 
 /* 0x8f: Add A and carry flag to A. */
 void adc_a(void)
 {
-    uint8_t val = (uint8_t)(g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4));
-    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+    adc(g_cpu.reg.a);
 }
 
 /* 0x90: Subtract B from A. */
@@ -1201,49 +1255,49 @@ void sub_a(void)
 /* 0x98: Subtract B and carry flag from A. */
 void sbc_b(void)
 {
-    sub((uint8_t)(g_cpu.reg.b + (FLAG_IS_SET(FLAG_C) >> 4)));
+    sbc(g_cpu.reg.b);
 }
 
 /* 0x99: Subtract C and carry flag from A. */
 void sbc_c(void)
 {
-    sub((uint8_t)(g_cpu.reg.c + (FLAG_IS_SET(FLAG_C) >> 4)));
+    sbc(g_cpu.reg.c);
 }
 
 /* 0x9a: Subtract D and carry flag from A. */
 void sbc_d(void)
 {
-    sub((uint8_t)(g_cpu.reg.d + (FLAG_IS_SET(FLAG_C) >> 4)));
+    sbc(g_cpu.reg.d);
 }
 
 /* 0x9b: Subtract E and carry flag from A. */
 void sbc_e(void)
 {
-    sub((uint8_t)(g_cpu.reg.e + (FLAG_IS_SET(FLAG_C) >> 4)));
+    sbc(g_cpu.reg.e);
 }
 
 /* 0x9c: Subtract H and carry flag from A. */
 void sbc_h(void)
 {
-    sub((uint8_t)(g_cpu.reg.h + (FLAG_IS_SET(FLAG_C) >> 4)));
+    sbc(g_cpu.reg.h);
 }
 
 /* 0x9d: Subtract L and carry flag from A. */
 void sbc_l(void)
 {
-    sub((uint8_t)(g_cpu.reg.l + (FLAG_IS_SET(FLAG_C) >> 4)));
+    sbc(g_cpu.reg.l);
 }
 
 /* 0x9e: Subtract (HL) and carry flag from A. */
 void sbc_hlp(void)
 {
-    sub((uint8_t)(mmu_read_byte(g_cpu.reg.hl) + (FLAG_IS_SET(FLAG_C) >> 4)));
+    sbc(mmu_read_byte(g_cpu.reg.hl));
 }
 
 /* 0x9f: Subtract A and carry flag from A. */
 void sbc_a(void)
 {
-    sub((uint8_t)(g_cpu.reg.a + (FLAG_IS_SET(FLAG_C) >> 4)));
+    sbc(g_cpu.reg.a);
 }
 
 /* 0xa0: Bitwise AND B against A. */
@@ -1553,8 +1607,7 @@ void call_nn(uint16_t addr)
 /* 0xce: Add immediate 8-bit value and carry flag to A. */
 void adc_n(uint8_t n)
 {
-    uint8_t val = (uint8_t)(n + (FLAG_IS_SET(FLAG_C) >> 4));
-    g_cpu.reg.a = add8(g_cpu.reg.a, val);
+    adc(n);
 }
 
 /* 0xcf: Call routine at address 0x0008. */
@@ -1668,7 +1721,7 @@ void call_c_nn(uint16_t addr)
 /* 0xde: Subtract n and carry flag from A. */
 void sbc_n(uint8_t val)
 {
-    sub((uint8_t)(val + (FLAG_IS_SET(FLAG_C) >> 4)));
+    sbc(val);
 }
 
 /* 0xdf: Call routine at address 0x0018. */
