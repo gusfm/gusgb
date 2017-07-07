@@ -55,11 +55,7 @@ uint8_t sla(uint8_t value)
         FLAG_CLEAR(FLAG_C);
     }
     value = (uint8_t)(value << 1);
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
@@ -73,11 +69,7 @@ uint8_t sra(uint8_t value)
         FLAG_CLEAR(FLAG_C);
     }
     value = (uint8_t)((value & 0x80) | (value >> 1));
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
@@ -85,11 +77,7 @@ uint8_t sra(uint8_t value)
 uint8_t swap(uint8_t value)
 {
     value = (uint8_t)(((value & 0x0f) << 4) | ((value & 0xf0) >> 4));
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H | FLAG_C);
     return value;
 }
@@ -103,22 +91,14 @@ uint8_t srl(uint8_t value)
         FLAG_CLEAR(FLAG_C);
     }
     value >>= 1;
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N | FLAG_H);
     return value;
 }
 
 void bit(uint8_t bit, uint8_t value)
 {
-    if (value & bit) {
-        FLAG_CLEAR(FLAG_Z);
-    } else {
-        FLAG_SET(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!(value & bit));
     FLAG_CLEAR(FLAG_N);
     FLAG_SET(FLAG_H);
 }

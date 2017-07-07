@@ -27,11 +27,7 @@ static uint8_t inc_n(uint8_t value)
         FLAG_CLEAR(FLAG_H);
     }
     ++value;
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!value);
     FLAG_CLEAR(FLAG_N);
     return value;
 }
@@ -53,11 +49,7 @@ static uint8_t dec_n(uint8_t value)
         FLAG_SET(FLAG_H);
     }
     --value;
-    if (value == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!value);
     FLAG_SET(FLAG_N);
     return value;
 }
@@ -85,11 +77,7 @@ static uint8_t add8(uint8_t val1, uint8_t val2)
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    if (result8 == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!result8);
     return result8;
 }
 
@@ -143,11 +131,7 @@ static void adc(uint8_t val)
     } else {
         FLAG_CLEAR(FLAG_C);
     }
-    if (result8 == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!result8);
     g_cpu.reg.a = result8;
 }
 
@@ -173,11 +157,7 @@ static void sub(uint8_t val)
         FLAG_CLEAR(FLAG_C);
     }
     g_cpu.reg.a = (uint8_t)(g_cpu.reg.a - val);
-    if (g_cpu.reg.a == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!g_cpu.reg.a);
 }
 
 /**
@@ -204,11 +184,7 @@ static void sbc(uint8_t val)
         FLAG_CLEAR(FLAG_C);
     }
     g_cpu.reg.a -= nc;
-    if (g_cpu.reg.a == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!g_cpu.reg.a);
 }
 
 /**
@@ -222,11 +198,7 @@ static void sbc(uint8_t val)
 static void and8(uint8_t val)
 {
     g_cpu.reg.a &= val;
-    if (g_cpu.reg.a == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!g_cpu.reg.a);
     FLAG_CLEAR(FLAG_N | FLAG_C);
     FLAG_SET(FLAG_H);
 }
@@ -242,11 +214,7 @@ static void and8(uint8_t val)
 static void xor8(uint8_t val)
 {
     g_cpu.reg.a ^= val;
-    if (g_cpu.reg.a == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!g_cpu.reg.a);
     FLAG_CLEAR(FLAG_N | FLAG_H | FLAG_C);
 }
 
@@ -261,11 +229,7 @@ static void xor8(uint8_t val)
 static void or8(uint8_t val)
 {
     g_cpu.reg.a |= val;
-    if (g_cpu.reg.a == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!g_cpu.reg.a);
     FLAG_CLEAR(FLAG_N | FLAG_H | FLAG_C);
 }
 
@@ -280,11 +244,7 @@ static void or8(uint8_t val)
 static void cp(uint8_t val)
 {
     uint16_t result = (uint16_t)(g_cpu.reg.a - val);
-    if (result == 0) {
-        FLAG_SET(FLAG_Z);
-    } else {
-        FLAG_CLEAR(FLAG_Z);
-    }
+    FLAG_SET_ZERO(!result);
     FLAG_SET(FLAG_N);
     if (((val & 0x0f) > (g_cpu.reg.a & 0x0f))) {
         FLAG_SET(FLAG_H);
@@ -597,12 +557,7 @@ void daa(void)
 
     g_cpu.reg.a = (uint8_t)s;
     FLAG_CLEAR(FLAG_H);
-
-    if (g_cpu.reg.a)
-        FLAG_CLEAR(FLAG_Z);
-    else
-        FLAG_SET(FLAG_Z);
-
+    FLAG_SET_ZERO(!g_cpu.reg.a);
     if (s >= 0x100)
         FLAG_SET(FLAG_C);
 }
