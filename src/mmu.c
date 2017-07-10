@@ -272,6 +272,7 @@ void mmu_stop(void)
     if (MMU.speed_switch & 1) {
         MMU.speed_switch = (~MMU.speed_switch) & 0x80;
         gpu_change_speed(MMU.speed_switch >> 7);
+        timer_change_speed(MMU.speed_switch >> 7);
     }
 }
 

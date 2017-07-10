@@ -6,6 +6,7 @@ gb_timer_t TIMER;
 
 #define TIMER_ENABLE (1 << 2)
 #define TIMER_SPEED (0x3)
+static unsigned int clocks[] = {1024, 16, 64, 256};
 
 void timer_init(void)
 {
@@ -14,35 +15,18 @@ void timer_init(void)
     TIMER.tma = 0;
     TIMER.tac = 0;
     TIMER.clock.main = 0;
-    TIMER.clock.sub = 0;
     TIMER.clock.div = 0;
+    TIMER.clock.speed = 1;
+    TIMER.clock.select = clocks[0];
 }
 
-static void timer_check(void)
+void timer_step(uint32_t clock_step)
 {
+    TIMER.clock.main += clock_step;
     /* Check whether a step needs to be made in the timer. */
     if (TIMER.tac & TIMER_ENABLE) {
-        uint32_t threshold;
-        switch (TIMER.tac & TIMER_SPEED) {
-            case 0:
-                /* 4096 Hz. */
-                threshold = 64;
-                break;
-            case 1:
-                /* 262144 Hz. */
-                threshold = 1;
-                break;
-            case 2:
-                /* 65536 Hz. */
-                threshold = 4;
-                break;
-            case 3:
-                /* 16384 Hz. */
-                threshold = 16;
-                break;
-        }
-        if (TIMER.clock.main >= threshold) {
-            TIMER.clock.main = 0;
+        while (TIMER.clock.main >= TIMER.clock.select) {
+            TIMER.clock.main -= TIMER.clock.select;
             if (TIMER.tima == 0xff) {
                 /* If TIMA overflows, load it with TMA and generate interrupt.
                  */
@@ -53,23 +37,11 @@ static void timer_check(void)
             }
         }
     }
-}
-
-void timer_step(uint32_t clock_step)
-{
-    TIMER.clock.sub += clock_step;
-    /* Internal timer clock counts at 1/4 of main clock. */
-    if (TIMER.clock.sub >= 16) {
-        TIMER.clock.sub -= 16;
-        TIMER.clock.main++;
-        TIMER.clock.div++;
-        /* DIV runs at 1/16 of timer main clock. */
-        if (TIMER.clock.div == 64) {
-            TIMER.clock.div = 0;
-            TIMER.div++;
-        }
+    TIMER.clock.div++;
+    if (TIMER.clock.div == 0xff) {
+        TIMER.clock.div = 0;
+        TIMER.div++;
     }
-    timer_check();
 }
 
 uint8_t timer_read_byte(uint16_t addr)
@@ -102,10 +74,20 @@ void timer_write_byte(uint16_t addr, uint8_t val)
             TIMER.tma = val;
             break;
         case 0xFF07:
+            if (val & TIMER_ENABLE && !(TIMER.tac & TIMER_ENABLE)) {
+                /* Restart main clock when enabling timer. */
+                TIMER.clock.main = 0;
+            }
+            TIMER.clock.select = clocks[val & 3] * TIMER.clock.speed;
             TIMER.tac = val & 7;
             break;
         default:
             printf("%s: not implemented: 0x%04x!\n", __func__, addr);
             break;
     }
+}
+
+void timer_change_speed(unsigned int speed)
+{
+    TIMER.clock.speed = speed + 1;
 }
