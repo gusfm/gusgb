@@ -66,6 +66,7 @@ void timer_write_byte(uint16_t addr, uint8_t val)
     switch (addr) {
         case 0xFF04:
             TIMER.div = 0;
+            TIMER.clock.main = 0;
             break;
         case 0xFF05:
             TIMER.tima = val;
