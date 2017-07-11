@@ -171,6 +171,7 @@ int gb_init(int width, int height, float window_zoom, const char *rom_path)
         fprintf(stderr, "Error: Cannot load rom: %s\n", rom_path);
         return -1;
     }
+    gpu_gl_disable();
     gpu_set_glfw_window(GB.window);
     return 0;
 }
