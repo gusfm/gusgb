@@ -4,10 +4,10 @@
 #include <stdint.h>
 
 typedef struct {
-    uint32_t main; /* Internal timer clock. */
-    uint32_t div;  /* Variable to help div timer count. */
-    unsigned int speed;
+    uint32_t main; /* Clock used for timer count. */
+    uint16_t internal; /* Internal timer clock. */
     unsigned int select;
+    unsigned int speed;
 } gb_clock_t;
 
 typedef struct {
