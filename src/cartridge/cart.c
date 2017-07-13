@@ -8,38 +8,6 @@
 
 cart_t CART;
 
-enum cart_type_e {
-    CART_ROM_ONLY = 0x00,
-    CART_MBC1 = 0x01,
-    CART_MBC1_RAM = 0x02,
-    CART_MBC1_RAM_BATTERY = 0x03,
-    CART_MBC2 = 0x05,
-    CART_MBC2_BATTERY = 0x06,
-    CART_ROM_RAM = 0x08,
-    CART_ROM_RAM_BATTERY = 0x09,
-    CART_MMM01 = 0x0B,
-    CART_MMM01_SRAM = 0x0C,
-    CART_MMM01_SRAM_BATTERY = 0x0D,
-    CART_MBC3_TIMER_BATTERY = 0x0F,
-    CART_MBC3_TIMER_RAM_BATTERY = 0x10,
-    CART_MBC3 = 0x11,
-    CART_MBC3_RAM = 0x12,
-    CART_MBC3_RAM_BATTERY = 0x13,
-    CART_MBC4 = 0x15,
-    CART_MBC4_RAM = 0x16,
-    CART_MBC4_RAM_BATTERY = 0x17,
-    CART_MBC5 = 0x19,
-    CART_MBC5_RAM = 0x1A,
-    CART_MBC5_RAM_BATTERY = 0x1B,
-    CART_MBC5_RUMBLE = 0x1C,
-    CART_MBC5_RUMBLE_RAM = 0x1D,
-    CART_MBC5_RUMBLE_RAM_BATTERY = 0x1E,
-    CART_POCKET_CAMERA = 0x1F,
-    CART_BANDAI_TAMA5 = 0xFD,
-    CART_HUC3 = 0xFE,
-    CART_HUC1_RAM_BATTERY = 0xFF
-};
-
 const char *g_rom_types[256] = {
     [CART_ROM_ONLY] = "ROM ONLY",
     [CART_MBC1] = "MBC1",
@@ -50,8 +18,8 @@ const char *g_rom_types[256] = {
     [CART_ROM_RAM] = "ROM+RAM",
     [CART_ROM_RAM_BATTERY] = "ROM+RAM+BATTERY",
     [CART_MMM01] = "MMM01",
-    [CART_MMM01_SRAM] = "MMM01+SRAM",
-    [CART_MMM01_SRAM_BATTERY] = "MMM01+SRAM+BATTERY",
+    [CART_MMM01_RAM] = "MMM01+RAM",
+    [CART_MMM01_RAM_BATTERY] = "MMM01+RAM+BATTERY",
     [CART_MBC3_TIMER_BATTERY] = "MBC3+TIMER+BATTERY",
     [CART_MBC3_TIMER_RAM_BATTERY] = "MBC3+TIMER+RAM+BATTERY",
     [CART_MBC3] = "MBC3",
@@ -85,6 +53,24 @@ static mbc_write_f cart_get_mbc(uint8_t cart_type)
     }
 }
 
+static bool cart_has_battery(uint8_t cart_type)
+{
+    switch (cart_type) {
+        case CART_MBC1_RAM_BATTERY:
+        case CART_ROM_RAM_BATTERY:
+        case CART_MMM01_RAM_BATTERY:
+        case CART_MBC3_TIMER_RAM_BATTERY:
+        case CART_MBC3_RAM_BATTERY:
+        case CART_MBC4_RAM_BATTERY:
+        case CART_MBC5_RAM_BATTERY:
+        case CART_MBC5_RUMBLE_RAM_BATTERY:
+        case CART_HUC1_RAM_BATTERY:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static int cart_load_header(void)
 {
     if (CART.rom.size < sizeof(cart_header_t)) {
@@ -97,8 +83,9 @@ static int cart_load_header(void)
     printf("Game title: %s\n", header->title);
     printf("CGB: %d\n", cart_is_cgb());
     /* Get cart type. */
-    printf("Cartridge type: %s\n", g_rom_types[header->cart_type]);
-    CART.mbc.write_func = cart_get_mbc(header->cart_type);
+    CART.type = header->cart_type;
+    printf("Cartridge type: %s\n", g_rom_types[CART.type]);
+    CART.mbc.write_func = cart_get_mbc(CART.type);
     if (CART.mbc.write_func == NULL) {
         fprintf(stderr, "Cartridge type not supported!\n");
         return -1;
@@ -116,9 +103,60 @@ static int cart_load_header(void)
     if (ram_size_tmp > 0) {
         ram_size_tmp = (unsigned int)powf(4.0, (float)(ram_size_tmp)) / 2;
     }
-    CART.ram.size = ram_size_tmp;
+    CART.ram.size = ram_size_tmp * 1024;
     printf("RAM size: %hhu = %uKB\n", header->ram_size, ram_size_tmp);
     return 0;
+}
+
+static int cart_ram_init(const char *rom_path)
+{
+    size_t rom_path_len = strlen(rom_path);
+    size_t ram_path_len = rom_path_len + 2;
+    CART.ram.path = malloc(ram_path_len);
+    int ret = snprintf(CART.ram.path, ram_path_len, "%s", rom_path);
+    if (ret != (int)rom_path_len) {
+        return -1;
+    }
+    char *substr = strstr(CART.ram.path, ".");
+    if (substr == NULL) {
+        return -1;
+    }
+    ret = snprintf(substr, 5, ".sav");
+    if (ret != 4) {
+        return -1;
+    }
+    CART.ram.bytes = malloc(CART.ram.size);
+    CART.ram.offset = 0x0000;
+    FILE *f = fopen(CART.ram.path, "r");
+    if (f) {
+        printf("Loading cartridge RAM from file: %s\n", CART.ram.path);
+        size_t rv;
+        rv = fread(CART.ram.bytes, 1, CART.ram.size, f);
+        if (rv != CART.ram.size) {
+            perror("fread:");
+            return -1;
+        }
+        fclose(f);
+    } else {
+        memset(CART.ram.bytes, 0, CART.ram.size);
+    }
+    return 0;
+}
+
+static void cart_ram_save(void)
+{
+    if (cart_has_battery(CART.type) && CART.ram.path != NULL) {
+        FILE *f = fopen(CART.ram.path, "w");
+        if (f == NULL) {
+            fprintf(stderr, "ERROR: Could not open %s\n", CART.ram.path);
+            return;
+        }
+        size_t rv = fwrite(CART.ram.bytes, 1, CART.ram.size, f);
+        if (rv != CART.ram.size) {
+            fprintf(stderr, "ERROR: Could save cartridge RAM to %s\n", CART.ram.path);
+        }
+        fclose(f);
+    }
 }
 
 int cart_load(const char *path)
@@ -149,8 +187,11 @@ int cart_load(const char *path)
         return -1;
     }
     /* Init RAM. */
-    CART.ram.bytes = malloc(CART.ram.size * 1024);
-    CART.ram.offset = 0x0000;
+    ret = cart_ram_init(path);
+    if (ret < 0) {
+        cart_unload();
+        return -1;
+    }
     /* Init MBC. */
     CART.mbc.rom_bank = 0;
     CART.mbc.ram_bank = 0;
@@ -161,6 +202,8 @@ int cart_load(const char *path)
 
 void cart_unload(void)
 {
+    cart_ram_save();
+    free(CART.ram.path);
     free(CART.rom.bytes);
     free(CART.ram.bytes);
 }

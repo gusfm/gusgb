@@ -6,6 +6,38 @@
 #include <stdio.h>
 #include <stdint.h>
 
+typedef enum {
+    CART_ROM_ONLY = 0x00,
+    CART_MBC1 = 0x01,
+    CART_MBC1_RAM = 0x02,
+    CART_MBC1_RAM_BATTERY = 0x03,
+    CART_MBC2 = 0x05,
+    CART_MBC2_BATTERY = 0x06,
+    CART_ROM_RAM = 0x08,
+    CART_ROM_RAM_BATTERY = 0x09,
+    CART_MMM01 = 0x0B,
+    CART_MMM01_RAM = 0x0C,
+    CART_MMM01_RAM_BATTERY = 0x0D,
+    CART_MBC3_TIMER_BATTERY = 0x0F,
+    CART_MBC3_TIMER_RAM_BATTERY = 0x10,
+    CART_MBC3 = 0x11,
+    CART_MBC3_RAM = 0x12,
+    CART_MBC3_RAM_BATTERY = 0x13,
+    CART_MBC4 = 0x15,
+    CART_MBC4_RAM = 0x16,
+    CART_MBC4_RAM_BATTERY = 0x17,
+    CART_MBC5 = 0x19,
+    CART_MBC5_RAM = 0x1A,
+    CART_MBC5_RAM_BATTERY = 0x1B,
+    CART_MBC5_RUMBLE = 0x1C,
+    CART_MBC5_RUMBLE_RAM = 0x1D,
+    CART_MBC5_RUMBLE_RAM_BATTERY = 0x1E,
+    CART_POCKET_CAMERA = 0x1F,
+    CART_BANDAI_TAMA5 = 0xFD,
+    CART_HUC3 = 0xFE,
+    CART_HUC1_RAM_BATTERY = 0xFF
+} cart_type_e;
+
 typedef struct {
     uint8_t title[15];    /* 0x134-0x142: Title */
     uint8_t cgb;          /* 0x143: $80 = GBC, other = not GBC */
@@ -34,6 +66,7 @@ typedef struct {
     uint8_t *bytes;
     size_t size;
     unsigned int offset;
+    char *path;
 } cart_ram_t;
 
 typedef void (*mbc_write_f)(uint16_t addr, uint8_t val);
@@ -47,6 +80,7 @@ typedef struct {
 } cart_mbc_t;
 
 typedef struct {
+    cart_type_e type;
     cart_rom_t rom;
     cart_ram_t ram;
     cart_mbc_t mbc;
