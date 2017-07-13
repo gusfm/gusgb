@@ -24,13 +24,6 @@ typedef struct {
 } cart_header_t;
 
 typedef struct {
-    uint8_t rom_bank;
-    uint8_t ram_bank;
-    bool ram_on;
-    uint8_t mode;
-} cart_mbc_t;
-
-typedef struct {
     uint8_t *bytes;
     size_t size;
     cart_header_t *header;
@@ -42,6 +35,16 @@ typedef struct {
     size_t size;
     unsigned int offset;
 } cart_ram_t;
+
+typedef void (*mbc_write_f)(uint16_t addr, uint8_t val);
+
+typedef struct {
+    uint8_t rom_bank;
+    uint8_t ram_bank;
+    bool ram_on;
+    uint8_t mode;
+    mbc_write_f write_func;
+} cart_mbc_t;
 
 typedef struct {
     cart_rom_t rom;

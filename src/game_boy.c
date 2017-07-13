@@ -160,7 +160,7 @@ int gb_init(int width, int height, float window_zoom, const char *rom_path)
     /* Create window. */
     GB.window = gb_create_window("gusgb");
     if (GB.window == NULL) {
-        fprintf(stderr, "Error: Cannot create window\n");
+        fprintf(stderr, "ERROR: Could not create window\n");
         return -1;
     }
     /* Initialize OpenGl. */
@@ -168,7 +168,7 @@ int gb_init(int width, int height, float window_zoom, const char *rom_path)
     /* Initialize emulation. */
     int ret = cpu_init(rom_path, window_zoom);
     if (ret < 0) {
-        fprintf(stderr, "Error: Cannot load rom: %s\n", rom_path);
+        fprintf(stderr, "ERROR: Could not load rom: %s\n", rom_path);
         return -1;
     }
     gpu_gl_disable();

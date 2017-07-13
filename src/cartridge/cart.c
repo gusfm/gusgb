@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include "mbc1.h"
 
 #define ROM_OFFSET_TITLE 0x134
 
@@ -71,16 +72,16 @@ const char *g_rom_types[256] = {
     [CART_HUC1_RAM_BATTERY] = "HUC1+RAM+BATTERY"
 };
 
-static bool cart_supported(uint8_t cart_type)
+static mbc_write_f cart_get_mbc(uint8_t cart_type)
 {
     switch (cart_type) {
         case CART_ROM_ONLY:
         case CART_MBC1:
         case CART_MBC1_RAM:
         case CART_MBC1_RAM_BATTERY:
-            return true;
+            return mbc1_write;
         default:
-            return false;
+            return NULL;
     }
 }
 
@@ -97,7 +98,8 @@ static int cart_load_header(void)
     printf("CGB: %d\n", cart_is_cgb());
     /* Get cart type. */
     printf("Cartridge type: %s\n", g_rom_types[header->cart_type]);
-    if (!cart_supported(header->cart_type)) {
+    CART.mbc.write_func = cart_get_mbc(header->cart_type);
+    if (CART.mbc.write_func == NULL) {
         fprintf(stderr, "Cartridge type not supported!\n");
         return -1;
     }
@@ -143,7 +145,6 @@ int cart_load(const char *path)
     /* Read ROM header. */
     int ret = cart_load_header();
     if (ret < 0) {
-        fprintf(stderr, "ERROR: cart_load_header\n");
         cart_unload();
         return -1;
     }
@@ -176,30 +177,7 @@ uint8_t cart_read_rom1(uint16_t addr)
 
 void cart_write_mbc(uint16_t addr, uint8_t val)
 {
-    if (addr <= 0x1fff) {
-        /* Enable/disable external RAM. */
-        CART.mbc.ram_on = (val & 0x0f) == 0x0a ? true : false;
-    } else if (addr <= 0x3fff) {
-        /* Switch between banks 1-31 (value 0 is seen as 1). */
-        val &= 0x1f;
-        if (val == 0)
-            val = 1;
-        CART.mbc.rom_bank = (uint8_t)((CART.mbc.rom_bank & 0x60) + val);
-        CART.rom.offset = (unsigned int)(CART.mbc.rom_bank) * 0x4000;
-    } else if (addr <= 0x5fff) {
-        if (CART.mbc.mode) {
-            /* RAM mode: switch RAM bank 0-3. */
-            CART.mbc.ram_bank = val & 3;
-            CART.ram.offset = (unsigned int)(CART.mbc.ram_bank) * 0x2000;
-        } else {
-            /* ROM mode (high 2 bits): switch ROM bank "set" {1-31}-{97-127}. */
-            CART.mbc.rom_bank =
-                (uint8_t)((CART.mbc.rom_bank & 0x1f) + ((val & 3) << 5));
-            CART.rom.offset = (unsigned int)(CART.mbc.rom_bank) * 0x4000;
-        }
-    } else {
-        CART.mbc.mode = val & 1;
-    }
+    CART.mbc.write_func(addr, val);
 }
 
 uint8_t cart_read_ram(uint16_t addr)
