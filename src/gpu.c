@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cart.h"
+#include "cartridge/cart.h"
 #include "interrupt.h"
 #include "mmu.h"
 #include "utils/debug.h"

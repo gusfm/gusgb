@@ -20,7 +20,7 @@ include_directories(SYSTEM "/usr/include/freetype2")
 add_library(gusgb SHARED
     src/interrupt.c
     src/timer.c
-    src/cart.c
+    src/cartridge/cart.c
     src/gpu.c
     src/keys.c
     src/sound.c
@@ -56,8 +56,8 @@ add_executable(gbas
     ${FLEX_gbas_scanner_OUTPUTS}
     src/as/opcodes.c
     src/as/gbas.c
+    src/as/cart.c
     src/utils/list.c
-    src/cart.c
     )
 target_link_libraries(gbas fl m)
 

@@ -4,7 +4,7 @@
 #include <string.h>
 #include "as/gbas.h"
 #include "as/opcodes.h"
-#include "cart.h"
+#include "as/cart.h"
 
 /* stuff from flex that bison needs to know about */
 extern int yylex(void);

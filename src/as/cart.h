@@ -1,10 +1,8 @@
-#ifndef __ROM_H__
-#define __ROM_H__
+#ifndef __CART_H__
+#define __CART_H__
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef struct {
     uint8_t title[15];    /* 0x134-0x142: Title */
@@ -23,42 +21,7 @@ typedef struct {
     uint8_t checksum_l;   /* 0x14f: checksum low */
 } cart_header_t;
 
-typedef struct {
-    uint8_t rom_bank;
-    uint8_t ram_bank;
-    bool ram_on;
-    uint8_t mode;
-} cart_mbc_t;
-
-typedef struct {
-    uint8_t *bytes;
-    size_t size;
-    cart_header_t *header;
-    unsigned int offset;
-} cart_rom_t;
-
-typedef struct {
-    uint8_t *bytes;
-    size_t size;
-    unsigned int offset;
-} cart_ram_t;
-
-typedef struct {
-    cart_rom_t rom;
-    cart_ram_t ram;
-    cart_mbc_t mbc;
-} cart_t;
-
-int cart_load(const char *path);
-void cart_unload(void);
-uint8_t cart_read_rom0(uint16_t addr);
-uint8_t cart_read_rom1(uint16_t addr);
-void cart_write_mbc(uint16_t addr, uint8_t val);
-uint8_t cart_read_ram(uint16_t addr);
-void cart_write_ram(uint16_t addr, uint8_t val);
-bool cart_is_cgb(void);
-
 void cart_header_init(cart_header_t *header, const char *title);
 int cart_header_write(cart_header_t *cart, FILE *output);
 
-#endif /* __ROM_H__ */
+#endif /* __CART_H__ */

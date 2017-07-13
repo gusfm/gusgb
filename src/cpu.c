@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cart.h"
+#include "cartridge/cart.h"
 #include "cpu_ext_ops.h"
 #include "cpu_opcodes.h"
 #include "gpu.h"
