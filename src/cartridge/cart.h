@@ -60,12 +60,14 @@ typedef struct {
     size_t size;
     cart_header_t *header;
     unsigned int offset;
+    unsigned int max_bank;
 } cart_rom_t;
 
 typedef struct {
     uint8_t *bytes;
     size_t size;
     unsigned int offset;
+    unsigned int max_bank;
     char *path;
 } cart_ram_t;
 

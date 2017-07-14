@@ -32,7 +32,7 @@ add_library(gusgb SHARED
     src/cpu.c
     src/game_boy.c
     )
-target_link_libraries(gusgb m)
+target_link_libraries(gusgb)
 
 add_executable(gusgb-bin
     src/main.c)
@@ -90,26 +90,26 @@ set_target_properties(gusgbai-bin
         )
 
 # gusgbai-fann
-add_executable(gusgbai-fann
-    src/ai/fann/gb_ai_fann.c
-    src/ai/fann/main.c
-    )
-target_link_libraries(gusgbai-fann
-    gusgb
-    GL
-    glfw
-    fann
-    m
-    )
+#add_executable(gusgbai-fann
+#    src/ai/fann/gb_ai_fann.c
+#    src/ai/fann/main.c
+#    )
+#target_link_libraries(gusgbai-fann
+#    gusgb
+#    GL
+#    glfw
+#    fann
+#    m
+#    )
 
 # gusgbai-training
-add_executable(gusgbai-training
-    src/ai/fann/training.c
-    )
-target_link_libraries(gusgbai-training
-    fann
-    m
-    )
+#add_executable(gusgbai-training
+#    src/ai/fann/training.c
+#    )
+#target_link_libraries(gusgbai-training
+#    fann
+#    m
+#    )
 
 enable_testing()
 # gusgbai test

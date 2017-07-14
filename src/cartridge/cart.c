@@ -91,20 +91,41 @@ static int cart_load_header(void)
         return -1;
     }
     /* Get ROM size. */
-    unsigned int rom_size_tmp =
-        (unsigned int)powf(2.0, (float)(5 + (0xf & header->rom_size)));
-    printf("ROM size: %hhu = %uKB\n", header->rom_size, rom_size_tmp);
-    if (CART.rom.size != rom_size_tmp * 1024) {
+    unsigned int rom_size_tmp = 0x8000 << header->rom_size;
+    printf("ROM size: %hhu = %uKB\n", header->rom_size, rom_size_tmp / 1024);
+    if (CART.rom.size != rom_size_tmp) {
         fprintf(stderr, "ROM file size does not equal header ROM size!\n");
         return -1;
     }
+    CART.rom.max_bank = (1 << header->rom_size) * 2;
     /* Get RAM size. */
-    unsigned int ram_size_tmp = header->ram_size;
-    if (ram_size_tmp > 0) {
-        ram_size_tmp = (unsigned int)powf(4.0, (float)(ram_size_tmp)) / 2;
+    switch (header->ram_size) {
+        case 0:
+            CART.ram.size = 0;
+            CART.ram.max_bank = 0;
+            break;
+        case 1:
+            CART.ram.size = 2 * 1024;
+            CART.ram.max_bank = 0;
+            break;
+        case 2:
+            CART.ram.size = 8 * 1024;
+            CART.ram.max_bank = 1;
+            break;
+        case 3:
+            CART.ram.size = 32 * 1024;
+            CART.ram.max_bank = 4;
+            break;
+        case 4:
+            CART.ram.size = 128 * 1024;
+            CART.ram.max_bank = 16;
+            break;
+        case 5:
+            CART.ram.size = 64 * 1024;
+            CART.ram.max_bank = 8;
+            break;
     }
-    CART.ram.size = ram_size_tmp * 1024;
-    printf("RAM size: %hhu = %uKB\n", header->ram_size, ram_size_tmp);
+    printf("RAM size: %hhu = %luKB\n", header->ram_size, CART.ram.size / 1024);
     return 0;
 }
 
@@ -193,7 +214,7 @@ int cart_load(const char *path)
         return -1;
     }
     /* Init MBC. */
-    CART.mbc.rom_bank = 0;
+    CART.mbc.rom_bank = 1;
     CART.mbc.ram_bank = 0;
     CART.mbc.ram_on = false;
     CART.mbc.mode = 0;
