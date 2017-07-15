@@ -13,7 +13,7 @@ void mbc1_write(uint16_t addr, uint8_t val)
 {
     if (addr <= 0x1fff) {
         /* Enable/disable external RAM. */
-        CART.mbc.ram_on = (val & 0x0f) == 0x0a ? true : false;
+        CART.ram.enabled = (val & 0x0f) == 0x0a ? true : false;
     } else if (addr <= 0x3fff) {
         /* Switch between banks 1-31 (value 0 is seen as 1). */
         uint8_t bankl = val & 0x1f;
@@ -29,7 +29,7 @@ void mbc1_write(uint16_t addr, uint8_t val)
         if (CART.mbc.mode) {
             /* RAM mode: switch RAM bank 0-3. */
             CART.mbc.ram_bank = val & 3;
-            CART.ram.offset = (unsigned int)(CART.mbc.ram_bank) * 0x2000;
+            CART.ram.offset = (unsigned int)(CART.mbc.ram_bank % CART.ram.max_bank) * 0x2000;
         } else {
             /* ROM mode (high 2 bits): switch ROM bank "set" {1-31}-{97-127}. */
             CART.mbc.rom_bank =

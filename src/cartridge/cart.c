@@ -161,6 +161,7 @@ static int cart_ram_init(const char *rom_path)
     } else {
         memset(CART.ram.bytes, 0, CART.ram.size);
     }
+    CART.ram.enabled = false;
     return 0;
 }
 
@@ -216,7 +217,6 @@ int cart_load(const char *path)
     /* Init MBC. */
     CART.mbc.rom_bank = 1;
     CART.mbc.ram_bank = 0;
-    CART.mbc.ram_on = false;
     CART.mbc.mode = 0;
     return 0;
 }
@@ -247,7 +247,7 @@ void cart_write_mbc(uint16_t addr, uint8_t val)
 uint8_t cart_read_ram(uint16_t addr)
 {
     size_t pos = CART.ram.offset + (addr & 0x1fff);
-    if (pos < CART.ram.size) {
+    if (CART.ram.enabled && pos < CART.ram.size) {
         return CART.ram.bytes[CART.ram.offset + (addr & 0x1fff)];
     } else {
         return 0xff;
@@ -256,9 +256,11 @@ uint8_t cart_read_ram(uint16_t addr)
 
 void cart_write_ram(uint16_t addr, uint8_t val)
 {
-    size_t pos = CART.ram.offset + (addr & 0x1fff);
-    if (pos < CART.ram.size) {
-        CART.ram.bytes[pos] = val;
+    if (CART.ram.enabled) {
+        size_t pos = CART.ram.offset + (addr & 0x1fff);
+        if (pos < CART.ram.size) {
+            CART.ram.bytes[pos] = val;
+        }
     }
 }
 

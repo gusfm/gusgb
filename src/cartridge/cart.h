@@ -69,6 +69,7 @@ typedef struct {
     unsigned int offset;
     unsigned int max_bank;
     char *path;
+    bool enabled;
 } cart_ram_t;
 
 typedef void (*mbc_write_f)(uint16_t addr, uint8_t val);
@@ -76,7 +77,6 @@ typedef void (*mbc_write_f)(uint16_t addr, uint8_t val);
 typedef struct {
     uint8_t rom_bank;
     uint8_t ram_bank;
-    bool ram_on;
     uint8_t mode;
     mbc_write_f write_func;
 } cart_mbc_t;
