@@ -72,13 +72,16 @@ typedef struct {
     bool enabled;
 } cart_ram_t;
 
+typedef void (*mbc_init_f)(void);
 typedef void (*mbc_write_f)(uint16_t addr, uint8_t val);
+typedef uint8_t (*mbc_ram_read_f)(uint16_t addr);
+typedef void (*mbc_ram_write_f)(uint16_t addr, uint8_t val);
 
 typedef struct {
-    uint8_t rom_bank;
-    uint8_t ram_bank;
-    uint8_t mode;
-    mbc_write_f write_func;
+    mbc_init_f init;
+    mbc_write_f write;
+    mbc_ram_read_f ram_read;
+    mbc_ram_write_f ram_write;
 } cart_mbc_t;
 
 typedef struct {

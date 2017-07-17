@@ -40,16 +40,20 @@ const char *g_rom_types[256] = {
     [CART_HUC1_RAM_BATTERY] = "HUC1+RAM+BATTERY"
 };
 
-static mbc_write_f cart_get_mbc(uint8_t cart_type)
+static int cart_get_mbc(uint8_t cart_type, cart_mbc_t *mbc)
 {
     switch (cart_type) {
         case CART_ROM_ONLY:
         case CART_MBC1:
         case CART_MBC1_RAM:
         case CART_MBC1_RAM_BATTERY:
-            return mbc1_write;
+            mbc->init = mbc1_init;
+            mbc->write = mbc1_write;
+            mbc->ram_read = mbc1_ram_read;
+            mbc->ram_write = mbc1_ram_write;
+            return 0;
         default:
-            return NULL;
+            return -1;
     }
 }
 
@@ -85,8 +89,8 @@ static int cart_load_header(void)
     /* Get cart type. */
     CART.type = header->cart_type;
     printf("Cartridge type: %s\n", g_rom_types[CART.type]);
-    CART.mbc.write_func = cart_get_mbc(CART.type);
-    if (CART.mbc.write_func == NULL) {
+    int ret = cart_get_mbc(CART.type, &CART.mbc);
+    if (ret != 0) {
         fprintf(stderr, "Cartridge type not supported!\n");
         return -1;
     }
@@ -102,11 +106,11 @@ static int cart_load_header(void)
     switch (header->ram_size) {
         case 0:
             CART.ram.size = 0;
-            CART.ram.max_bank = 0;
+            CART.ram.max_bank = 1;
             break;
         case 1:
             CART.ram.size = 2 * 1024;
-            CART.ram.max_bank = 0;
+            CART.ram.max_bank = 1;
             break;
         case 2:
             CART.ram.size = 8 * 1024;
@@ -178,6 +182,7 @@ static void cart_ram_save(void)
             fprintf(stderr, "ERROR: Could save cartridge RAM to %s\n", CART.ram.path);
         }
         fclose(f);
+        printf("Cartridge RAM saved to file: %s\n", CART.ram.path);
     }
 }
 
@@ -215,9 +220,7 @@ int cart_load(const char *path)
         return -1;
     }
     /* Init MBC. */
-    CART.mbc.rom_bank = 1;
-    CART.mbc.ram_bank = 0;
-    CART.mbc.mode = 0;
+    CART.mbc.init();
     return 0;
 }
 
@@ -241,27 +244,17 @@ uint8_t cart_read_rom1(uint16_t addr)
 
 void cart_write_mbc(uint16_t addr, uint8_t val)
 {
-    CART.mbc.write_func(addr, val);
+    CART.mbc.write(addr, val);
 }
 
 uint8_t cart_read_ram(uint16_t addr)
 {
-    size_t pos = CART.ram.offset + (addr & 0x1fff);
-    if (CART.ram.enabled && pos < CART.ram.size) {
-        return CART.ram.bytes[CART.ram.offset + (addr & 0x1fff)];
-    } else {
-        return 0xff;
-    }
+    return CART.mbc.ram_read(addr);
 }
 
 void cart_write_ram(uint16_t addr, uint8_t val)
 {
-    if (CART.ram.enabled) {
-        size_t pos = CART.ram.offset + (addr & 0x1fff);
-        if (pos < CART.ram.size) {
-            CART.ram.bytes[pos] = val;
-        }
-    }
+    CART.mbc.ram_write(addr, val);
 }
 
 bool cart_is_cgb(void)
