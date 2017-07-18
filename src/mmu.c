@@ -83,6 +83,9 @@ static uint8_t mmu_io_read_byte(uint16_t addr)
             return MMU.speed_switch;
         case 0xff50:
             return MMU.read_ext_rom;
+        case 0xff56:
+            /* Infrared communication port. */
+            return MMU.io[addr - 0xff00];
         case 0xff70:
             return MMU.wram_bank;
     }
@@ -142,6 +145,10 @@ static void mmu_io_write_byte(uint16_t addr, uint8_t value)
             MMU.switch_ext_rom_cb();
             /* Enable rendering if disabled. */
             gpu_gl_enable();
+            return;
+        case 0xff56:
+            /* Infrared communication port. */
+            MMU.io[addr - 0xff00] = value;
             return;
         case 0xff70:
             MMU.wram_bank = value & 7;
