@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mbc1.h"
+#include "mbc3.h"
 
 #define ROM_OFFSET_TITLE 0x134
 
@@ -51,6 +52,16 @@ static int cart_get_mbc(uint8_t cart_type, cart_mbc_t *mbc)
             mbc->write = mbc1_write;
             mbc->ram_read = mbc1_ram_read;
             mbc->ram_write = mbc1_ram_write;
+            return 0;
+        case CART_MBC3_TIMER_BATTERY:
+        case CART_MBC3_TIMER_RAM_BATTERY:
+        case CART_MBC3:
+        case CART_MBC3_RAM:
+        case CART_MBC3_RAM_BATTERY:
+            mbc->init = mbc3_init;
+            mbc->write = mbc3_write;
+            mbc->ram_read = mbc3_ram_read;
+            mbc->ram_write = mbc3_ram_write;
             return 0;
         default:
             return -1;
@@ -179,7 +190,8 @@ static void cart_ram_save(void)
         }
         size_t rv = fwrite(CART.ram.bytes, 1, CART.ram.size, f);
         if (rv != CART.ram.size) {
-            fprintf(stderr, "ERROR: Could save cartridge RAM to %s\n", CART.ram.path);
+            fprintf(stderr, "ERROR: Could save cartridge RAM to %s\n",
+                    CART.ram.path);
         }
         fclose(f);
         printf("Cartridge RAM saved to file: %s\n", CART.ram.path);

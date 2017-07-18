@@ -21,6 +21,7 @@ add_library(gusgb SHARED
     src/interrupt.c
     src/timer.c
     src/cartridge/mbc1.c
+    src/cartridge/mbc3.c
     src/cartridge/cart.c
     src/gpu.c
     src/keys.c
