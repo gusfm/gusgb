@@ -33,11 +33,13 @@ add_library(gusgb SHARED
     src/cpu.c
     src/game_boy.c
     )
-target_link_libraries(gusgb)
+target_link_libraries(gusgb
+    GL
+    glfw)
 
 add_executable(gusgb-bin
     src/main.c)
-target_link_libraries(gusgb-bin gusgb GL glfw)
+target_link_libraries(gusgb-bin gusgb)
 set_target_properties(gusgb-bin
     PROPERTIES
         OUTPUT_NAME gusgb
@@ -113,6 +115,19 @@ set_target_properties(gusgbai-bin
 #    )
 
 enable_testing()
+
+# gusgb test
+add_executable(gusgbtest
+    test/cartridge/mbc3_test.cc
+    )
+target_link_libraries(gusgbtest
+    gusgb
+    gtest
+    gtest_main
+    ${CMAKE_THREAD_LIBS_INIT}
+    )
+add_test(test gusgbtest)
+
 # gusgbai test
 add_executable(gusgbaitest
     test/ai/neuron_test.cc

@@ -2,24 +2,16 @@
 #include <string.h>
 #include "cart.h"
 
-typedef struct {
-    union {
-        uint8_t reg[5];
-        struct {
-            uint8_t sec;
-            uint8_t min;
-            uint8_t hour;
-            uint8_t dayl;
-            uint8_t dayh;
-        };
-    };
-} rtc_t;
+#define MIN_SECS (60)
+#define HOUR_SECS (60 * 60)
+#define DAY_SECS (60 * 60 * 24)
 
 typedef struct {
     uint8_t rom_bank;
     uint8_t ram_bank;
     rtc_t rtc_current;
     rtc_t rtc_latched;
+    time_t time_start;
 } mbc_t;
 
 mbc_t MBC;
@@ -31,12 +23,34 @@ void mbc3_init(void)
     MBC.ram_bank = 0;
     memset(&MBC.rtc_current, 0, sizeof(MBC.rtc_current));
     memset(&MBC.rtc_latched, 0, sizeof(MBC.rtc_latched));
+    MBC.time_start = time(NULL);
 }
 
 static void mbc3_change_bank(void)
 {
     unsigned int rom_bank_tmp = MBC.rom_bank % CART.rom.max_bank;
-    CART.rom.offset = (unsigned int)(rom_bank_tmp) * 0x4000;
+    CART.rom.offset = (unsigned int)(rom_bank_tmp)*0x4000;
+}
+
+void mbc3_rtc_update(rtc_t *rtc, time_t diff)
+{
+    time_t sec = (unsigned int)rtc->sec;
+    time_t min = (unsigned int)rtc->min;
+    time_t hour = (unsigned int)rtc->hour;
+    time_t day = (unsigned int)rtc->dayl + ((rtc->dayh & 1) << 8);
+    time_t old_time =
+        sec + (min * MIN_SECS) + (hour * HOUR_SECS) + (day * DAY_SECS);
+    time_t new_time = old_time + diff;
+
+    time_t new_day = new_time / (DAY_SECS);
+    time_t day_carry = new_day > 0x1ff;
+    rtc->dayl = new_day & 0xff;
+    rtc->dayh = (day_carry << 7) | (rtc->dayh & 0x40) | (new_day & 0x100) >> 8;
+
+    time_t hour_secs = new_time - new_day * DAY_SECS;
+    rtc->hour = (hour_secs) / HOUR_SECS;
+    rtc->min = (hour_secs % HOUR_SECS) / 60;
+    rtc->sec = new_time % 60;
 }
 
 void mbc3_write(uint16_t addr, uint8_t val)
@@ -56,6 +70,8 @@ void mbc3_write(uint16_t addr, uint8_t val)
         /* Latch Clock Data. */
         static uint8_t last = 0xff;
         if (last == 0 && val == 1) {
+            time_t time_diff = time(NULL) - MBC.time_start;
+            mbc3_rtc_update(&MBC.rtc_current, time_diff);
             MBC.rtc_latched = MBC.rtc_current;
         }
         last = val;
@@ -87,13 +103,13 @@ void mbc3_ram_write(uint16_t addr, uint8_t val)
         if (bank <= 7) {
             CART.ram.bytes[pos] = val;
         } else if (bank <= 0x0c) {
-            if (val & 0x40 || MBC.rtc_current.reg[4] & 0x40) {
+            if (MBC.rtc_current.reg[4] & 0x40 || (bank == 0x0c && val & 0x40)) {
                 /* The Halt Flag is supposed to be set before writing to the RTC
                  * registers. */
                 MBC.rtc_current.reg[bank - 8] = val;
-            }
-            if ((val & 0x40) == 0) {
-                /* TODO: save current time, and make the time increase. */
+                if ((val & 0x40) == 0) {
+                    MBC.time_start = time(NULL);
+                }
             }
         }
     }
