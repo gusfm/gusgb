@@ -86,6 +86,17 @@ static bool cart_has_battery(uint8_t cart_type)
     }
 }
 
+static bool cart_has_rtc(uint8_t cart_type)
+{
+    switch (cart_type) {
+        case CART_MBC3_TIMER_BATTERY:
+        case CART_MBC3_TIMER_RAM_BATTERY:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static int cart_load_header(void)
 {
     if (CART.rom.size < sizeof(cart_header_t)) {
@@ -144,39 +155,48 @@ static int cart_load_header(void)
     return 0;
 }
 
-static int cart_ram_init(const char *rom_path)
+static char *card_get_ram_path(const char *rom_path)
 {
     size_t rom_path_len = strlen(rom_path);
     size_t ram_path_len = rom_path_len + 2;
-    CART.ram.path = malloc(ram_path_len);
-    int ret = snprintf(CART.ram.path, ram_path_len, "%s", rom_path);
+    char *ram_path = malloc(ram_path_len);
+    int ret = snprintf(ram_path, ram_path_len, "%s", rom_path);
     if (ret != (int)rom_path_len) {
-        return -1;
+        return NULL;
     }
-    char *substr = strstr(CART.ram.path, ".");
+    char *substr = strstr(ram_path, ".");
     if (substr == NULL) {
-        return -1;
+        return NULL;
     }
     ret = snprintf(substr, 5, ".sav");
     if (ret != 4) {
-        return -1;
+        return NULL;
     }
+    return ram_path;
+}
+
+static int cart_ram_init(FILE *ram_save_file)
+{
     CART.ram.bytes = malloc(CART.ram.size);
     CART.ram.offset = 0x0000;
-    FILE *f = fopen(CART.ram.path, "r");
-    if (f) {
+    if (ram_save_file) {
         printf("Loading cartridge RAM from file: %s\n", CART.ram.path);
         size_t rv;
-        rv = fread(CART.ram.bytes, 1, CART.ram.size, f);
+        rv = fread(CART.ram.bytes, 1, CART.ram.size, ram_save_file);
         if (rv != CART.ram.size) {
-            perror("fread:");
+            perror("fread ram:");
             return -1;
         }
-        fclose(f);
     } else {
         memset(CART.ram.bytes, 0, CART.ram.size);
     }
     CART.ram.enabled = false;
+    /* Init RTC if present. */
+    if (cart_has_rtc(CART.type)) {
+        if (mbc3_rtc_load(ram_save_file) < 0) {
+            return -1;
+        }
+    }
     return 0;
 }
 
@@ -193,9 +213,19 @@ static void cart_ram_save(void)
             fprintf(stderr, "ERROR: Could save cartridge RAM to %s\n",
                     CART.ram.path);
         }
-        fclose(f);
         printf("Cartridge RAM saved to file: %s\n", CART.ram.path);
+        if (cart_has_rtc(CART.type)) {
+            mbc3_rtc_save(f);
+        }
+        fclose(f);
     }
+}
+
+static void cart_destroy(void)
+{
+    free(CART.ram.path);
+    free(CART.rom.bytes);
+    free(CART.ram.bytes);
 }
 
 int cart_load(const char *path)
@@ -222,15 +252,21 @@ int cart_load(const char *path)
     /* Read ROM header. */
     int ret = cart_load_header();
     if (ret < 0) {
-        cart_unload();
+        cart_destroy();
         return -1;
     }
+    CART.ram.path = card_get_ram_path(path);
+    FILE *ram_save_file = fopen(CART.ram.path, "r");
     /* Init RAM. */
-    ret = cart_ram_init(path);
+    ret = cart_ram_init(ram_save_file);
     if (ret < 0) {
-        cart_unload();
+        if (ram_save_file)
+            fclose(ram_save_file);
+        cart_destroy();
         return -1;
     }
+    if (ram_save_file)
+        fclose(ram_save_file);
     /* Init MBC. */
     CART.mbc.init();
     return 0;
@@ -239,9 +275,7 @@ int cart_load(const char *path)
 void cart_unload(void)
 {
     cart_ram_save();
-    free(CART.ram.path);
-    free(CART.rom.bytes);
-    free(CART.ram.bytes);
+    cart_destroy();
 }
 
 uint8_t cart_read_rom0(uint16_t addr)
