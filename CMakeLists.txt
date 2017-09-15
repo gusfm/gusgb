@@ -3,26 +3,28 @@ set(PROJECT_NAME gusgb)
 project(${PROJECT_NAME} C CXX)
 
 find_package(Threads REQUIRED)
+find_package(BISON REQUIRED)
+find_package(FLEX REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_search_module(GLFW REQUIRED glfw3)
 
-SET (WARNINGS "-Werror -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wuninitialized -Wstrict-prototypes")
+SET (WARNINGS "-Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wuninitialized -Wstrict-prototypes")
 
-#set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -g")
-#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -g")
 set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -O3 -fno-strict-aliasing ${WARNINGS}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O3 -fno-strict-aliasing")
 include_directories(${PROJECT_SOURCE_DIR}/src)
-include_directories(SYSTEM "/usr/include/freetype2")
 
-#-------------------
-# Module source
-#-------------------
-
-add_library(gusgb SHARED
-    src/interrupt.c
-    src/timer.c
+# gusgb objects
+add_library(gusgb_cart_obj OBJECT
     src/cartridge/mbc1.c
     src/cartridge/mbc3.c
     src/cartridge/cart.c
+    )
+
+add_library(gusgb_obj OBJECT
+    src/interrupt.c
+    src/timer.c
     src/gpu.c
     src/keys.c
     src/sound.c
@@ -33,25 +35,23 @@ add_library(gusgb SHARED
     src/cpu.c
     src/game_boy.c
     )
+
+# gusgb
+add_executable(gusgb
+    $<TARGET_OBJECTS:gusgb_cart_obj>
+    $<TARGET_OBJECTS:gusgb_obj>
+    src/main.c
+    )
 target_link_libraries(gusgb
     GL
-    glfw)
-
-add_executable(gusgb-bin
-    src/main.c)
-target_link_libraries(gusgb-bin gusgb)
-set_target_properties(gusgb-bin
-    PROPERTIES
-        OUTPUT_NAME gusgb
-        )
+    glfw
+    )
 
 # Objdump
 add_executable(objdump
     src/objdump/objdump.c)
 
 # gbas
-find_package(BISON REQUIRED)
-find_package(FLEX REQUIRED)
 BISON_TARGET(gbas_parser src/as/gbas.y ${CMAKE_CURRENT_BINARY_DIR}/gbas.tab.c)
 FLEX_TARGET(gbas_scanner src/as/gbas.l ${CMAKE_CURRENT_BINARY_DIR}/lex.yy.c)
 ADD_FLEX_BISON_DEPENDENCY(gbas_scanner gbas_parser)
@@ -65,8 +65,8 @@ add_executable(gbas
     )
 target_link_libraries(gbas fl m)
 
-# libgusgbai
-add_library(gusgbai SHARED
+# gusgbai objects
+add_library(gusgbai_obj OBJECT
     src/ai/random.c
     src/ai/neuron.c
     src/ai/neuron_layer.c
@@ -75,53 +75,28 @@ add_library(gusgbai SHARED
     src/ai/genetic_alg.c
     src/ai/population.c
     )
-target_link_libraries(gusgbai m)
 
 # gusgbai
-add_executable(gusgbai-bin
+add_executable(gusgbai
+    $<TARGET_OBJECTS:gusgb_cart_obj>
+    $<TARGET_OBJECTS:gusgb_obj>
+    $<TARGET_OBJECTS:gusgbai_obj>
     src/ai/gb_ai.c
     src/ai/main.c)
-target_link_libraries(gusgbai-bin
-    gusgbai
-    gusgb
+target_link_libraries(gusgbai
     GL
     glfw
+    m
     )
-set_target_properties(gusgbai-bin
-    PROPERTIES
-        OUTPUT_NAME gusgbai
-        )
-
-# gusgbai-fann
-#add_executable(gusgbai-fann
-#    src/ai/fann/gb_ai_fann.c
-#    src/ai/fann/main.c
-#    )
-#target_link_libraries(gusgbai-fann
-#    gusgb
-#    GL
-#    glfw
-#    fann
-#    m
-#    )
-
-# gusgbai-training
-#add_executable(gusgbai-training
-#    src/ai/fann/training.c
-#    )
-#target_link_libraries(gusgbai-training
-#    fann
-#    m
-#    )
 
 enable_testing()
 
 # gusgb test
 add_executable(gusgbtest
+    $<TARGET_OBJECTS:gusgb_cart_obj>
     test/cartridge/mbc3_test.cc
     )
 target_link_libraries(gusgbtest
-    gusgb
     gtest
     gtest_main
     ${CMAKE_THREAD_LIBS_INIT}
@@ -130,12 +105,12 @@ add_test(test gusgbtest)
 
 # gusgbai test
 add_executable(gusgbaitest
+    $<TARGET_OBJECTS:gusgbai_obj>
     test/ai/neuron_test.cc
     test/ai/neuron_layer_test.cc
     test/ai/neural_net_test.cc
     )
 target_link_libraries(gusgbaitest
-    gusgbai
     gtest
     gtest_main
     ${CMAKE_THREAD_LIBS_INIT}
