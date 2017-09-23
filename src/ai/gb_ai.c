@@ -35,9 +35,9 @@ bool game_over;
 
 gb_ai_t gb_ai;
 
-int gb_ai_init(int width, int height, float window_zoom, const char *rom_path)
+int gb_ai_init(float scale, const char *romfile)
 {
-    int ret = gb_init(width, height, window_zoom, rom_path);
+    int ret = gb_init(scale, romfile);
     if (ret != 0)
         return ret;
     /* Get frame buffer. */

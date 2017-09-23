@@ -153,10 +153,10 @@ static GLFWwindow *gb_create_window(const char *name)
     return window;
 }
 
-int gb_init(int width, int height, float window_zoom, const char *rom_path)
+int gb_init(int scale, const char *rom_path)
 {
-    GB.width = width;
-    GB.height = height;
+    GB.width = GB_SCREEN_WIDTH * scale;
+    GB.height = GB_SCREEN_HEIGHT * scale;
     GB.paused = false;
     /* Create window. */
     GB.window = gb_create_window("gusgb");
@@ -167,7 +167,7 @@ int gb_init(int width, int height, float window_zoom, const char *rom_path)
     /* Initialize OpenGl. */
     gb_gl_init();
     /* Initialize emulation. */
-    int ret = cpu_init(rom_path, window_zoom);
+    int ret = cpu_init(rom_path, scale);
     if (ret < 0) {
         fprintf(stderr, "ERROR: Could not load rom: %s\n", rom_path);
         return -1;

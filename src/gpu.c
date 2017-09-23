@@ -18,10 +18,10 @@ const rgb_t g_palette[4] = {
     {0x00, 0x00, 0x00},  // on
 };
 
-void gpu_init(float zoom)
+void gpu_init(float scale)
 {
     gpu_reset();
-    GPU_GL.zoom = zoom;
+    GPU_GL.scale = scale;
     GPU_GL.callback = NULL;
     GPU_GL.gl_enabled = true;
     GPU_GL.window = NULL;
@@ -214,15 +214,15 @@ uint8_t gpu_read_byte(uint16_t addr)
 
 static void gpu_clear_line(int y)
 {
-    for (int x = 0; x < 160; ++x) {
-        int px = y * 160 + x;
+    for (int x = 0; x < GB_SCREEN_WIDTH; ++x) {
+        int px = y * GB_SCREEN_WIDTH + x;
         GPU.framebuffer[px] = g_palette[0];
     }
 }
 
 static void gpu_clear_screen(void)
 {
-    for (int y = 0; y < 144; ++y) {
+    for (int y = 0; y < GB_SCREEN_HEIGHT; ++y) {
         gpu_clear_line(y);
     }
 }
@@ -255,7 +255,7 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 0xff46:
             /* OAM DMA. */
             GPU.dma = val;
-            for (int i = 0; i < 160; i++) {
+            for (int i = 0; i < GB_SCREEN_WIDTH; i++) {
                 uint16_t dma_addr = (uint16_t)((val << 8) + i);
                 uint8_t v = mmu_read_byte(dma_addr);
                 GPU.oam[i] = v;
@@ -355,7 +355,8 @@ static uint32_t get_tile_palette(uint32_t tile_id)
     }
 }
 
-static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy, uint32_t ysize)
+static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy,
+                                        uint32_t ysize)
 {
     tile_line_t tile_line;
     uint32_t tile_y = (uint32_t)(GPU.scanline - sy);
@@ -396,8 +397,8 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
     /* Map row offset: (bg_y / 8) * 32. */
     int map_row = (bg_y >> 3) << 5;
     uint32_t screen_x = 0;
-    uint32_t pixeloffs = GPU.scanline * 160u;
-    while (screen_x < 160) {
+    uint32_t pixeloffs = GPU.scanline * GB_SCREEN_WIDTH;
+    while (screen_x < GB_SCREEN_WIDTH) {
         int map_col = (bg_x >> 3) & 0x1f;
         /* Get tile index adjusted for the 0x8000 - 0x97ff range. */
         uint32_t tile_id = gpu_get_tile_id(mapoffs, map_row, map_col);
@@ -407,14 +408,15 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
         uint32_t palette_num = get_tile_palette(tile_id);
         /* Iterate over remaining pixels of the tile. */
         for (int tile_x = bg_x & 0x7; tile_x < 8; ++tile_x) {
-            if (screen_x >= 160) {
+            if (screen_x >= GB_SCREEN_WIDTH) {
                 return;
             }
             /* Get tile color number for coordinate. */
             uint32_t color_num = gpu_get_tile_color(tile_line, tile_x);
             scanline_row[screen_x] = (uint8_t)color_num;
             /* Copy color to frame buffer. */
-            GPU.framebuffer[pixeloffs + screen_x] = GPU.bg_palette[palette_num * 4 + color_num];
+            GPU.framebuffer[pixeloffs + screen_x] =
+                GPU.bg_palette[palette_num * 4 + color_num];
             ++screen_x;
             ++bg_x;
         }
@@ -452,9 +454,9 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
                 /* Calculate pixel x coordinate. */
                 int px = sx + tile_x;
                 /* Calculate frame buffer pixel offset. */
-                uint32_t pixeloffs = (uint32_t)(GPU.scanline * 160 + px);
+                uint32_t pixeloffs = GPU.scanline * GB_SCREEN_WIDTH + px;
                 /* If pixel is on screen. */
-                if (px >= 0 && px < 160) {
+                if (px >= 0 && px < GB_SCREEN_WIDTH) {
                     /* Check if pixel is hidden. */
                     if (GPU.bg_display && sprite.priority == 1 &&
                         scanline_row[px] != 0)
@@ -479,7 +481,7 @@ static void gpu_render_scanline(void)
 {
     /* Only render if display is on. */
     if (GPU.lcd_enable) {
-        uint8_t scanline_row[160];
+        uint8_t scanline_row[GB_SCREEN_WIDTH];
         if (cart_is_cgb()) {
             /* In CGB mode when Bit 0 is cleared, the background and window
              * lose their priority. */
@@ -505,8 +507,9 @@ void gpu_render_framebuffer(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
         glRasterPos2i(-1, 1);
-        glPixelZoom(GPU_GL.zoom, -GPU_GL.zoom);
-        glDrawPixels(160, 144, GL_RGB, GL_UNSIGNED_BYTE, GPU.framebuffer);
+        glPixelZoom(GPU_GL.scale, -GPU_GL.scale);
+        glDrawPixels(GB_SCREEN_WIDTH, GB_SCREEN_HEIGHT, GL_RGB,
+                     GL_UNSIGNED_BYTE, GPU.framebuffer);
         glfwSwapBuffers(GPU_GL.window);
         glfwPollEvents();
 #endif
@@ -569,7 +572,7 @@ void gpu_step(uint32_t clock_step)
                 if (GPU.coincidence_int && GPU.scanline == GPU.raster) {
                     interrupt_raise(INTERRUPTS_LCDSTAT);
                 }
-                if (GPU.scanline == 144) {
+                if (GPU.scanline == GB_SCREEN_HEIGHT) {
                     gpu_change_mode(GPU_MODE_VBLANK);
                     gpu_render_framebuffer();
                 } else {

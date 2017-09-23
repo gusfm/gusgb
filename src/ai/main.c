@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
         perror("sigaction");
         return 1;
     }
-    int zoom = 4;
-    int ret = gb_ai_init(160 * zoom, 144 * zoom, (float)zoom, rom_path);
+    int scale = 4;
+    int ret = gb_ai_init((float)scale, rom_path);
     if (ret < 0) {
         fprintf(stderr, "ERROR: could not load ROM %s\n", rom_path);
         exit(EXIT_FAILURE);

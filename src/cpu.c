@@ -334,11 +334,11 @@ static void cpu_switch_ext_rom(void)
     }
 }
 
-int cpu_init(const char *rom_path, float screen_zoom)
+int cpu_init(const char *rom_path, float scale)
 {
     memset(&g_cpu, 0x0, sizeof(g_cpu));
     timer_init();
-    gpu_init(screen_zoom);
+    gpu_init(scale);
     return mmu_init(rom_path, cpu_switch_ext_rom);
 }
 

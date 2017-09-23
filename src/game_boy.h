@@ -14,7 +14,7 @@ typedef struct {
 
 extern game_boy_t GB;
 
-int gb_init(int width, int height, float window_zoom, const char *rom_path);
+int gb_init(int scale, const char *rom_path);
 void gb_finish(void);
 void gb_main(void);
 

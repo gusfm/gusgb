@@ -108,7 +108,7 @@ typedef struct {
     bool halt;
 } cpu_t;
 
-int cpu_init(const char *rom_path, float screen_zoom);
+int cpu_init(const char *rom_path, float scale);
 void cpu_finish(void);
 void cpu_reset(void);
 void cpu_emulate_cycle(void);

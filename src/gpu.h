@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define GB_SCREEN_WIDTH 160
+#define GB_SCREEN_HEIGHT 144
+
 typedef enum {
     GPU_MODE_HBLANK = 0,
     GPU_MODE_VBLANK = 1,
@@ -78,8 +81,8 @@ typedef struct {
     uint8_t cgb_sprite_pal_data[8 * 8];
     uint32_t modeclock;
     uint8_t vram[2][0x2000]; /* Video RAM. */
-    uint8_t oam[0xa0];    /* Sprite info. */
-    rgb_t framebuffer[160 * 144];
+    uint8_t oam[0xa0];       /* Sprite info. */
+    rgb_t framebuffer[GB_SCREEN_WIDTH * GB_SCREEN_HEIGHT];
     rgb_t bg_palette[8 * 4];
     rgb_t sprite_palette[8 * 4];
     unsigned int speed;
@@ -88,7 +91,7 @@ typedef struct {
 typedef struct {
     GLFWwindow *window;
     render_callback_t callback;
-    float zoom;
+    float scale;
     bool gl_enabled;
 } gpu_gl_t;
 
@@ -114,16 +117,16 @@ typedef struct {
         uint8_t attributes;
         struct {
             uint8_t pal_number : 3; /* BGP0-7 */
-            uint8_t vram_bank : 1; /* (0=Bank 0, 1=Bank 1) */
+            uint8_t vram_bank : 1;  /* (0=Bank 0, 1=Bank 1) */
             uint8_t unused : 1;
-            uint8_t hflip : 1; /* (0=Normal, 1=Mirror horizontally) */
-            uint8_t vflip : 1; /* (0=Normal, 1=Mirror vertically) */
+            uint8_t hflip : 1;    /* (0=Normal, 1=Mirror horizontally) */
+            uint8_t vflip : 1;    /* (0=Normal, 1=Mirror vertically) */
             uint8_t priority : 1; /* (0=Use OAM priority bit, 1=BG Priority) */
         };
     };
 } cgb_bg_attr_t;
 
-void gpu_init(float zoom);
+void gpu_init(float scale);
 void gpu_reset(void);
 gpu_t *gpu_get_instance(void);
 void gpu_set_callback(render_callback_t cb);
