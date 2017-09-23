@@ -174,7 +174,7 @@ uint8_t gpu_read_byte(uint16_t addr)
             return GPU.lcd_control;
         case 0xff41:
             return (uint8_t)(GPU.lcd_status |
-                             (GPU.scanline == GPU.raster ? 4u : 0u) |
+                             (GPU.scanline == GPU.lyc ? 4u : 0u) |
                              GPU.mode_flag);
         case 0xff42:
             return GPU.scroll_y;
@@ -183,7 +183,7 @@ uint8_t gpu_read_byte(uint16_t addr)
         case 0xff44:
             return GPU.scanline;
         case 0xff45:
-            return GPU.raster;
+            return GPU.lyc;
         case 0xff46:
             return GPU.dma;
         case 0xff47:
@@ -250,7 +250,7 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
         case 0xff44:
             break;
         case 0xff45:
-            GPU.raster = val;
+            GPU.lyc = val;
             break;
         case 0xff46:
             /* OAM DMA. */
@@ -569,7 +569,7 @@ void gpu_step(uint32_t clock_step)
             if (GPU.modeclock >= 204 * GPU.speed) {
                 GPU.modeclock -= 204 * GPU.speed;
                 GPU.scanline++;
-                if (GPU.coincidence_int && GPU.scanline == GPU.raster) {
+                if (GPU.coincidence_int && GPU.scanline == GPU.lyc) {
                     interrupt_raise(INTERRUPTS_LCDSTAT);
                 }
                 if (GPU.scanline == GB_SCREEN_HEIGHT) {
@@ -603,15 +603,22 @@ void gpu_change_speed(unsigned int speed)
 void gpu_dump(void)
 {
     printf("GPU dump:\n");
-    printf("lcd_enable=%hhu\n", GPU.lcd_enable);
-    printf("bg_display=%hhu\n", GPU.bg_display);
-    printf("obj_enable=%hhu\n", GPU.obj_enable);
-    printf("window_enable=%hhu\n", GPU.window_enable);
-    printf("window_x=%hhu\n", GPU.window_x);
-    printf("window_y=%hhu\n", GPU.window_y);
-    printf("scroll_x=%hhu\n", GPU.scroll_x);
-    printf("scroll_y=%hhu\n", GPU.scroll_y);
-    printf("scanline=%hhu\n", GPU.scanline);
+    printf("[$ff40] lcd_control=0x%hhx:\n", GPU.lcd_control);
+    printf("  bg_display=%hhu\n", GPU.bg_display);
+    printf("  obj_enable=%hhu\n", GPU.obj_enable);
+    printf("  obj_size=%hhu\n", GPU.obj_size);
+    printf("  bg_tile_map=%hhu\n", GPU.bg_tile_map);
+    printf("  bg_tile_set=%hhu\n", GPU.bg_tile_set);
+    printf("  window_enable=%hhu\n", GPU.window_enable);
+    printf("  window_tile_map=%hhu\n", GPU.window_tile_map);
+    printf("  lcd_enable=%hhu\n", GPU.lcd_enable);
+    printf("[$ff41] lcd_status=0x%hhx:\n", GPU.lcd_status);
+    printf("[$ff42] scroll_y=%hhu\n", GPU.scroll_y);
+    printf("[$ff43] scroll_x=%hhu\n", GPU.scroll_x);
+    printf("[$ff44] scanline=%hhu\n", GPU.scanline);
+    printf("[$ff45] lyc=%hhu\n", GPU.lyc);
+    printf("[$ff4a] window_y=%hhu\n", GPU.window_y);
+    printf("[$ff4b] window_x=%hhu\n", GPU.window_x);
     printf("BG palettes:\n");
     for (int i = 0; i < 8; ++i) {
         printf("BG %d: ", i);
@@ -621,20 +628,16 @@ void gpu_dump(void)
         }
         printf("\n");
     }
-    for (uint16_t addr = 0xff40; addr <= 0xff4b; ++addr) {
-        printf("[$%hx] = $%hhx\n", addr, gpu_read_byte(addr));
-    }
     /* Dump OAM. */
     printf("OAM dump:\n");
     for (uint32_t i = 0; i < 40; i++) {
         sprite_t s = ((sprite_t *)GPU.oam)[i];
+        printf("[$%.4x] ", 0xfe00 + i * 4);
         printf("sprite %2u: ", i);
         printf("%.2hhx %.2hhx %.2hhx %.2hhx: ", s.y, s.x, s.tile, s.options);
         printf("xy=(%3d, %3d) ", (int)s.x - 8, (int)s.y - 16);
-        printf("tile=0x%.2hhx ", s.tile);
-        printf("OAM addr=0x%.4x, tile addr=0x%.4x ", 0xfe00 + i * 4,
-               GPU.vram[GPU.vram_bank][s.tile]);
-        printf("options=[palette=%d, xflip=%d, yflip=%d, priority=%d]\n",
+        printf("options=[palette=%d, xflip=%d, yflip=%d, priority=%d] ",
                s.palette, s.xflip, s.yflip, s.priority);
+        printf("tile=0x%.2hhx tile addr=0x%.4x\n", s.tile, 0x8000 + s.tile * 16);
     }
 }

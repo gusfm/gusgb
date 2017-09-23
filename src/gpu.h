@@ -56,7 +56,7 @@ typedef struct {
     /* 0xff44 - LY - LCDC Y-Coordinate (R) */
     uint8_t scanline;
     /* 0xff45 - LYC - LY Compare (R/W) */
-    uint8_t raster;
+    uint8_t lyc;
     /* 0xff46 - DMA - DMA Transfer and Start Address (W) */
     uint8_t dma;
     /* 0xff47 - BGP - BG Palette Data (R/W) - Non CGB Mode Only */
