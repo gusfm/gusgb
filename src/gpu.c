@@ -386,7 +386,7 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
     /* Get background xy coordinate, and Get map offset relative to vram array.
      */
     if (GPU.window_enable && GPU.window_y <= GPU.scanline) {
-        bg_x = -GPU.window_x;
+        bg_x = 7 - GPU.window_x;
         bg_y = GPU.scanline - GPU.window_y;
         mapoffs = (GPU.window_tile_map) ? 0x1c00 : 0x1800;
     } else {
@@ -638,6 +638,7 @@ void gpu_dump(void)
         printf("xy=(%3d, %3d) ", (int)s.x - 8, (int)s.y - 16);
         printf("options=[palette=%d, xflip=%d, yflip=%d, priority=%d] ",
                s.palette, s.xflip, s.yflip, s.priority);
-        printf("tile=0x%.2hhx tile addr=0x%.4x\n", s.tile, 0x8000 + s.tile * 16);
+        printf("tile=0x%.2hhx tile addr=0x%.4x\n", s.tile,
+               0x8000 + s.tile * 16);
     }
 }
