@@ -513,8 +513,10 @@ void gpu_render_framebuffer(void)
         glfwSwapBuffers(GPU_GL.window);
         glfwPollEvents();
 #endif
+#ifdef RENDER_CALLBACK
         if (GPU_GL.callback)
             GPU_GL.callback();
+#endif
     }
 }
 
