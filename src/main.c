@@ -20,10 +20,11 @@ static int parse_args(int argc, char **argv)
                 break;
             case 'c':
                 printf(
-                    "Gusgb:\n"
+                    "%s:\n"
                     "Controls:\n"
                     "P:\tPause emulation\n"
                     "O:\tDump emulator debugs\n"
+                    "ESQ:\tQuit program\n"
                     "\n"
                     "Key mapping:\n"
                     "Up:\tup\n"
@@ -33,11 +34,9 @@ static int parse_args(int argc, char **argv)
                     "A:\ta\n"
                     "B:\ts\n"
                     "Start:\tenter\n"
-                    "Select:\tleft shift\n"
-                    );
+                    "Select:\tleft shift\n",
+                    argv[0]);
                 exit(EXIT_SUCCESS);
-            case '?':
-            case 'h':
             default:
                 return -1;
         }
@@ -55,6 +54,7 @@ static void print_help(char **argv)
             "Usage: %s [options] romfile\n"
             "Options:\n"
             "  -c\t\tPrint keyboard controls\n"
+            "  -h\t\tPrint help and exit\n"
             "  -s <scale>\tScale video output\n",
             argv[0]);
 }
