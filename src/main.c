@@ -30,10 +30,10 @@ static int parse_args(int argc, char **argv)
                     "Down:\tdown\n"
                     "Left:\tleft\n"
                     "Right:\tright\n"
-                    "A:\ts\n"
-                    "B:\ta\n"
+                    "A:\ta\n"
+                    "B:\ts\n"
                     "Start:\tenter\n"
-                    "Select:\tspace\n"
+                    "Select:\tleft shift\n"
                     );
                 exit(EXIT_SUCCESS);
             case '?':

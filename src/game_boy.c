@@ -22,15 +22,15 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
         /* Game keys. */
         case GLFW_KEY_A:
             if (action == GLFW_PRESS)
-                key_press(KEY_B);
-            else if (action == GLFW_RELEASE)
-                key_release(KEY_B);
-            break;
-        case GLFW_KEY_S:
-            if (action == GLFW_PRESS)
                 key_press(KEY_A);
             else if (action == GLFW_RELEASE)
                 key_release(KEY_A);
+            break;
+        case GLFW_KEY_S:
+            if (action == GLFW_PRESS)
+                key_press(KEY_B);
+            else if (action == GLFW_RELEASE)
+                key_release(KEY_B);
             break;
         case GLFW_KEY_ENTER:
             if (action == GLFW_PRESS)
@@ -38,7 +38,7 @@ static void gb_key_callback(GLFWwindow *window, int key, int scancode,
             else if (action == GLFW_RELEASE)
                 key_release(KEY_START);
             break;
-        case GLFW_KEY_SPACE:
+        case GLFW_KEY_LEFT_SHIFT:
             if (action == GLFW_PRESS)
                 key_press(KEY_SELECT);
             else if (action == GLFW_RELEASE)
