@@ -361,7 +361,7 @@ static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy,
     tile_line_t tile_line;
     uint32_t tile_y = (uint32_t)(GPU.scanline - sy);
     if (sprite->yflip) {
-        tile_y = ysize - tile_y;
+        tile_y = ysize - tile_y - 1;
     }
     uint32_t tile_line_id = sprite->tile * 16 + tile_y * 2;
     /* Get tile line data: Each tile line takes 2 bytes. */
