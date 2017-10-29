@@ -1,5 +1,5 @@
-#ifndef __CPU_UTILS_H__
-#define __CPU_UTILS_H__
+#ifndef CPU_UTILS_H
+#define CPU_UTILS_H
 
 #include <stdint.h>
 
@@ -15,4 +15,4 @@ void bit(uint8_t bit, uint8_t value);
 uint8_t res(uint8_t bit, uint8_t value);
 uint8_t set(uint8_t bit, uint8_t value);
 
-#endif /* __CPU_UTILS_H__ */
+#endif /* CPU_UTILS_H */

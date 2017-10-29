@@ -1,5 +1,5 @@
-#ifndef __KEY_H__
-#define __KEY_H__
+#ifndef KEY_H
+#define KEY_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -24,4 +24,4 @@ void key_release(key_e key);
 bool key_check_pressed(key_e key);
 const char *key_str(key_e key);
 
-#endif /* __KEY_H__ */
+#endif /* KEY_H */

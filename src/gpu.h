@@ -1,5 +1,5 @@
-#ifndef __GPU_H__
-#define __GPU_H__
+#ifndef GPU_H
+#define GPU_H
 
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
@@ -145,4 +145,4 @@ void gpu_render_framebuffer(void);
 void gpu_change_speed(unsigned int speed);
 void gpu_dump(void);
 
-#endif /* __GPU_H__ */
+#endif /* GPU_H */

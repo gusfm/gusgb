@@ -1,5 +1,5 @@
-#ifndef __INTERRUPT_H__
-#define __INTERRUPT_H__
+#ifndef INTERRUPT_H
+#define INTERRUPT_H
 
 #include <stdint.h>
 
@@ -32,4 +32,4 @@ void interrupt_clear_flag_bit(uint8_t bit);
 void interrupt_step(void);
 void interrupt_dump(void);
 
-#endif /* __INTERRUPT_H__ */
+#endif /* INTERRUPT_H */

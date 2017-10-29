@@ -1,5 +1,5 @@
-#ifndef __GAME_BOY_H__
-#define __GAME_BOY_H__
+#ifndef GAME_BOY_H
+#define GAME_BOY_H
 
 #include <GLFW/glfw3.h>
 #include "cpu.h"
@@ -18,4 +18,4 @@ int gb_init(int scale, const char *rom_path);
 void gb_finish(void);
 void gb_main(void);
 
-#endif /* __GAME_BOY_H__ */
+#endif /* GAME_BOY_H */

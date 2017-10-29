@@ -1,5 +1,5 @@
-#ifndef __CPU_EXT_OPS_H__
-#define __CPU_EXT_OPS_H__
+#ifndef CPU_EXT_OPS_H
+#define CPU_EXT_OPS_H
 
 #include <stdint.h>
 
@@ -263,4 +263,4 @@ void set_7_l(void);
 void set_7_hlp(void);
 void set_7_a(void);
 
-#endif /* __CPU_EXT_OPS_H__ */
+#endif /* CPU_EXT_OPS_H */

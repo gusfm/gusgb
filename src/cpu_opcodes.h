@@ -1,5 +1,5 @@
-#ifndef __CPU_OPCODES_H__
-#define __CPU_OPCODES_H__
+#ifndef CPU_OPCODES_H
+#define CPU_OPCODES_H
 
 #include <stdint.h>
 
@@ -245,4 +245,4 @@ void cp_n(uint8_t val);
 void rst_38(void);
 void undefined(void);
 
-#endif /* __CPU_OPCODES_H__ */
+#endif /* CPU_OPCODES_H */

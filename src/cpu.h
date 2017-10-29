@@ -1,5 +1,5 @@
-#ifndef __CPU_H__
-#define __CPU_H__
+#ifndef CPU_H
+#define CPU_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -114,4 +114,4 @@ void cpu_reset(void);
 void cpu_emulate_cycle(void);
 void cpu_dump(void);
 
-#endif /* __CPU_H__ */
+#endif /* CPU_H */

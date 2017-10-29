@@ -1,5 +1,5 @@
-#ifndef __MMU_H__
-#define __MMU_H__
+#ifndef MMU_H
+#define MMU_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -46,4 +46,4 @@ void mmu_stop(void);
 /* Debug MMU. */
 void mmu_dump(uint16_t addr, uint16_t offset);
 
-#endif /* __MMU_H__ */
+#endif /* MMU_H */

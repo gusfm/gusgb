@@ -1,5 +1,5 @@
-#ifndef __TIMER_H__
-#define __TIMER_H__
+#ifndef TIMER_H
+#define TIMER_H
 
 #include <stdint.h>
 
@@ -24,4 +24,4 @@ uint8_t timer_read_byte(uint16_t addr);
 void timer_write_byte(uint16_t addr, uint8_t val);
 void timer_change_speed(unsigned int speed);
 
-#endif /* __TIMER_H__ */
+#endif /* TIMER_H */
