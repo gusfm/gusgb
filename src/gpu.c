@@ -483,23 +483,20 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
 
 static void gpu_render_scanline(void)
 {
-    /* Only render if display is on. */
-    if (GPU.lcd_enable) {
-        uint8_t scanline_row[GB_SCREEN_WIDTH];
-        if (cart_is_cgb()) {
-            /* In CGB mode when Bit 0 is cleared, the background and window
-             * lose their priority. */
+    uint8_t scanline_row[GB_SCREEN_WIDTH];
+    if (cart_is_cgb()) {
+        /* In CGB mode when Bit 0 is cleared, the background and window
+         * lose their priority. */
+        gpu_update_fb_bg(scanline_row);
+    } else {
+        if (GPU.bg_display) {
             gpu_update_fb_bg(scanline_row);
         } else {
-            if (GPU.bg_display) {
-                gpu_update_fb_bg(scanline_row);
-            } else {
-                gpu_clear_line(GPU.scanline);
-            }
+            gpu_clear_line(GPU.scanline);
         }
-        if (GPU.obj_enable)
-            gpu_update_fb_sprite(scanline_row);
     }
+    if (GPU.obj_enable)
+        gpu_update_fb_sprite(scanline_row);
 }
 
 #define VIDEO
@@ -552,6 +549,8 @@ static void gpu_change_mode(gpu_mode_e new_mode)
  */
 void gpu_step(uint32_t clock_step)
 {
+    if (!GPU.lcd_enable)
+        return;
     GPU.modeclock += clock_step;
     switch (GPU.mode_flag) {
         case GPU_MODE_OAM:
