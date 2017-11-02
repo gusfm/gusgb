@@ -57,7 +57,8 @@ void gpu_gl_enable(void)
     /* Fix GPU startup values. */
     /* TODO: Check if it's not a bug. */
     GPU.lcd_status = 0x85;
-    GPU.scanline = 0x00;
+    GPU.scanline = 0;
+    GPU.modeclock = 0;
     if (!cart_is_cgb()) {
         gpu_write_byte(0xff48, 0xFF);
         gpu_write_byte(0xff49, 0xFF);
@@ -231,10 +232,13 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
 {
     switch (addr) {
         case 0xff40:
-            if (GPU.lcd_enable && !(val & 0x80)) {
+            /* If disabling LCD */
+            if (GPU.lcd_enable && (val & 0x80) == 0) {
                 assert(GPU.mode_flag == GPU_MODE_VBLANK);
-                /* Clear screen when it's disabled. */
+                /* Clear screen. */
                 gpu_clear_screen();
+                /* Reset modeclock. */
+                GPU.modeclock = 0;
             }
             GPU.lcd_control = val;
             break;
