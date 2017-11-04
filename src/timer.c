@@ -118,3 +118,12 @@ void timer_change_speed(unsigned int speed)
 {
     clock_.speed = speed + 1;
 }
+
+void timer_dump(void)
+{
+    printf("Timer dump:\n");
+    printf("[$ff04] div=0x%.2x\n", timer_read_byte(0xff04));
+    printf("[$ff05] tima=0x%.2x\n", timer_read_byte(0xff05));
+    printf("[$ff06] tma=0x%.2x\n", timer_read_byte(0xff06));
+    printf("[$ff07] tac=0x%.2x\n", timer_read_byte(0xff07));
+}

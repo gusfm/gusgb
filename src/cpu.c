@@ -325,6 +325,7 @@ void cpu_dump(void)
     gpu_dump();
     mmu_dump(0xc000, 128);
     interrupt_dump();
+    timer_dump();
 }
 
 static void cpu_switch_ext_rom(void)
