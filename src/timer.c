@@ -4,13 +4,6 @@
 
 #define TIMER_ENABLE (1 << 2)
 
-typedef struct {
-    uint32_t main;     /* Clock used for timer count. */
-    uint16_t internal; /* Internal timer clock. */
-    unsigned int select;
-    unsigned int speed;
-} gb_clock_t;
-
 /* TIMA states. */
 typedef enum {
     TIMA_STATE_COUNTING = 0, /* Normal operation */
@@ -18,58 +11,80 @@ typedef enum {
     TIMA_STATE_RELOADING,    /* TIMA is being reloaded. */
 } tima_state_t;
 
-uint8_t div_;             /* [$ff04] Divider Register (R/W) */
-uint8_t tima_;            /* [$ff05] Timer counter (R/W) */
+uint16_t clk_sys_;        /* Internal timer clock. */
+uint16_t clk_last_;       /* Last cycle clock. */
+unsigned int tima_;       /* [$ff05] Timer counter (R/W) */
 uint8_t tma_;             /* [$ff06] Timer Modulo (R/W) */
 uint8_t tac_;             /* [$ff07] Timer Control (R/W) */
-gb_clock_t clock_;        /* Internal timer state */
 tima_state_t tima_state_; /* TIMA operation states. */
-static unsigned int clocks[] = {1024, 16, 64, 256};
+unsigned int delay_bit_;
 
 void timer_init(void)
 {
-    div_ = 0;
     tima_ = 0;
     tma_ = 0;
     tac_ = 0;
-    clock_.main = 0;
-    clock_.internal = 0;
-    clock_.speed = 1;
-    clock_.select = clocks[0];
+    clk_sys_ = 0;
+    clk_last_ = 0;
     tima_state_ = TIMA_STATE_COUNTING;
+    delay_bit_ = 0;
+}
+
+static unsigned int mux(uint8_t sel, uint16_t in)
+{
+    uint16_t mask;
+    switch (sel & 3) {
+        case 0:
+            /* 4096 Hz mode bit 9 change from 1 to 0. */
+            mask = 0x200;
+            break;
+        case 1:
+            /* 262144 Hz mode bit 3 change from 1 to 0. */
+            mask = 0x8;
+            break;
+        case 2:
+            /* 65536 Hz mode bit 5 change from 1 to 0. */
+            mask = 0x20;
+            break;
+        case 3:
+            /* 16384 Hz mode bit 7 change from 1 to 0. */
+            mask = 0x80;
+            break;
+    }
+    return in & mask;
 }
 
 void timer_step(uint32_t clock_step)
 {
-    clock_.main += clock_step;
-    clock_.internal += clock_step;
+    clk_last_ = clk_sys_;
+    clk_sys_ += clock_step;
     /* Check whether a step needs to be made in the timer. */
-    if (tac_ & TIMER_ENABLE) {
-        switch (tima_state_) {
-            case TIMA_STATE_COUNTING:
-                break;
-            case TIMA_STATE_OVERFLOW:
-                /* After one cycle, TIMA should be reloaded and the interrupt
-                 * flag set.
-                 */
-                tima_ = tma_;
-                interrupt_raise(INTERRUPTS_TIMER);
-                tima_state_ = TIMA_STATE_RELOADING;
-                break;
-            case TIMA_STATE_RELOADING:
-                tima_state_ = TIMA_STATE_COUNTING;
-                break;
-        }
-        while (clock_.main >= clock_.select) {
-            clock_.main -= clock_.select;
-            if (tima_ == 0xff) {
-                /* When TIMA overflows, it contains zero for 1 cycle. */
-                tima_ = 0;
-                tima_state_ = TIMA_STATE_OVERFLOW;
-            } else {
-                ++tima_;
-            }
-        }
+    switch (tima_state_) {
+        case TIMA_STATE_COUNTING:
+            break;
+        case TIMA_STATE_OVERFLOW:
+            /* After one cycle, TIMA should be reloaded and the interrupt
+             * flag set.
+             */
+            tima_ = tma_;
+            interrupt_raise(INTERRUPTS_TIMER);
+            tima_state_ = TIMA_STATE_RELOADING;
+            break;
+        case TIMA_STATE_RELOADING:
+            tima_state_ = TIMA_STATE_COUNTING;
+            break;
+    }
+    /* Falling edge detector. */
+    unsigned int tac_enabled = tac_ & TIMER_ENABLE;
+    for (uint16_t clock = clk_last_ + 1; clock <= clk_sys_; ++clock) {
+        unsigned int bit = mux(tac_, clock) && tac_enabled;
+        tima_ += delay_bit_ & ~bit;
+        delay_bit_ = bit;
+    }
+    if (tima_ == 0x100) {
+        /* When TIMA overflows, it contains zero for 1 cycle. */
+        tima_ = 0;
+        tima_state_ = TIMA_STATE_OVERFLOW;
     }
 }
 
@@ -77,9 +92,9 @@ uint8_t timer_read_byte(uint16_t addr)
 {
     switch (addr) {
         case 0xFF04:
-            return (clock_.internal & 0xff00) >> 8;
+            return (clk_sys_ & 0xff00) >> 8;
         case 0xFF05:
-            return tima_;
+            return tima_ & 0xff;
         case 0xFF06:
             return tma_;
         case 0xFF07:
@@ -94,33 +109,7 @@ void timer_write_byte(uint16_t addr, uint8_t val)
 {
     switch (addr) {
         case 0xFF04:
-            /* Increase tima when writing to div triggers a bit flip. */
-            switch (tac_ & 3) {
-                case 0:
-                    /* 4096 Hz mode bit 9 change from 1 to 0. */
-                    if (clock_.internal & 0x200)
-                        ++tima_;
-                    break;
-                case 1:
-                    /* 262144 Hz mode bit 3 change from 1 to 0. */
-                    if (clock_.internal & 0x8)
-                        ++tima_;
-                    break;
-                case 2:
-                    /* 65536 Hz mode bit 5 change from 1 to 0. */
-                    if (clock_.internal & 0x20)
-                        ++tima_;
-                    break;
-                case 3:
-                    /* 16384 Hz mode bit 7 change from 1 to 0. */
-                    if (clock_.internal & 0x80)
-                        ++tima_;
-                    break;
-                default:
-                    break;
-            }
-            clock_.internal = 0;
-            clock_.main = 0;
+            clk_sys_ = 0;
             break;
         case 0xFF05:
             switch (tima_state_) {
@@ -147,8 +136,7 @@ void timer_write_byte(uint16_t addr, uint8_t val)
             }
             break;
         case 0xFF07:
-            clock_.select = clocks[val & 3] * clock_.speed;
-            tac_ = val & 7;
+            tac_ = val;
             break;
         default:
             printf("%s: not implemented: 0x%04x!\n", __func__, addr);
@@ -158,7 +146,8 @@ void timer_write_byte(uint16_t addr, uint8_t val)
 
 void timer_change_speed(unsigned int speed)
 {
-    clock_.speed = speed + 1;
+    (void)speed;
+    /* TODO */
 }
 
 void timer_dump(void)
