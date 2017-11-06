@@ -76,8 +76,8 @@ void timer_step(uint32_t clock_step)
     }
     /* Falling edge detector. */
     unsigned int tac_enabled = tac_ & TIMER_ENABLE;
-    for (uint16_t clock = clk_last_ + 1; clock <= clk_sys_; ++clock) {
-        unsigned int bit = mux(tac_, clock) && tac_enabled;
+    for (unsigned int i = 1; i <= clock_step; ++i) {
+        unsigned int bit = mux(tac_, clk_last_ + i) && tac_enabled;
         tima_ += delay_bit_ & ~bit;
         delay_bit_ = bit;
     }
