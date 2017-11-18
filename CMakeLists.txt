@@ -65,30 +65,6 @@ add_executable(gbas
     )
 target_link_libraries(gbas fl m)
 
-# gusgbai objects
-add_library(gusgbai_obj OBJECT
-    src/ai/random.c
-    src/ai/neuron.c
-    src/ai/neuron_layer.c
-    src/ai/neural_net.c
-    src/ai/player.c
-    src/ai/genetic_alg.c
-    src/ai/population.c
-    )
-
-# gusgbai
-add_executable(gusgbai
-    $<TARGET_OBJECTS:gusgb_cart_obj>
-    $<TARGET_OBJECTS:gusgb_obj>
-    $<TARGET_OBJECTS:gusgbai_obj>
-    src/ai/gb_ai.c
-    src/ai/main.c)
-target_link_libraries(gusgbai
-    GL
-    glfw
-    m
-    )
-
 enable_testing()
 
 # gusgb test
@@ -102,17 +78,3 @@ target_link_libraries(gusgbtest
     ${CMAKE_THREAD_LIBS_INIT}
     )
 add_test(test gusgbtest)
-
-# gusgbai test
-add_executable(gusgbaitest
-    $<TARGET_OBJECTS:gusgbai_obj>
-    test/ai/neuron_test.cc
-    test/ai/neuron_layer_test.cc
-    test/ai/neural_net_test.cc
-    )
-target_link_libraries(gusgbaitest
-    gtest
-    gtest_main
-    ${CMAKE_THREAD_LIBS_INIT}
-    )
-add_test(test gusgbaitest)
