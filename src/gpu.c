@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "debug.h"
 #include "cartridge/cart.h"
 #include "interrupt.h"
 #include "mmu.h"
-#include "utils/debug.h"
 
 gpu_t GPU;
 gpu_gl_t GPU_GL;
@@ -208,8 +208,7 @@ uint8_t gpu_read_byte(uint16_t addr)
         case 0xff6b:
             return GPU.cgb_sprite_pal_data[GPU.cgb_sprite_pal_idx & 0x3f];
         default:
-            fprintf(stderr, "gpu_read_byte: not implemented: 0x%04x\n", addr);
-            abort();
+            error("not implemented: addr=0x%04x", addr);
     }
 }
 
@@ -309,13 +308,10 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             gpu_set_cgb_sprite_palette(val);
             break;
         case 0xff7f:
-            fprintf(stderr, "gpu_write_byte: not implemented: 0x%04x=0x%02x\n",
-                    addr, val);
+            warn("not implemented: 0x%04x=0x%02x", addr, val);
             break;
         default:
-            fprintf(stderr, "gpu_write_byte: not implemented: 0x%04x=0x%02x\n",
-                    addr, val);
-            abort();
+            error("not implemented: 0x%04x=0x%02x", addr, val);
     }
 }
 

@@ -1,5 +1,6 @@
 #include "timer.h"
 #include <stdio.h>
+#include "debug.h"
 #include "interrupt.h"
 
 #define TIMER_ENABLE (1 << 2)
@@ -99,10 +100,8 @@ uint8_t timer_read_byte(uint16_t addr)
             return tma_;
         case 0xFF07:
             return tac_;
-        default:
-            printf("%s: not implemented: 0x%04x!\n", __func__, addr);
-            return 0;
     }
+    error("not implemented: addr=0x%04x", addr);
 }
 
 void timer_write_byte(uint16_t addr, uint8_t val)
@@ -139,7 +138,7 @@ void timer_write_byte(uint16_t addr, uint8_t val)
             tac_ = val;
             break;
         default:
-            printf("%s: not implemented: 0x%04x!\n", __func__, addr);
+            error("not implemented: 0x%04x=0x%02x", addr, val);
             break;
     }
 }

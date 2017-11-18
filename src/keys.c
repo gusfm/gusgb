@@ -1,6 +1,7 @@
 #include "keys.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "debug.h"
 #include "interrupt.h"
 
 typedef struct {
@@ -62,9 +63,7 @@ void key_press(key_e key)
             KEY.rows[1] &= 0xe;
             break;
         default:
-            printf("%s:%d: unknown key press: %d\n", __func__, __LINE__, key);
-            ;
-            break;
+            error("unknown key: %d", key);
     }
     interrupt_raise(INTERRUPTS_JOYPAD);
 }
@@ -97,9 +96,7 @@ void key_release(key_e key)
             KEY.rows[1] |= 0x1;
             break;
         default:
-            printf("%s:%d: unknown key release: %d\n", __func__, __LINE__, key);
-            ;
-            break;
+            error("unknown key: %d", key);
     }
     interrupt_raise(INTERRUPTS_JOYPAD);
 }
@@ -133,9 +130,7 @@ bool key_check_pressed(key_e key)
             val = KEY.rows[1] & 0x1;
             break;
         default:
-            printf("%s:%d: unknown key release: %d\n", __func__, __LINE__, key);
-            ;
-            exit(EXIT_FAILURE);
+            error("unknown key: %d", key);
     }
     return !val;
 }

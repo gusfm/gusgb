@@ -9,7 +9,7 @@
 #include "interrupt.h"
 #include "mmu.h"
 #include "timer.h"
-#include "utils/debug.h"
+#include "debug.h"
 
 cpu_t g_cpu;
 
@@ -383,8 +383,7 @@ static void cpu_decode_opcode(uint8_t opcode)
         printd("%s\n", cpu_debug_instr2(debug_str, opcode, operand));
         g_instr[opcode].exec2(operand);
     } else {
-        fprintf(stderr, "ERROR: invalid operand length!\n");
-        exit(EXIT_FAILURE);
+        error("invalid operand length %hhu", oper_length);
     }
     g_cpu.clock.step += g_instr[opcode].clock_cycles;
     g_cpu.cycle++;

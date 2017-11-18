@@ -210,8 +210,10 @@ static void cart_ram_save(void)
         }
         size_t rv = fwrite(CART.ram.bytes, 1, CART.ram.size, f);
         if (rv != CART.ram.size) {
-            fprintf(stderr, "ERROR: Could save cartridge RAM to %s\n",
+            fprintf(stderr, "ERROR: Could not save cartridge RAM to %s\n",
                     CART.ram.path);
+            fclose(f);
+            return;
         }
         printf("Cartridge RAM saved to file: %s\n", CART.ram.path);
         if (cart_has_rtc(CART.type)) {
