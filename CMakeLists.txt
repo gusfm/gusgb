@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
-set(PROJECT_NAME gusgb)
-project(${PROJECT_NAME} C CXX)
+project(gusgb C)
 
-find_package(Threads REQUIRED)
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
@@ -12,7 +10,6 @@ pkg_search_module(GLFW REQUIRED glfw3)
 SET (WARNINGS "-Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wuninitialized -Wstrict-prototypes")
 
 set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -std=gnu11 -O3 -fno-strict-aliasing ${WARNINGS}")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O3 -fno-strict-aliasing")
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # gusgb objects
@@ -67,14 +64,12 @@ target_link_libraries(gbas fl m)
 
 enable_testing()
 
+include_directories(${PROJECT_SOURCE_DIR}/test)
+
 # gusgb test
 add_executable(gusgbtest
     $<TARGET_OBJECTS:gusgb_cart_obj>
-    test/cartridge/mbc3_test.cc
-    )
-target_link_libraries(gusgbtest
-    gtest
-    gtest_main
-    ${CMAKE_THREAD_LIBS_INIT}
+    test/cartridge/mbc3.c
+    test/main.c
     )
 add_test(test gusgbtest)
