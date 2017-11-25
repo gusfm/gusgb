@@ -10,7 +10,6 @@
 #include "gpu.h"
 #include "interrupt.h"
 #include "mmu.h"
-#include "timer.h"
 
 cpu_t g_cpu;
 
@@ -326,7 +325,6 @@ void cpu_dump(void)
     gpu_dump();
     mmu_dump(0xc000, 128);
     interrupt_dump();
-    timer_dump();
 }
 
 static void cpu_switch_ext_rom(void)
@@ -339,7 +337,7 @@ static void cpu_switch_ext_rom(void)
 int cpu_init(const char *rom_path, float scale)
 {
     memset(&g_cpu, 0x0, sizeof(g_cpu));
-    timer_init();
+    clock_init();
     gpu_init(scale);
     return mmu_init(rom_path, cpu_switch_ext_rom);
 }
@@ -352,7 +350,7 @@ void cpu_finish(void)
 void cpu_reset(void)
 {
     memset(&g_cpu, 0x0, sizeof(g_cpu));
-    timer_init();
+    clock_init();
     gpu_reset();
     mmu_reset();
 }
@@ -401,5 +399,4 @@ void cpu_emulate_cycle(void)
         cpu_decode_opcode(opcode);
     }
     gpu_step(clock_get_step());
-    timer_step(clock_get_step());
 }
