@@ -96,14 +96,7 @@ typedef struct {
 } cpu_registers_t;
 
 typedef struct {
-    uint32_t main;
-    uint32_t step;
-} cpu_clock_t;
-
-typedef struct {
     cpu_registers_t reg;
-    cpu_clock_t clock;
-    uint32_t cycle;
     uint16_t last_pc;
     bool halt;
 } cpu_t;

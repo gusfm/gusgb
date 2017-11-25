@@ -1,5 +1,6 @@
 #include "cpu_ext_ops.h"
 #include <stdio.h>
+#include "clock.h"
 #include "cpu.h"
 #include "cpu_utils.h"
 #include "mmu.h"
@@ -280,7 +281,7 @@ void print_ext_ops(char *str, uint8_t opcode)
 void cb_n(uint8_t opcode)
 {
     g_ext_instr[opcode].execute();
-    g_cpu.clock.step += g_ext_instr[opcode].clock_cycles;
+    clock_step(g_ext_instr[opcode].clock_cycles);
 }
 
 /* 0x00: Rotate B with carry. */

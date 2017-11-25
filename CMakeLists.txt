@@ -20,6 +20,7 @@ add_library(gusgb_cart_obj OBJECT
     )
 
 add_library(gusgb_obj OBJECT
+    src/clock.c
     src/interrupt.c
     src/timer.c
     src/gpu.c

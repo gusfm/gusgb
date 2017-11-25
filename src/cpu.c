@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cartridge/cart.h"
+#include "clock.h"
 #include "cpu_ext_ops.h"
 #include "cpu_opcodes.h"
+#include "debug.h"
 #include "gpu.h"
 #include "interrupt.h"
 #include "mmu.h"
 #include "timer.h"
-#include "debug.h"
 
 cpu_t g_cpu;
 
@@ -385,22 +386,20 @@ static void cpu_decode_opcode(uint8_t opcode)
     } else {
         error("invalid operand length %hhu", oper_length);
     }
-    g_cpu.clock.step += g_instr[opcode].clock_cycles;
-    g_cpu.cycle++;
+    clock_step(g_instr[opcode].clock_cycles);
 }
 
 void cpu_emulate_cycle(void)
 {
     interrupt_step();
-    g_cpu.clock.step = 0;
+    clock_clear();
     if (g_cpu.halt) {
         /* Tick clock while halted. */
-        g_cpu.clock.step += g_instr[0x76].clock_cycles;
+        clock_step(g_instr[0x76].clock_cycles);
     } else {
         uint8_t opcode = cpu_fetch_opcode();
         cpu_decode_opcode(opcode);
     }
-    gpu_step(g_cpu.clock.step);
-    timer_step(g_cpu.clock.step);
-    g_cpu.clock.main += g_cpu.clock.step;
+    gpu_step(clock_get_step());
+    timer_step(clock_get_step());
 }
