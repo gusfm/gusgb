@@ -260,12 +260,29 @@ static void cp(uint8_t val)
     }
 }
 
+/**
+ * Update 16-bit register. Also take care of clock increase.
+ */
+static inline void reg16_set(uint16_t *reg, uint16_t val)
+{
+    *reg = val;
+    clock_step(4);
+}
+
+/**
+ * Increment and update 16-bit register. Also take care of clock increase.
+ */
+static inline void reg16_inc(uint16_t *reg, uint16_t val)
+{
+    *reg += val;
+    clock_step(4);
+}
+
 /* Push to stack. */
 void push(uint16_t val)
 {
-    g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp - 2);
+    reg16_inc(&g_cpu.reg.sp, -2);
     mmu_write_word(g_cpu.reg.sp, val);
-    clock_step(4);
 }
 
 /* Pop from stack. */
@@ -307,8 +324,7 @@ void ld_bcp_a(void)
 /* 0x03: Increment 16-bit BC. */
 void inc_bc(void)
 {
-    g_cpu.reg.bc++;
-    clock_step(4);
+    reg16_inc(&g_cpu.reg.bc, 1);
 }
 
 /* 0x04: Increment B. */
@@ -359,8 +375,7 @@ void ld_a_bcp(void)
 /* 0x0b: Decrement BC. */
 void dec_bc(void)
 {
-    g_cpu.reg.bc--;
-    clock_step(4);
+    reg16_inc(&g_cpu.reg.bc, -1);
 }
 
 /* 0x0c: Increment C. */
@@ -413,8 +428,7 @@ void ld_dep_a(void)
 /* 0x13: Increment 16-bit DE. */
 void inc_de(void)
 {
-    g_cpu.reg.de++;
-    clock_step(4);
+    reg16_inc(&g_cpu.reg.de, 1);
 }
 
 /* 0x14: Increment D. */
@@ -448,8 +462,7 @@ void rla(void)
 /* 0x18: Relative jump by signed immediate. */
 void jr_n(uint8_t val)
 {
-    g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-    clock_step(4);
+    reg16_inc(&g_cpu.reg.pc, (int8_t)val);
 }
 
 /* 0x19: Add 16-bit DE to HL. */
@@ -467,8 +480,7 @@ void ld_a_dep(void)
 /* 0x1b: Decrement DE. */
 void dec_de(void)
 {
-    g_cpu.reg.de--;
-    clock_step(4);
+    reg16_inc(&g_cpu.reg.de, -1);
 }
 
 /* 0x1c: Increment E. */
@@ -503,8 +515,7 @@ void rra(void)
 void jr_nz_n(uint8_t val)
 {
     if (!FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        clock_step(4);
+        reg16_inc(&g_cpu.reg.pc, (int8_t)val);
     }
 }
 
@@ -523,8 +534,7 @@ void ldi_hlp_a(void)
 /* 0x23: Increment 16-bit HL. */
 void inc_hl(void)
 {
-    g_cpu.reg.hl++;
-    clock_step(4);
+    reg16_inc(&g_cpu.reg.hl, 1);
 }
 
 /* 0x24: Increment H. */
@@ -573,8 +583,7 @@ void daa(void)
 void jr_z_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        clock_step(4);
+        reg16_inc(&g_cpu.reg.pc, (int8_t)val);
     }
 }
 
@@ -593,8 +602,7 @@ void ldi_a_hlp(void)
 /* 0x2b: Decrement HL. */
 void dec_hl(void)
 {
-    g_cpu.reg.hl--;
-    clock_step(4);
+    reg16_inc(&g_cpu.reg.hl, -1);
 }
 
 /* 0x2c: Increment L. */
@@ -626,8 +634,7 @@ void cpl(void)
 void jr_nc_n(uint8_t val)
 {
     if (!FLAG_IS_SET(FLAG_C)) {
-        g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        clock_step(4);
+        reg16_inc(&g_cpu.reg.pc, (int8_t)val);
     }
 }
 
@@ -646,8 +653,7 @@ void ldd_hlp_a(void)
 /* 0x33: Increment 16-bit SP. */
 void inc_sp(void)
 {
-    g_cpu.reg.sp++;
-    clock_step(4);
+    reg16_inc(&g_cpu.reg.sp, 1);
 }
 
 /* 0x34: Increment value pointed by HL. */
@@ -681,8 +687,7 @@ void scf(void)
 void jr_c_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        clock_step(4);
+        reg16_inc(&g_cpu.reg.pc, (int8_t)val);
     }
 }
 
@@ -701,8 +706,7 @@ void ldd_a_hlp(void)
 /* 0x3b: Decrement SP. */
 void dec_sp(void)
 {
-    g_cpu.reg.sp--;
-    clock_step(4);
+    reg16_inc(&g_cpu.reg.sp, -1);
 }
 
 /* 0x3c: Increment A. */
@@ -1460,12 +1464,10 @@ void cp_a(void)
 /* 0xc0: Return if Z flag is not set. */
 void ret_nz(void)
 {
-    if (FLAG_IS_SET(FLAG_Z)) {
-        clock_step(4);
-    } else {
-        g_cpu.reg.pc = pop();
-        clock_step(8);
+    if (!FLAG_IS_SET(FLAG_Z)) {
+        reg16_set(&g_cpu.reg.pc, pop());
     }
+    clock_step(4);
 }
 
 /* 0xc1: Pop two bytes off stack into register pair nn. */
@@ -1478,16 +1480,14 @@ void pop_bc(void)
 void jp_nz_nn(uint16_t addr)
 {
     if (!FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.reg.pc = addr;
-        clock_step(4);
+        reg16_set(&g_cpu.reg.pc, addr);
     }
 }
 
 /* 0xc3: Jump to address. */
 void jp_nn(uint16_t addr)
 {
-    g_cpu.reg.pc = addr;
-    clock_step(4);
+    reg16_set(&g_cpu.reg.pc, addr);
 }
 
 /* 0xc4: Push PC to stack and Jump to address. */
@@ -1522,26 +1522,22 @@ void rst_00(void)
 void ret_z(void)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.reg.pc = pop();
-        clock_step(8);
-    } else {
-        clock_step(4);
+        reg16_set(&g_cpu.reg.pc, pop());
     }
+    clock_step(4);
 }
 
 /* 0xc9: Return if Z flag is set. */
 void ret(void)
 {
-    g_cpu.reg.pc = pop();
-    clock_step(4);
+    reg16_set(&g_cpu.reg.pc, pop());
 }
 
 /* 0xca: Jump to address. */
 void jp_z_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        g_cpu.reg.pc = addr;
-        clock_step(4);
+        reg16_set(&g_cpu.reg.pc, addr);
     }
 }
 
@@ -1577,12 +1573,10 @@ void rst_08(void)
 /* 0xd0: Return if C flag is not set. */
 void ret_nc(void)
 {
-    if (FLAG_IS_SET(FLAG_C)) {
-        clock_step(4);
-    } else {
-        g_cpu.reg.pc = pop();
-        clock_step(8);
+    if (!FLAG_IS_SET(FLAG_C)) {
+        reg16_set(&g_cpu.reg.pc, pop());
     }
+    clock_step(4);
 }
 
 /* 0xd1: Pop two bytes off stack into register pair nn. */
@@ -1595,8 +1589,7 @@ void pop_de(void)
 void jp_nc_nn(uint16_t addr)
 {
     if (!FLAG_IS_SET(FLAG_C)) {
-        g_cpu.reg.pc = addr;
-        clock_step(4);
+        reg16_set(&g_cpu.reg.pc, addr);
     }
 }
 
@@ -1632,28 +1625,24 @@ void rst_10(void)
 void ret_c(void)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        g_cpu.reg.pc = pop();
-        clock_step(8);
-    } else {
-        clock_step(4);
+        reg16_set(&g_cpu.reg.pc, pop());
     }
+    clock_step(4);
 }
 
 /* 0xd9: Pop two bytes from stack, jump to that address then enable interrupts.
  */
 void reti(void)
 {
-    g_cpu.reg.pc = pop();
+    reg16_set(&g_cpu.reg.pc, pop());
     interrupt_set_master(1);
-    clock_step(4);
 }
 
 /* 0xda: Jump to address. */
 void jp_c_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        g_cpu.reg.pc = addr;
-        clock_step(4);
+        reg16_set(&g_cpu.reg.pc, addr);
     }
 }
 
@@ -1829,8 +1818,7 @@ void ldhl_sp_n(uint8_t val)
 /* 0xf9: Put HL into Stack Pointer (SP). */
 void ld_sp_hl(void)
 {
-    g_cpu.reg.sp = g_cpu.reg.hl;
-    clock_step(4);
+    reg16_set(&g_cpu.reg.sp, g_cpu.reg.hl);
 }
 
 /* 0xfa: Copy value pointed by addr into A. */
