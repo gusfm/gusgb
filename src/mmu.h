@@ -28,6 +28,8 @@ void mmu_finish(void);
 /* Reset MMU keeping cartridge ROM memory. */
 void mmu_reset(void);
 
+uint8_t mmu_read_byte_dma(uint16_t addr);
+
 /* Read byte from a given address. */
 uint8_t mmu_read_byte(uint16_t addr);
 

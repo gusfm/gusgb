@@ -260,7 +260,7 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
             GPU.dma = val;
             for (int i = 0; i < GB_SCREEN_WIDTH; i++) {
                 uint16_t dma_addr = (uint16_t)((val << 8) + i);
-                uint8_t v = mmu_read_byte(dma_addr);
+                uint8_t v = mmu_read_byte_dma(dma_addr);
                 GPU.oam[i] = v;
             }
             break;

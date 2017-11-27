@@ -104,6 +104,7 @@ static uint16_t add16(uint16_t val1, uint16_t val2)
     } else {
         FLAG_CLEAR(FLAG_C);
     }
+    clock_step(4);
     /* Zero flag is not updated. */
     return (uint16_t)(result & 0xffff);
 }
@@ -264,6 +265,7 @@ void push(uint16_t val)
 {
     g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp - 2);
     mmu_write_word(g_cpu.reg.sp, val);
+    clock_step(4);
 }
 
 /* Pop from stack. */
@@ -306,6 +308,7 @@ void ld_bcp_a(void)
 void inc_bc(void)
 {
     g_cpu.reg.bc++;
+    clock_step(4);
 }
 
 /* 0x04: Increment B. */
@@ -357,6 +360,7 @@ void ld_a_bcp(void)
 void dec_bc(void)
 {
     g_cpu.reg.bc--;
+    clock_step(4);
 }
 
 /* 0x0c: Increment C. */
@@ -410,6 +414,7 @@ void ld_dep_a(void)
 void inc_de(void)
 {
     g_cpu.reg.de++;
+    clock_step(4);
 }
 
 /* 0x14: Increment D. */
@@ -444,6 +449,7 @@ void rla(void)
 void jr_n(uint8_t val)
 {
     g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
+    clock_step(4);
 }
 
 /* 0x19: Add 16-bit DE to HL. */
@@ -462,6 +468,7 @@ void ld_a_dep(void)
 void dec_de(void)
 {
     g_cpu.reg.de--;
+    clock_step(4);
 }
 
 /* 0x1c: Increment E. */
@@ -495,11 +502,9 @@ void rra(void)
 /* 0x20: Jump if Z flag is not set. */
 void jr_nz_n(uint8_t val)
 {
-    if (FLAG_IS_SET(FLAG_Z)) {
-        clock_step(8);
-    } else {
+    if (!FLAG_IS_SET(FLAG_Z)) {
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        clock_step(12);
+        clock_step(4);
     }
 }
 
@@ -519,6 +524,7 @@ void ldi_hlp_a(void)
 void inc_hl(void)
 {
     g_cpu.reg.hl++;
+    clock_step(4);
 }
 
 /* 0x24: Increment H. */
@@ -568,9 +574,7 @@ void jr_z_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        clock_step(12);
-    } else {
-        clock_step(8);
+        clock_step(4);
     }
 }
 
@@ -590,6 +594,7 @@ void ldi_a_hlp(void)
 void dec_hl(void)
 {
     g_cpu.reg.hl--;
+    clock_step(4);
 }
 
 /* 0x2c: Increment L. */
@@ -620,11 +625,9 @@ void cpl(void)
 /* 0x30: Jump if C flag is not set. */
 void jr_nc_n(uint8_t val)
 {
-    if (FLAG_IS_SET(FLAG_C)) {
-        clock_step(8);
-    } else {
+    if (!FLAG_IS_SET(FLAG_C)) {
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        clock_step(12);
+        clock_step(4);
     }
 }
 
@@ -644,6 +647,7 @@ void ldd_hlp_a(void)
 void inc_sp(void)
 {
     g_cpu.reg.sp++;
+    clock_step(4);
 }
 
 /* 0x34: Increment value pointed by HL. */
@@ -678,9 +682,7 @@ void jr_c_n(uint8_t val)
 {
     if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.reg.pc = (uint16_t)(g_cpu.reg.pc + (int8_t)val);
-        clock_step(12);
-    } else {
-        clock_step(8);
+        clock_step(4);
     }
 }
 
@@ -700,6 +702,7 @@ void ldd_a_hlp(void)
 void dec_sp(void)
 {
     g_cpu.reg.sp--;
+    clock_step(4);
 }
 
 /* 0x3c: Increment A. */
@@ -1458,10 +1461,10 @@ void cp_a(void)
 void ret_nz(void)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
-        clock_step(8);
+        clock_step(4);
     } else {
         g_cpu.reg.pc = pop();
-        clock_step(20);
+        clock_step(8);
     }
 }
 
@@ -1474,11 +1477,9 @@ void pop_bc(void)
 /* 0xc2: Jump to address. */
 void jp_nz_nn(uint16_t addr)
 {
-    if (FLAG_IS_SET(FLAG_Z)) {
-        clock_step(12);
-    } else {
+    if (!FLAG_IS_SET(FLAG_Z)) {
         g_cpu.reg.pc = addr;
-        clock_step(16);
+        clock_step(4);
     }
 }
 
@@ -1486,17 +1487,15 @@ void jp_nz_nn(uint16_t addr)
 void jp_nn(uint16_t addr)
 {
     g_cpu.reg.pc = addr;
+    clock_step(4);
 }
 
 /* 0xc4: Push PC to stack and Jump to address. */
 void call_nz_nn(uint16_t addr)
 {
-    if (FLAG_IS_SET(FLAG_Z)) {
-        clock_step(12);
-    } else {
+    if (!FLAG_IS_SET(FLAG_Z)) {
         push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
-        clock_step(24);
     }
 }
 
@@ -1524,9 +1523,9 @@ void ret_z(void)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.reg.pc = pop();
-        clock_step(20);
-    } else {
         clock_step(8);
+    } else {
+        clock_step(4);
     }
 }
 
@@ -1534,6 +1533,7 @@ void ret_z(void)
 void ret(void)
 {
     g_cpu.reg.pc = pop();
+    clock_step(4);
 }
 
 /* 0xca: Jump to address. */
@@ -1541,9 +1541,7 @@ void jp_z_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_Z)) {
         g_cpu.reg.pc = addr;
-        clock_step(16);
-    } else {
-        clock_step(12);
+        clock_step(4);
     }
 }
 
@@ -1553,9 +1551,6 @@ void call_z_nn(uint16_t addr)
     if (FLAG_IS_SET(FLAG_Z)) {
         push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
-        clock_step(24);
-    } else {
-        clock_step(12);
     }
 }
 
@@ -1583,10 +1578,10 @@ void rst_08(void)
 void ret_nc(void)
 {
     if (FLAG_IS_SET(FLAG_C)) {
-        clock_step(8);
+        clock_step(4);
     } else {
         g_cpu.reg.pc = pop();
-        clock_step(20);
+        clock_step(8);
     }
 }
 
@@ -1599,23 +1594,18 @@ void pop_de(void)
 /* 0xd2: Jump to address. */
 void jp_nc_nn(uint16_t addr)
 {
-    if (FLAG_IS_SET(FLAG_C)) {
-        clock_step(12);
-    } else {
+    if (!FLAG_IS_SET(FLAG_C)) {
         g_cpu.reg.pc = addr;
-        clock_step(16);
+        clock_step(4);
     }
 }
 
 /* 0xd4: Push PC to stack and Jump to address. */
 void call_nc_nn(uint16_t addr)
 {
-    if (FLAG_IS_SET(FLAG_C)) {
-        clock_step(12);
-    } else {
+    if (!FLAG_IS_SET(FLAG_C)) {
         push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
-        clock_step(24);
     }
 }
 
@@ -1643,9 +1633,9 @@ void ret_c(void)
 {
     if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.reg.pc = pop();
-        clock_step(20);
-    } else {
         clock_step(8);
+    } else {
+        clock_step(4);
     }
 }
 
@@ -1655,6 +1645,7 @@ void reti(void)
 {
     g_cpu.reg.pc = pop();
     interrupt_set_master(1);
+    clock_step(4);
 }
 
 /* 0xda: Jump to address. */
@@ -1662,9 +1653,7 @@ void jp_c_nn(uint16_t addr)
 {
     if (FLAG_IS_SET(FLAG_C)) {
         g_cpu.reg.pc = addr;
-        clock_step(16);
-    } else {
-        clock_step(12);
+        clock_step(4);
     }
 }
 
@@ -1674,9 +1663,6 @@ void call_c_nn(uint16_t addr)
     if (FLAG_IS_SET(FLAG_C)) {
         push(g_cpu.reg.pc);
         g_cpu.reg.pc = addr;
-        clock_step(24);
-    } else {
-        clock_step(12);
     }
 }
 
@@ -1747,6 +1733,7 @@ void add_sp_n(uint8_t val)
     }
     FLAG_CLEAR(FLAG_Z | FLAG_N);
     g_cpu.reg.sp = (uint16_t)(g_cpu.reg.sp + (int8_t)val);
+    clock_step(8);
 }
 
 /* 0xe9: Jump to address. */
@@ -1836,12 +1823,14 @@ void ldhl_sp_n(uint8_t val)
     }
     FLAG_CLEAR(FLAG_Z | FLAG_N);
     g_cpu.reg.hl = (uint16_t)(g_cpu.reg.sp + (int8_t)val);
+    clock_step(4);
 }
 
 /* 0xf9: Put HL into Stack Pointer (SP). */
 void ld_sp_hl(void)
 {
     g_cpu.reg.sp = g_cpu.reg.hl;
+    clock_step(4);
 }
 
 /* 0xfa: Copy value pointed by addr into A. */

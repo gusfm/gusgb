@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cartridge/cart.h"
+#include "clock.h"
 #include "gpu.h"
 #include "interrupt.h"
 #include "keys.h"
@@ -189,7 +190,7 @@ static uint8_t wram_get_bank(void)
 }
 
 /* Read 8-bit byte from a given address */
-uint8_t mmu_read_byte(uint16_t addr)
+uint8_t mmu_read_byte_dma(uint16_t addr)
 {
     if (addr < 0x4000) {
         /* 256B Internal ROM accessed after reset. */
@@ -230,6 +231,12 @@ uint8_t mmu_read_byte(uint16_t addr)
     }
 }
 
+uint8_t mmu_read_byte(uint16_t addr)
+{
+    clock_step(4);
+    return mmu_read_byte_dma(addr);
+}
+
 uint16_t mmu_read_word(uint16_t addr)
 {
     uint16_t addrh = (uint16_t)(addr + 1);
@@ -238,6 +245,7 @@ uint16_t mmu_read_word(uint16_t addr)
 
 void mmu_write_byte(uint16_t addr, uint8_t value)
 {
+    clock_step(4);
     if (addr < 0x8000) {
         /* 16kB ROM bank 0 and 16kB switchable ROM bank. */
         cart_write_mbc(addr, value);

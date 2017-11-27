@@ -384,7 +384,6 @@ static void cpu_decode_opcode(uint8_t opcode)
     } else {
         error("invalid operand length %hhu", oper_length);
     }
-    clock_step(g_instr[opcode].clock_cycles);
 }
 
 void cpu_emulate_cycle(void)
