@@ -21,7 +21,7 @@ const uint8_t logo[] = {
     0xdc, 0xcc, 0x6e, 0xe6, 0xdd, 0xdd, 0xd9, 0x99, 0xbb, 0xbb, 0x67, 0x63,
     0x6e, 0x0e, 0xec, 0xcc, 0xdd, 0xdc, 0x99, 0x9f, 0xbb, 0xb9, 0x33, 0x3e};
 
-static int card_write_logo(FILE *output)
+static int cart_write_logo(FILE *output)
 {
     int ret = fseek(output, 0x0104, SEEK_SET);
     if (ret != 0) {
@@ -29,7 +29,7 @@ static int card_write_logo(FILE *output)
         return -1;
     }
     size_t size = fwrite(logo, sizeof(logo), 1, output);
-    if (size != sizeof(logo)) {
+    if (size != 1) {
         fprintf(stderr, "ERROR: could not write logo\n");
         return -1;
     }
@@ -75,7 +75,7 @@ static uint16_t cart_global_checksum(uint8_t *header, FILE *output)
 int cart_header_write(cart_header_t *ch, FILE *output)
 {
     uint8_t *header = (uint8_t *)ch;
-    int ret = card_write_logo(output);
+    int ret = cart_write_logo(output);
     if (ret < 0) {
         return -1;
     }
