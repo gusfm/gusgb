@@ -5,43 +5,66 @@
 
 #define TIMER_ENABLE (1 << 2)
 
-unsigned int clk_main; /* Counts how many clocks since last timer increment. */
-unsigned int clk_select; /* How many clocks to increment timer. */
-unsigned int clk_speed;  /* Clock speed: 1 or 2. */
+/* TIMA states. */
+typedef enum {
+    TIMA_STATE_COUNTING = 0, /* Normal operation */
+    TIMA_STATE_OVERFLOW,     /* Overflow happened. */
+    TIMA_STATE_RELOADING,    /* TIMA is being reloaded. */
+} tima_state_t;
+
+unsigned int clk_speed;  /* Clock speed: 0 or 1. */
 uint16_t clk_sys;        /* Internal timer clock. */
 uint8_t tima;            /* [$ff05] Timer counter (R/W) */
 uint8_t tma;             /* [$ff06] Timer Modulo (R/W) */
 uint8_t tac;             /* [$ff07] Timer Control (R/W) */
-static unsigned int clocks[] = {1024, 16, 64, 256};
+tima_state_t tima_state; /* TIMA operation states. */
+unsigned int delay_bit;  /* Falling edge detector delay bit. */
+static uint16_t masks[4] = {0x200, 0x8, 0x20, 0x80};
 
 void timer_init(void)
 {
+    clk_speed = 0;
     tima = 0;
     tma = 0;
     tac = 0;
-    clk_main = 0;
     clk_sys = 0;
-    clk_speed = 1;
-    clk_select = clocks[0];
+    tima_state = TIMA_STATE_COUNTING;
+    delay_bit = 0;
+}
+
+static inline unsigned int mux(uint8_t sel, uint16_t in)
+{
+    return in & (masks[sel & 3] << clk_speed);
 }
 
 void timer_step(uint32_t clock_step)
 {
-    clk_main += clock_step;
     clk_sys += clock_step;
     /* Check whether a step needs to be made in the timer. */
-    while (clk_main >= clk_select) {
-        clk_main -= clk_select;
-        if (tac & TIMER_ENABLE) {
-            if (tima == 0xff) {
-                /* If TIMA overflows, load it with TMA and raise interrupt. */
-                tima = tma;
-                interrupt_raise(INTERRUPTS_TIMER);
-            } else {
-                ++tima;
-            }
+    switch (tima_state) {
+        case TIMA_STATE_COUNTING:
+            break;
+        case TIMA_STATE_OVERFLOW:
+            /* After one cycle, TIMA should be reloaded and the interrupt
+             * flag set.
+             */
+            tima = tma;
+            interrupt_raise(INTERRUPTS_TIMER);
+            tima_state = TIMA_STATE_RELOADING;
+            break;
+        case TIMA_STATE_RELOADING:
+            tima_state = TIMA_STATE_COUNTING;
+            break;
+    }
+    /* Falling edge detector. */
+    unsigned int bit = mux(tac, clk_sys) && (tac & TIMER_ENABLE);
+    if (delay_bit & ~bit) {
+        if (++tima == 0) {
+            /* When TIMA overflows, it contains zero for 1 cycle. */
+            tima_state = TIMA_STATE_OVERFLOW;
         }
     }
+    delay_bit = bit;
 }
 
 uint8_t timer_read_byte(uint16_t addr)
@@ -63,39 +86,33 @@ void timer_write_byte(uint16_t addr, uint8_t val)
 {
     switch (addr) {
         case 0xFF04:
-            switch (tac & 3) {
-                case 0:
-                    /* 4096 Hz mode bit 9 change from 1 to 0. */
-                    if (clk_sys & 0x200)
-                        ++tima;
-                    break;
-                case 1:
-                    /* 262144 Hz mode bit 3 change from 1 to 0. */
-                    if (clk_sys & 0x8)
-                        ++tima;
-                    break;
-                case 2:
-                    /* 65536 Hz mode bit 5 change from 1 to 0. */
-                    if (clk_sys & 0x20)
-                        ++tima;
-                    break;
-                case 3:
-                    /* 16384 Hz mode bit 7 change from 1 to 0. */
-                    if (clk_sys & 0x80)
-                        ++tima;
-                    break;
-            }
             clk_sys = 0;
-            clk_main = 0;
             break;
         case 0xFF05:
-            tima = val;
+            switch (tima_state) {
+                case TIMA_STATE_COUNTING:
+                    /* Normal operation. */
+                    tima = val;
+                    break;
+                case TIMA_STATE_OVERFLOW:
+                    /* Prevent reload if writing to it during overflow cycle. */
+                    tima = val;
+                    tima_state = TIMA_STATE_COUNTING;
+                    break;
+                case TIMA_STATE_RELOADING:
+                    /* Ignore writes if TIMA was just reloaded. */
+                    break;
+            }
             break;
         case 0xFF06:
             tma = val;
+            if (tima_state == TIMA_STATE_RELOADING) {
+                /* If TMA is written in the same cycle that TIMA is reloaded,
+                 * write the value to TIMA as well. */
+                tima = tma;
+            }
             break;
         case 0xFF07:
-            clk_select = clocks[val & 3] * clk_speed;
             tac = val;
             break;
         default:
@@ -106,7 +123,7 @@ void timer_write_byte(uint16_t addr, uint8_t val)
 
 void timer_change_speed(unsigned int speed)
 {
-    clk_speed = speed + 1;
+    clk_speed = speed;
 }
 
 void timer_dump(void)
