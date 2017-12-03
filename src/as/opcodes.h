@@ -21,9 +21,9 @@ typedef enum {
 } register_e;
 
 void ascii(char *str);
-void data(uint8_t val);
-void seek(long offset);
-void memsetf(uint8_t c, size_t n);
+void db(uint8_t val);
+void org(long offset);
+void fill(uint8_t c, size_t n);
 
 void nop(void);
 void ld_bc_nn(uint16_t val);

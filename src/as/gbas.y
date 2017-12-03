@@ -51,9 +51,9 @@ unsigned int pc = 0;
 
 /* Special compiller commands. */
 %token ASCII
-%token DATA
-%token SEEK
-%token MEMSET
+%token DB
+%token ORG
+%token FILL
 
 /* Commands */
 %token ADC
@@ -344,11 +344,15 @@ cb_cmd:
       | SWAP regs_8_hlp                 { swap(last_reg); }
       ;
 
+db_cmd:
+      NUMBER                        { db($1); }
+      | db_cmd ',' NUMBER           { db($3); }
+
 command:
           '.' ASCII STRING_LITERAL  { ascii($3); free($3); }
-        | '.' DATA NUMBER           { data($3); }
-        | '.' SEEK NUMBER           { seek($3); }
-        | '.' MEMSET NUMBER ',' NUMBER { memsetf($3, $5); }
+        | '.' DB db_cmd
+        | '.' ORG NUMBER            { org($3); }
+        | '.' FILL NUMBER ',' NUMBER { fill($3, $5); }
         | LABEL ':'                 { gbas_label_insert(gbas, $1, pc); }
         | ADC adc_cmd
         | ADD add_cmd

@@ -25,9 +25,9 @@ L?\"(\\.|[^\\"])*\"         { yylval.sval = strdup(yytext); return STRING_LITERA
 ")"                         { return yytext[0]; }
 
 ascii                       { return ASCII; }
-data                        { return DATA; }
-memset                      { return MEMSET; }
-seek                        { return SEEK; }
+db                          { return DB; }
+fill                        { return FILL; }
+org                         { return ORG; }
 
 adc                         { return ADC; }
 add                         { return ADD; }
