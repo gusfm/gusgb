@@ -1,3 +1,4 @@
+B           [0-1]
 D           [0-9]
 L           [a-zA-Z_]
 A           [a-zA-Z_0-9]
@@ -12,6 +13,7 @@ H           [a-fA-F0-9]
 %%
 ${H}+                       { yylval.num = strtol(yytext + 1, NULL, 16); return NUMBER; }
 {D}+                        { yylval.num = strtol(yytext, NULL, 10); return NUMBER; }
+\%{B}+                      { yylval.num = strtol(yytext + 1, NULL, 2); return NUMBER; }
 L?\"(\\.|[^\\"])*\"         { yylval.sval = strdup(yytext); return STRING_LITERAL; }
 ";".*                       { /* ignore comments */ };
 "\n"                        {}
