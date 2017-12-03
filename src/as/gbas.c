@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #define MAX_LABEL_LENGTH 32
-extern unsigned int linenum;
+extern int yylineno;
 
 typedef struct {
     char *str;
@@ -107,7 +107,7 @@ unsigned int gbas_label_get_addr(gbas_t *gbas, char *str)
         }
         node = node->forward;
     }
-    fprintf(stderr, "ERROR:%u: invalid label: %s\n", linenum, str);
+    fprintf(stderr, "ERROR:%d: invalid label: %s\n", yylineno, str);
     exit(EXIT_FAILURE);
 }
 

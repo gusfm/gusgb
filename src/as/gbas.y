@@ -9,8 +9,8 @@
 /* stuff from flex that bison needs to know about */
 extern int yylex(void);
 extern FILE *yyin;
+extern int yylineno;
 FILE *output;
-extern unsigned int linenum;
 extern const char *yytext;
 void yyerror(const char *s);
 
@@ -417,6 +417,6 @@ int main(int argc, char **argv)
 
 void yyerror(const char *s)
 {
-    fprintf(stderr, "Parse error:%u: %s: %s\n", linenum, s, yytext);
+    fprintf(stderr, "Parse error:%d: %s: %s\n", yylineno, s, yytext);
     exit(EXIT_FAILURE);
 }

@@ -3,22 +3,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern unsigned int linenum;
+extern int yylineno;
 extern FILE *output;
 extern unsigned int pc;
 
 const char *regs[REG_LEN] = {"a", "f", "b",  "c",  "d",  "e",
                              "h", "l", "af", "bc", "de", "hl"};
+#define error(fmt, ...)                                     \
+    {                                                       \
+        fprintf(stderr, "parse error: " fmt, ##__VA_ARGS__); \
+        exit(EXIT_FAILURE);                                 \
+    }
 
 static void error_register(register_e reg)
 {
-    fprintf(stderr, "%u: invalid register: %s\n", linenum, regs[reg]);
+    error("%d: invalid register: %s\n", yylineno, regs[reg]);
 }
 
 static void error_bit(unsigned int bit)
 {
-    fprintf(stderr, "%u: invalid bit: %u\n", linenum, bit);
-    exit(EXIT_FAILURE);
+    error("%d: invalid bit: %u\n", yylineno, bit);
 }
 
 static unsigned int get_reg_diff(register_e reg)
@@ -26,31 +30,23 @@ static unsigned int get_reg_diff(register_e reg)
     switch (reg) {
         case REG_B:
             return 0;
-            break;
         case REG_C:
             return 1;
-            break;
         case REG_D:
             return 2;
-            break;
         case REG_E:
             return 3;
-            break;
         case REG_H:
             return 4;
-            break;
         case REG_L:
             return 5;
-            break;
         case REG_HL:
             return 6;
-            break;
         case REG_A:
             return 7;
-            break;
         default:
             error_register(reg);
-            exit(EXIT_FAILURE);
+            return 0;
     }
 }
 
@@ -99,8 +95,7 @@ void ascii(char *str)
                     ++i;
                     continue;
                 default:
-                    fprintf(stderr, "warning:ascii: unimplemented \\%c\n", str[i + 1]);
-                    break;
+                    error("warning:ascii: unimplemented \\%c\n", str[i + 1]);
             }
         }
         op_write1(str[i]);
@@ -117,8 +112,7 @@ void org(long offset)
     pc = offset;
     int ret = fseek(output, offset, SEEK_SET);
     if (ret != 0) {
-        fprintf(stderr, "ERROR: seek: invalid position: %ld\n", offset);
-        exit(EXIT_FAILURE);
+        error("ERROR: org: invalid position: %ld\n", offset);
     }
 }
 
@@ -513,7 +507,6 @@ void ld_hlp_reg(register_e reg)
             break;
         default:
             error_register(reg);
-            exit(EXIT_FAILURE);
     }
     op_write1((uint8_t)opcode);
 }
@@ -631,8 +624,7 @@ void rst(uint8_t val)
     } else if (val == 0x38) {
         op_write1(0xff);
     } else {
-        fprintf(stderr, "rst: invalid value: %hhu\n", val);
-        exit(EXIT_FAILURE);
+        error("rst: invalid value: %hhu\n", val);
     }
 }
 
@@ -729,8 +721,7 @@ void sbc_n(uint8_t val)
 void ldh_n_a(uint16_t addr, uint8_t val)
 {
     if (addr != 0xff00) {
-        fprintf(stderr, "%u: invalid addr: 0x%04x\n", linenum, addr);
-        exit(EXIT_FAILURE);
+        error("%d: invalid addr: 0x%04x\n", yylineno, addr);
     }
     op_write2(0xe0, val);
 }
@@ -743,8 +734,7 @@ void pop_hl(void)
 void ld_cp_a(uint16_t addr)
 {
     if (addr != 0xff00) {
-        fprintf(stderr, "%u: invalid addr: 0x%04x\n", linenum, addr);
-        exit(EXIT_FAILURE);
+        error("%d: invalid addr: 0x%04x\n", yylineno, addr);
     }
     op_write1(0xe2);
 }
@@ -782,8 +772,7 @@ void xor_n(uint8_t val)
 void ldh_a_n(uint16_t addr, uint8_t val)
 {
     if (addr != 0xff00) {
-        fprintf(stderr, "%u: invalid addr: 0x%04x\n", linenum, addr);
-        exit(EXIT_FAILURE);
+        error("%d: invalid addr: 0x%04x\n", yylineno, addr);
     }
     op_write2(0xf0, val);
 }
@@ -796,8 +785,7 @@ void pop_af(void)
 void ld_a_cp(uint16_t addr)
 {
     if (addr != 0xff00) {
-        fprintf(stderr, "%u: invalid addr: 0x%04x\n", linenum, addr);
-        exit(EXIT_FAILURE);
+        error("%d: invalid addr: 0x%04x\n", yylineno, addr);
     }
     op_write1(0xf2);
 }

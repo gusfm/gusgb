@@ -6,7 +6,6 @@ H           [a-fA-F0-9]
 #include <stdio.h>
 #include <string.h>
 #include "gbas.tab.h"
-unsigned int linenum = 1;
 %}
 %option noinput nounput
 
@@ -15,6 +14,7 @@ ${H}+                       { yylval.num = strtol(yytext + 1, NULL, 16); return 
 {D}+                        { yylval.num = strtol(yytext, NULL, 10); return NUMBER; }
 L?\"(\\.|[^\\"])*\"         { yylval.sval = strdup(yytext); return STRING_LITERAL; }
 ";".*                       { /* ignore comments */ };
+"\n"                        {}
 
 "+" |
 "-" |
@@ -91,7 +91,6 @@ bc                          { return BC; }
 de                          { return DE; }
 hl                          { return HL; }
 sp                          { return SP; }
-\n                          { ++linenum; }
 {L}{A}*                     { yylval.sval = strdup(yytext); return LABEL; }
 [ \t]+                      /* ignore white space */;
 %%
