@@ -567,7 +567,7 @@ static void objdump_finish(objdump_t *obj)
 
 static void objdump_data(objdump_t *obj, uint8_t data)
 {
-    fprintf(obj->output, ".data $%02x\n", data);
+    fprintf(obj->output, ".db $%02x\n", data);
 }
 
 static void objdump_cb(objdump_t *obj, size_t pc)
