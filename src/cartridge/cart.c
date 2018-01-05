@@ -107,7 +107,7 @@ static int cart_load_header(void)
     cart_header_t *header = (cart_header_t *)&CART.rom.bytes[ROM_OFFSET_TITLE];
     CART.rom.header = header;
     printf("Game title: %s\n", header->title);
-    printf("CGB: %d\n", cart_is_cgb());
+    printf("CGB: 0x%.2x (%s)\n", CART.rom.header->cgb, cart_is_cgb() ? "true" : "false");
     /* Get cart type. */
     CART.type = header->cart_type;
     printf("Cartridge type: %s\n", g_rom_types[CART.type]);
@@ -307,5 +307,7 @@ void cart_write_ram(uint16_t addr, uint8_t val)
 
 bool cart_is_cgb(void)
 {
-    return CART.rom.header->cgb == 0x80;
+    if (CART.rom.header->cgb & 0x80)
+        return true;
+    return false;
 }
