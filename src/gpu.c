@@ -238,6 +238,8 @@ void gpu_write_byte(uint16_t addr, uint8_t val)
                 gpu_clear_screen();
                 /* Reset modeclock. */
                 GPU.modeclock = 0;
+                GPU.scanline = 0;
+                GPU.mode_flag = GPU_MODE_OAM;
             }
             GPU.lcd_control = val;
             break;
