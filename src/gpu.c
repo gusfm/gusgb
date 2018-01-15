@@ -569,8 +569,8 @@ void gpu_step(uint32_t clock_step)
             break;
         case GPU_MODE_HBLANK:
             /* Mode 0 takes between 201 and 207 clocks. */
-            if (GPU.modeclock >= 204 * GPU.speed) {
-                GPU.modeclock -= 204 * GPU.speed;
+            if (GPU.modeclock >= 200 * GPU.speed) {
+                GPU.modeclock -= 200 * GPU.speed;
                 GPU.scanline++;
                 if (GPU.coincidence_int && GPU.scanline == GPU.lyc) {
                     interrupt_raise(INTERRUPTS_LCDSTAT);
