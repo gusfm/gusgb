@@ -61,15 +61,16 @@ static void print_help(char **argv)
 
 int main(int argc, char *argv[])
 {
+    game_boy_t gb;
     if (parse_args(argc, argv) < 0) {
         print_help(argv);
         exit(EXIT_FAILURE);
     }
-    int ret = gb_init(scale, romfile);
+    int ret = gb_init(&gb, scale, romfile);
     if (ret < 0) {
         exit(EXIT_FAILURE);
     }
-    gb_main();
-    gb_finish();
+    gb_main(&gb);
+    gb_finish(&gb);
     return 0;
 }

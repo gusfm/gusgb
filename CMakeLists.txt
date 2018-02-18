@@ -3,9 +3,8 @@ project(gusgb C)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
-FIND_PACKAGE(OpenGL REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_search_module(GLFW REQUIRED glfw3)
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
 
 SET (WARNINGS "-Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wuninitialized -Wstrict-prototypes")
 
@@ -41,8 +40,7 @@ add_executable(gusgb
     src/main.c
     )
 target_link_libraries(gusgb
-    GL
-    glfw
+    ${SDL2_LIBRARIES}
     )
 
 # Objdump

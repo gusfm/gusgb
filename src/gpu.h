@@ -1,7 +1,7 @@
 #ifndef GPU_H
 #define GPU_H
 
-#include <GLFW/glfw3.h>
+#include <SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -16,10 +16,12 @@ typedef enum {
 } gpu_mode_e;
 
 typedef struct {
-    uint8_t r, g, b;
-} rgb_t;
-
-typedef void (*render_callback_t)(void);
+#if (SDL_BYTE_ORDER == SDL_BIG_ENDIAN)
+    uint8_t a, r, g, b;
+#else
+    uint8_t b, g, r, a;
+#endif
+} color_t;
 
 typedef struct {
     /* 0xff40 - LCDC - LCD Control (R/W) */
@@ -82,18 +84,11 @@ typedef struct {
     uint32_t modeclock;
     uint8_t vram[2][0x2000]; /* Video RAM. */
     uint8_t oam[0xa0];       /* Sprite info. */
-    rgb_t framebuffer[GB_SCREEN_WIDTH * GB_SCREEN_HEIGHT];
-    rgb_t bg_palette[8 * 4];
-    rgb_t sprite_palette[8 * 4];
+    color_t framebuffer[GB_SCREEN_WIDTH * GB_SCREEN_HEIGHT];
+    color_t bg_palette[8 * 4];
+    color_t sprite_palette[8 * 4];
     unsigned int speed;
 } gpu_t;
-
-typedef struct {
-    GLFWwindow *window;
-    render_callback_t callback;
-    float scale;
-    bool gl_enabled;
-} gpu_gl_t;
 
 typedef struct {
     uint8_t y;    /* Y-coordinate minus 16. */
@@ -126,14 +121,10 @@ typedef struct {
     };
 } cgb_bg_attr_t;
 
-void gpu_init(float scale);
+int gpu_init(SDL_Window *win);
+void gpu_finish(void);
 void gpu_reset(void);
-gpu_t *gpu_get_instance(void);
-void gpu_set_callback(render_callback_t cb);
-void gpu_set_glfw_window(GLFWwindow *window);
-void gpu_gl_enable(void);
-void gpu_gl_disable(void);
-rgb_t *gpu_get_framebuffer(void);
+void gpu_start_rom(void);
 uint8_t gpu_read_byte(uint16_t addr);
 void gpu_write_byte(uint16_t addr, uint8_t val);
 uint8_t gpu_read_vram(uint16_t addr);

@@ -1,21 +1,19 @@
 #ifndef GAME_BOY_H
 #define GAME_BOY_H
 
-#include <GLFW/glfw3.h>
-#include "cpu.h"
-#include "gpu.h"
+#include <SDL.h>
+#include <stdbool.h>
 
 typedef struct {
     int width;
     int height;
-    GLFWwindow *window;
+    bool running;
     bool paused;
+    SDL_Window *window;
 } game_boy_t;
 
-extern game_boy_t GB;
-
-int gb_init(int scale, const char *rom_path);
-void gb_finish(void);
-void gb_main(void);
+int gb_init(game_boy_t *gb, int scale, const char *rom_path);
+void gb_finish(game_boy_t *gb);
+void gb_main(game_boy_t *gb);
 
 #endif /* GAME_BOY_H */

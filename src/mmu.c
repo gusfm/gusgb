@@ -144,8 +144,7 @@ static void mmu_io_write_byte(uint16_t addr, uint8_t value)
             assert(MMU.read_ext_rom == 0);
             MMU.read_ext_rom = value;
             MMU.switch_ext_rom_cb();
-            /* Enable rendering if disabled. */
-            gpu_gl_enable();
+            gpu_start_rom();
             return;
         case 0xff56:
             /* Infrared communication port. */

@@ -3,28 +3,54 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "debug.h"
 #include "cartridge/cart.h"
+#include "debug.h"
 #include "interrupt.h"
 #include "mmu.h"
+
+typedef struct {
+    SDL_Renderer *ren;
+    SDL_Texture *tex;
+} gpu_gl_t;
 
 gpu_t GPU;
 gpu_gl_t GPU_GL;
 
-const rgb_t g_palette[4] = {
-    {0xe0, 0xf8, 0xd0},  // off
-    {0x88, 0xc0, 0x70},  // 33% on
-    {0x34, 0x68, 0x56},  // 66% on
-    {0x00, 0x00, 0x00},  // on
+const color_t g_palette[4] = {
+#if (SDL_BYTE_ORDER == SDL_BIG_ENDIAN)
+    {SDL_ALPHA_OPAQUE, 0xe0, 0xf8, 0xd0}, /* off */
+    {SDL_ALPHA_OPAQUE, 0x88, 0xc0, 0x70}, /* 33% on */
+    {SDL_ALPHA_OPAQUE, 0x34, 0x68, 0x56}, /* 66% on */
+    {SDL_ALPHA_OPAQUE, 0x00, 0x00, 0x00}, /* on */
+#else
+    {0xd0, 0xf8, 0xe0, SDL_ALPHA_OPAQUE}, /* off */
+    {0x70, 0xc0, 0x88, SDL_ALPHA_OPAQUE}, /* 33% on */
+    {0x56, 0x68, 0x34, SDL_ALPHA_OPAQUE}, /* 66% on */
+    {0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE}, /* on */
+#endif
 };
 
-void gpu_init(float scale)
+int gpu_init(SDL_Window *win)
 {
     gpu_reset();
-    GPU_GL.scale = scale;
-    GPU_GL.callback = NULL;
-    GPU_GL.gl_enabled = true;
-    GPU_GL.window = NULL;
+    /* Create SDL renderer */
+    GPU_GL.ren = SDL_CreateRenderer(
+        win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (GPU_GL.ren == NULL)
+        return -1;
+    /* Create SDL texture */
+    GPU_GL.tex = SDL_CreateTexture(GPU_GL.ren, SDL_PIXELFORMAT_ARGB8888,
+                                   SDL_TEXTUREACCESS_STREAMING, GB_SCREEN_WIDTH,
+                                   GB_SCREEN_HEIGHT);
+    if (GPU_GL.tex == NULL)
+        return -1;
+    return 0;
+}
+
+void gpu_finish(void)
+{
+    SDL_DestroyTexture(GPU_GL.tex);
+    SDL_DestroyRenderer(GPU_GL.ren);
 }
 
 void gpu_reset(void)
@@ -33,27 +59,10 @@ void gpu_reset(void)
     GPU.mode_flag = GPU_MODE_OAM;
     GPU.vram_bank = 0;
     GPU.speed = 1;
-    GPU_GL.gl_enabled = false;
 }
 
-gpu_t *gpu_get_instance(void)
+void gpu_start_rom(void)
 {
-    return &GPU;
-}
-
-void gpu_set_callback(render_callback_t cb)
-{
-    GPU_GL.callback = cb;
-}
-
-void gpu_set_glfw_window(GLFWwindow *window)
-{
-    GPU_GL.window = window;
-}
-
-void gpu_gl_enable(void)
-{
-    GPU_GL.gl_enabled = true;
     /* Fix GPU startup values. */
     /* TODO: Check if it's not a bug. */
     GPU.lcd_status = 0x85;
@@ -63,16 +72,6 @@ void gpu_gl_enable(void)
         gpu_write_byte(0xff48, 0xFF);
         gpu_write_byte(0xff49, 0xFF);
     }
-}
-
-void gpu_gl_disable(void)
-{
-    GPU_GL.gl_enabled = false;
-}
-
-rgb_t *gpu_get_framebuffer(void)
-{
-    return GPU.framebuffer;
 }
 
 /* Check if the CPU can access VRAM. */
@@ -143,12 +142,13 @@ static void gpu_set_cgb_bg_palette(uint8_t value)
     uint8_t reg = GPU.cgb_bg_pal_idx;
     unsigned int i = reg & 0x3f;
     GPU.cgb_bg_pal_data[i] = value;
-    uint16_t color = (GPU.cgb_bg_pal_data[i + 1] << 8) | value;
-    rgb_t rgb;
-    rgb.r = (color & 0x1f) * 255 / 31;
-    rgb.g = ((color >> 5) & 0x1f) * 255 / 31;
-    rgb.b = ((color >> 10) & 0x1f) * 255 / 31;
-    GPU.bg_palette[i >> 1] = rgb;
+    uint16_t c = (GPU.cgb_bg_pal_data[i + 1] << 8) | value;
+    color_t color;
+    color.a = SDL_ALPHA_OPAQUE;
+    color.r = (c & 0x1f) * 255 / 31;
+    color.g = ((c >> 5) & 0x1f) * 255 / 31;
+    color.b = ((c >> 10) & 0x1f) * 255 / 31;
+    GPU.bg_palette[i >> 1] = color;
     /* Auto increment index. */
     GPU.cgb_bg_pal_idx = (reg & ~0x3f) | ((i + (reg >> 7)) & 0x3f);
 }
@@ -158,12 +158,13 @@ static void gpu_set_cgb_sprite_palette(uint8_t value)
     uint8_t reg = GPU.cgb_sprite_pal_idx;
     unsigned int i = reg & 0x3f;
     GPU.cgb_sprite_pal_data[i] = value;
-    uint16_t color = (GPU.cgb_sprite_pal_data[i + 1] << 8) | value;
-    rgb_t rgb;
-    rgb.r = (color & 0x1f) * 255 / 31;
-    rgb.g = ((color >> 5) & 0x1f) * 255 / 31;
-    rgb.b = ((color >> 10) & 0x1f) * 255 / 31;
-    GPU.sprite_palette[i >> 1] = rgb;
+    uint16_t c = (GPU.cgb_sprite_pal_data[i + 1] << 8) | value;
+    color_t color;
+    color.a = SDL_ALPHA_OPAQUE;
+    color.r = (c & 0x1f) * 255 / 31;
+    color.g = ((c >> 5) & 0x1f) * 255 / 31;
+    color.b = ((c >> 10) & 0x1f) * 255 / 31;
+    GPU.sprite_palette[i >> 1] = color;
     /* Auto increment index. */
     GPU.cgb_sprite_pal_idx = (reg & ~0x3f) | ((i + (reg >> 7)) & 0x3f);
 }
@@ -425,9 +426,9 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
     }
 }
 
-static rgb_t *get_sprite_pal(sprite_t *sprite)
+static color_t *get_sprite_pal(sprite_t *sprite)
 {
-    rgb_t *pal;
+    color_t *pal;
     if (cart_is_cgb()) {
         pal = &GPU.sprite_palette[sprite->cgb_palette * 4];
     } else {
@@ -448,7 +449,7 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
         /* If sprite is on scanline. */
         if (sy <= GPU.scanline && (sy + (int)ysize) > GPU.scanline) {
             /* Get palette for this sprite. */
-            rgb_t *pal = get_sprite_pal(&sprite);
+            color_t *pal = get_sprite_pal(&sprite);
             /* Get frame buffer pixel offset. */
             tile_line_t tile_line = get_tile_line_sprite(&sprite, sy, ysize);
             /* Iterate over all tile pixels in the X-axis. */
@@ -497,26 +498,13 @@ static void gpu_render_scanline(void)
         gpu_update_fb_sprite(scanline_row);
 }
 
-#define VIDEO
-
 void gpu_render_framebuffer(void)
 {
-    if (GPU_GL.gl_enabled) {
-#ifdef VIDEO
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glLoadIdentity();
-        glRasterPos2i(-1, 1);
-        glPixelZoom(GPU_GL.scale, -GPU_GL.scale);
-        glDrawPixels(GB_SCREEN_WIDTH, GB_SCREEN_HEIGHT, GL_RGB,
-                     GL_UNSIGNED_BYTE, GPU.framebuffer);
-        glfwSwapBuffers(GPU_GL.window);
-        glfwPollEvents();
-#endif
-#ifdef RENDER_CALLBACK
-        if (GPU_GL.callback)
-            GPU_GL.callback();
-#endif
-    }
+    SDL_SetRenderDrawColor(GPU_GL.ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(GPU_GL.ren);
+    SDL_UpdateTexture(GPU_GL.tex, NULL, GPU.framebuffer, GB_SCREEN_WIDTH * 4);
+    SDL_RenderCopy(GPU_GL.ren, GPU_GL.tex, NULL, NULL);
+    SDL_RenderPresent(GPU_GL.ren);
 }
 
 static void gpu_change_mode(gpu_mode_e new_mode)
@@ -626,8 +614,8 @@ void gpu_dump(void)
     for (int i = 0; i < 8; ++i) {
         printf("BG %d: ", i);
         for (int j = 0; j < 4; ++j) {
-            rgb_t *pal = &GPU.bg_palette[i * 4 + j];
-            printf("(%u, %u, %u)", pal->r, pal->g, pal->b);
+            color_t *pal = &GPU.bg_palette[i * 4 + j];
+            printf("(%u, %u, %u, %u)", pal->a, pal->r, pal->g, pal->b);
         }
         printf("\n");
     }

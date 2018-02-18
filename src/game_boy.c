@@ -1,186 +1,146 @@
 #include "game_boy.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include "cpu.h"
 #include "gpu.h"
 #include "keys.h"
 
-game_boy_t GB;
-
-static void gb_error_callback(int error, const char *description)
+static void gb_key_press(game_boy_t *gb, uint8_t key)
 {
-    (void)error;
-    fputs(description, stderr);
-}
-
-static void gb_key_callback(GLFWwindow *window, int key, int scancode,
-                            int action, int mods)
-{
-    (void)scancode;
-    (void)mods;
     switch (key) {
-        /* Game keys. */
-        case GLFW_KEY_A:
-            if (action == GLFW_PRESS)
-                key_press(KEY_A);
-            else if (action == GLFW_RELEASE)
-                key_release(KEY_A);
+        case SDL_SCANCODE_A:
+            key_press(KEY_A);
             break;
-        case GLFW_KEY_S:
-            if (action == GLFW_PRESS)
-                key_press(KEY_B);
-            else if (action == GLFW_RELEASE)
-                key_release(KEY_B);
+        case SDL_SCANCODE_S:
+            key_press(KEY_B);
             break;
-        case GLFW_KEY_ENTER:
-            if (action == GLFW_PRESS)
-                key_press(KEY_START);
-            else if (action == GLFW_RELEASE)
-                key_release(KEY_START);
+        case SDL_SCANCODE_RETURN:
+            key_press(KEY_START);
             break;
-        case GLFW_KEY_LEFT_SHIFT:
-            if (action == GLFW_PRESS)
-                key_press(KEY_SELECT);
-            else if (action == GLFW_RELEASE)
-                key_release(KEY_SELECT);
+        case SDL_SCANCODE_LSHIFT:
+            key_press(KEY_SELECT);
             break;
-        case GLFW_KEY_UP:
-            if (action == GLFW_PRESS)
-                key_press(KEY_UP);
-            else if (action == GLFW_RELEASE)
-                key_release(KEY_UP);
+        case SDL_SCANCODE_UP:
+            key_press(KEY_UP);
             break;
-        case GLFW_KEY_DOWN:
-            if (action == GLFW_PRESS)
-                key_press(KEY_DOWN);
-            else if (action == GLFW_RELEASE)
-                key_release(KEY_DOWN);
+        case SDL_SCANCODE_DOWN:
+            key_press(KEY_DOWN);
             break;
-        case GLFW_KEY_LEFT:
-            if (action == GLFW_PRESS)
-                key_press(KEY_LEFT);
-            else if (action == GLFW_RELEASE)
-                key_release(KEY_LEFT);
+        case SDL_SCANCODE_LEFT:
+            key_press(KEY_LEFT);
             break;
-        case GLFW_KEY_RIGHT:
-            if (action == GLFW_PRESS)
-                key_press(KEY_RIGHT);
-            else if (action == GLFW_RELEASE)
-                key_release(KEY_RIGHT);
+        case SDL_SCANCODE_RIGHT:
+            key_press(KEY_RIGHT);
             break;
-        case GLFW_KEY_P:
+        case SDL_SCANCODE_P:
             /* Pause emulation. */
-            if (action == GLFW_PRESS)
-                GB.paused = !GB.paused;
+            gb->paused = !gb->paused;
             break;
-        case GLFW_KEY_O:
+        case SDL_SCANCODE_O:
             /* Debug CPU. */
-            if (action == GLFW_PRESS)
-                cpu_dump();
+            cpu_dump();
             break;
-        case GLFW_KEY_Q:
-        case GLFW_KEY_ESCAPE:
+        case SDL_SCANCODE_Q:
+        case SDL_SCANCODE_ESCAPE:
             /* Quit. */
-            glfwSetWindowShouldClose(window, GL_TRUE);
+            gb->running = false;
             break;
         default:
             break;
     }
 }
 
-static void gb_resize_callback(GLFWwindow *window, int width, int height)
+static void gb_key_release(uint8_t key)
 {
-    (void)window;
-    GB.width = width;
-    GB.height = height;
-    /* Setup our viewport to be the entire size of the window. */
-    glViewport(0, 0, (GLsizei)width, (GLsizei)height);
-    /* Select the projection matrix. */
-    glMatrixMode(GL_PROJECTION);
-    /* Reset the projection matrix. */
-    glLoadIdentity();
-    glOrtho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
-}
-
-void gb_finish(void)
-{
-    if (GB.window) {
-        glfwDestroyWindow(GB.window);
-        glfwTerminate();
+    switch (key) {
+        case SDL_SCANCODE_A:
+            key_release(KEY_A);
+            break;
+        case SDL_SCANCODE_S:
+            key_release(KEY_B);
+            break;
+        case SDL_SCANCODE_RETURN:
+            key_release(KEY_START);
+            break;
+        case SDL_SCANCODE_LSHIFT:
+            key_release(KEY_SELECT);
+            break;
+        case SDL_SCANCODE_UP:
+            key_release(KEY_UP);
+            break;
+        case SDL_SCANCODE_DOWN:
+            key_release(KEY_DOWN);
+            break;
+        case SDL_SCANCODE_LEFT:
+            key_release(KEY_LEFT);
+            break;
+        case SDL_SCANCODE_RIGHT:
+            key_release(KEY_RIGHT);
+            break;
+        default:
+            break;
     }
-    cpu_finish();
 }
 
-static void gb_gl_init(void)
+static SDL_Window *sdl_init(const char *name, int width, int height)
 {
-    /* Setup our viewport to be the entire size of the window. */
-    glViewport(0, 0, (GLsizei)GB.width, (GLsizei)GB.height);
-    /* Change to the projection matrix, reset the matrix and set up orthagonal
-     * projection. */
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    /* Paramters: left, right, bottom, top, near, far. */
-    glOrtho(0.0f, GB.width, GB.height, 0.0, -1.0f, 1.0f);
-    glClearColor(0, 0, 0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glShadeModel(GL_FLAT);
-    glEnable(GL_TEXTURE_2D);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DITHER);
-    glDisable(GL_BLEND);
-}
-
-static GLFWwindow *gb_create_window(const char *name)
-{
-    GLFWwindow *window;
-    /* Set an error callback. */
-    glfwSetErrorCallback(gb_error_callback);
-    /* Initialize window. */
-    if (!glfwInit())
+    /* Initialize SDL. */
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
         return NULL;
-    /* Creating a window and context. */
-    window = glfwCreateWindow(GB.width, GB.height, name, NULL, NULL);
-    if (window == NULL) {
-        glfwTerminate();
-        return NULL;
-    }
-    /* Make the OpenGL context current. */
-    glfwMakeContextCurrent(window);
-    /* Set a key input callback. */
-    glfwSetKeyCallback(window, gb_key_callback);
-    glfwSetFramebufferSizeCallback(window, gb_resize_callback);
-    return window;
+    return SDL_CreateWindow(name, SDL_WINDOWPOS_UNDEFINED,
+                            SDL_WINDOWPOS_UNDEFINED, width, height,
+                            SDL_WINDOW_SHOWN);
 }
 
-int gb_init(int scale, const char *rom_path)
+int gb_init(game_boy_t *gb, int scale, const char *rom_path)
 {
-    GB.width = GB_SCREEN_WIDTH * scale;
-    GB.height = GB_SCREEN_HEIGHT * scale;
-    GB.paused = false;
-    /* Create window. */
-    GB.window = gb_create_window("gusgb");
-    if (GB.window == NULL) {
-        fprintf(stderr, "ERROR: Could not create window\n");
+    gb->width = GB_SCREEN_WIDTH * scale;
+    gb->height = GB_SCREEN_HEIGHT * scale;
+    gb->running = true;
+    gb->paused = false;
+    /* Initialize SDL. */
+    gb->window = sdl_init("gusgb", gb->width, gb->height);
+    if (gb->window == NULL) {
+        fprintf(stderr, "ERROR: %s\n", SDL_GetError());
         return -1;
     }
-    /* Initialize OpenGl. */
-    gb_gl_init();
     /* Initialize emulation. */
-    int ret = cpu_init(rom_path, scale);
-    if (ret < 0) {
+    if (cpu_init(rom_path) < 0) {
         fprintf(stderr, "ERROR: Could not load rom: %s\n", rom_path);
         return -1;
     }
-    gpu_gl_disable();
-    gpu_set_glfw_window(GB.window);
+    if (gpu_init(gb->window) < 0) {
+        fprintf(stderr, "ERROR: %s\n", SDL_GetError());
+    }
     return 0;
 }
 
-void gb_main(void)
+void gb_finish(game_boy_t *gb)
 {
-    while (!glfwWindowShouldClose(GB.window)) {
-        if (GB.paused) {
+    gpu_finish();
+    cpu_finish();
+    SDL_DestroyWindow(gb->window);
+    SDL_Quit();
+}
+
+void gb_main(game_boy_t *gb)
+{
+    SDL_Event e;
+    while (gb->running) {
+        while (SDL_PollEvent(&e)) {
+            switch (e.type) {
+                case SDL_KEYDOWN:
+                    gb_key_press(gb, e.key.keysym.scancode);
+                    break;
+                case SDL_KEYUP:
+                    gb_key_release(e.key.keysym.scancode);
+                    break;
+                case SDL_QUIT:
+                    gb->running = false;
+                    break;
+            }
+        }
+        if (gb->paused) {
             gpu_render_framebuffer();
         } else {
             cpu_emulate_cycle();
