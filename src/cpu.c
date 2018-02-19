@@ -327,18 +327,12 @@ void cpu_dump(void)
     interrupt_dump();
 }
 
-static void cpu_switch_ext_rom(void)
-{
-    if (cart_is_cgb()) {
-        g_cpu.reg.a = 0x11;
-    }
-}
-
 int cpu_init(const char *rom_path)
 {
-    memset(&g_cpu, 0x0, sizeof(g_cpu));
-    clock_init();
-    return mmu_init(rom_path, cpu_switch_ext_rom);
+    if (mmu_init(rom_path) < 0)
+        return -1;
+    cpu_reset();
+    return 0;
 }
 
 void cpu_finish(void)
@@ -349,6 +343,19 @@ void cpu_finish(void)
 void cpu_reset(void)
 {
     memset(&g_cpu, 0x0, sizeof(g_cpu));
+    g_cpu.reg.pc = 0x0100;
+    g_cpu.reg.sp = 0xfffe;
+    if (cart_is_cgb()) {
+        g_cpu.reg.af = 0x1180;
+        g_cpu.reg.bc = 0x0000;
+        g_cpu.reg.de = 0xff56;
+        g_cpu.reg.hl = 0x000d;
+    } else {
+        g_cpu.reg.af = 0x01b0;
+        g_cpu.reg.bc = 0x0013;
+        g_cpu.reg.de = 0x00d8;
+        g_cpu.reg.hl = 0x014d;
+    }
     clock_init();
     gpu_reset();
     mmu_reset();

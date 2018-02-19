@@ -56,22 +56,14 @@ void gpu_finish(void)
 void gpu_reset(void)
 {
     memset(&GPU, 0, sizeof(GPU));
-    GPU.mode_flag = GPU_MODE_OAM;
-    GPU.vram_bank = 0;
-    GPU.speed = 1;
-}
-
-void gpu_start_rom(void)
-{
-    /* Fix GPU startup values. */
-    /* TODO: Check if it's not a bug. */
+    GPU.lcd_control = 0x91;
     GPU.lcd_status = 0x85;
-    GPU.scanline = 0;
-    GPU.modeclock = 0;
+    gpu_write_byte(0xff47, 0xfc);
     if (!cart_is_cgb()) {
         gpu_write_byte(0xff48, 0xFF);
         gpu_write_byte(0xff49, 0xFF);
     }
+    GPU.speed = 1;
 }
 
 /* Check if the CPU can access VRAM. */

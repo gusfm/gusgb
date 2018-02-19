@@ -124,7 +124,6 @@ typedef struct {
 int gpu_init(SDL_Window *win);
 void gpu_finish(void);
 void gpu_reset(void);
-void gpu_start_rom(void);
 uint8_t gpu_read_byte(uint16_t addr);
 void gpu_write_byte(uint16_t addr, uint8_t val);
 uint8_t gpu_read_vram(uint16_t addr);

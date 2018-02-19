@@ -10,17 +10,15 @@ typedef struct {
     uint8_t wram[8][0x1000]; /* Working RAM. */
     uint8_t zram[0x80];   /* Zero-page RAM. */
     uint8_t io[0x100];    /* Memory-mapped I/O. */
-    uint8_t read_ext_rom;
     uint8_t cart_type;
     /* FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch */
     uint8_t speed_switch;
     /* FF70 - SVBK - CGB Mode Only - WRAM Bank */
     unsigned int wram_bank;
-    switch_ext_rom_cb_t switch_ext_rom_cb;
 } mmu_t;
 
 /* Init MMU subsystem. */
-int mmu_init(const char *rom_path, switch_ext_rom_cb_t cb);
+int mmu_init(const char *rom_path);
 
 /* Free cartridge memory. */
 void mmu_finish(void);
