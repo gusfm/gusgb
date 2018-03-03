@@ -37,116 +37,245 @@ void mmu_reset(void)
     keys_init();
 }
 
-static uint8_t mmu_io_read_byte(uint16_t addr)
+static uint8_t mmu_read_reg(uint16_t addr)
 {
-    /* I/O Registers. */
-    switch (addr) {
-        case 0xff00:
-            /* P1 (R/W): Register for reading joy pad info. */
+    switch (addr & 0x007f) {
+        case 0x00:
             return keys_read();
-        case 0xff01:
-            /* SB (R/W): Serial transfer data. */
+        case 0x01:
+            /* TODO: SB Serial transfer data */
             return 0;
-        case 0xff02:
-            /* SC (R/W): SIO control. */
+        case 0x02:
+            /* TODO: SIO control */
             return 0;
-        case 0xff0f:
-            /* IF (R/W): Interrupt flag. */
+        case 0x04:
+            return timer_read_div();
+        case 0x05:
+            return timer_read_tima();
+        case 0x06:
+            return timer_read_tma();
+        case 0x07:
+            return timer_read_tac();
+        case 0x0f:
             return interrupt_get_flag();
-        case 0xff4d:
+        case 0x10:
+        case 0x11:
+        case 0x12:
+        case 0x13:
+        case 0x14:
+        case 0x16:
+        case 0x17:
+        case 0x18:
+        case 0x19:
+        case 0x1a:
+        case 0x1b:
+        case 0x1c:
+        case 0x1d:
+        case 0x1e:
+        case 0x20:
+        case 0x21:
+        case 0x22:
+        case 0x23:
+        case 0x24:
+        case 0x25:
+        case 0x26:
+        case 0x30:
+        case 0x31:
+        case 0x32:
+        case 0x33:
+        case 0x34:
+        case 0x35:
+        case 0x36:
+        case 0x37:
+        case 0x38:
+        case 0x39:
+        case 0x3a:
+        case 0x3b:
+        case 0x3c:
+        case 0x3d:
+        case 0x3e:
+        case 0x3f:
+            return sound_read_byte(addr);
+        case 0x40:
+            return gpu_read_lcdc();
+        case 0x41:
+            return gpu_read_stat();
+        case 0x42:
+            return gpu_read_scy();
+        case 0x43:
+            return gpu_read_scx();
+        case 0x44:
+            return gpu_read_ly();
+        case 0x45:
+            return gpu_read_lyc();
+        case 0x46:
+            return gpu_read_dma();
+        case 0x47:
+            return gpu_read_bgp();
+        case 0x48:
+            return gpu_read_obp0();
+        case 0x49:
+            return gpu_read_obp1();
+        case 0x4a:
+            return gpu_read_wy();
+        case 0x4b:
+            return gpu_read_wx();
+        case 0x4f:
+            return gpu_read_vbk();
+        case 0x68:
+            return gpu_read_bgpi();
+        case 0x69:
+            return gpu_read_bgpd();
+        case 0x6a:
+            return gpu_read_obpi();
+        case 0x6b:
+            return gpu_read_obpd();
+        case 0x4d:
             return MMU.speed_switch;
-        case 0xff50:
+        case 0x50:
             return 0xff;
-        case 0xff56:
-            /* Infrared communication port. */
-            return MMU.io[addr - 0xff00];
-        case 0xff70:
+        case 0x56:
+            return MMU.ir;
+        case 0x70:
             return MMU.wram_bank;
-    }
-    if (addr >= 0xff04 && addr <= 0xff07) {
-        return timer_read_byte(addr);
-    } else if (addr >= 0xff10 && addr <= 0xff3f) {
-        return sound_read_byte(addr);
-    } else if (addr >= 0xff40 && addr < 0xff80) {
-        return gpu_read_byte(addr);
-    } else {
-        /* I/O ports. */
-        printf("IO R addr=0x%04x, i=0x%04x, value=0x%02x\n", addr,
-               addr - 0xff00, MMU.io[addr - 0xff00]);
-        return MMU.io[addr - 0xff00];
+        default:
+            printf("%s: not implemented: 0x%04x\n", __func__, addr);
+            return 0;
     }
 }
 
-static uint8_t mmu_read_byte_ffxx(uint16_t addr)
+static void mmu_write_reg(uint16_t addr, uint8_t value)
 {
-    if (addr == 0xffff) {
-        /* Interrupt Enable Register. */
-        return interrupt_get_enable();
-    } else if (addr > 0xff7f) {
-        /* Internal RAM. */
-        return MMU.zram[addr & 0x007f];
-    } else {
-        return mmu_io_read_byte(addr);
-    }
-}
-
-static void mmu_io_write_byte(uint16_t addr, uint8_t value)
-{
-    /* I/O Registers. */
-    switch (addr) {
-        case 0xff00:
-            /* P1 (R/W): Register for reading joy pad info. */
+    switch (addr & 0x007f) {
+        case 0x00:
             keys_write(value);
-            return;
-        case 0xff01:
-            /* SB (R/W): Serial transfer data. */
-            return;
-        case 0xff02:
-            /* SC (R/W): SIO control. */
-            /* Not implemented registers. */
-            return;
-        case 0xff0f:
-            /* IF (R/W): Interrupt flag. */
+            break;
+        case 0x01:
+            /* TODO: SB Serial transfer data */
+            break;
+        case 0x02:
+            /* TODO: SIO control */
+            break;
+        case 0x04:
+            timer_write_div();
+            break;
+        case 0x05:
+            timer_write_tima(value);
+            break;
+        case 0x06:
+            timer_write_tma(value);
+            break;
+        case 0x07:
+            timer_write_tac(value);
+            break;
+        case 0x0f:
             interrupt_set_flag(value);
-            return;
-        case 0xff4d:
+            break;
+        case 0x10:
+        case 0x11:
+        case 0x12:
+        case 0x13:
+        case 0x14:
+        case 0x16:
+        case 0x17:
+        case 0x18:
+        case 0x19:
+        case 0x1a:
+        case 0x1b:
+        case 0x1c:
+        case 0x1d:
+        case 0x1e:
+        case 0x20:
+        case 0x21:
+        case 0x22:
+        case 0x23:
+        case 0x24:
+        case 0x25:
+        case 0x26:
+        case 0x30:
+        case 0x31:
+        case 0x32:
+        case 0x33:
+        case 0x34:
+        case 0x35:
+        case 0x36:
+        case 0x37:
+        case 0x38:
+        case 0x39:
+        case 0x3a:
+        case 0x3b:
+        case 0x3c:
+        case 0x3d:
+        case 0x3e:
+        case 0x3f:
+            sound_write_byte(addr, value);
+            break;
+        case 0x40:
+            gpu_write_lcdc(value);
+            break;
+        case 0x41:
+            gpu_write_stat(value);
+            break;
+        case 0x42:
+            gpu_write_scy(value);
+            break;
+        case 0x43:
+            gpu_write_scx(value);
+            break;
+        case 0x44:
+            break;
+        case 0x45:
+            gpu_write_lyc(value);
+            break;
+        case 0x46:
+            gpu_write_dma(value);
+            break;
+        case 0x47:
+            gpu_write_bgp(value);
+            break;
+        case 0x48:
+            gpu_write_obp0(value);
+            break;
+        case 0x49:
+            gpu_write_obp1(value);
+            break;
+        case 0x4a:
+            gpu_write_wy(value);
+            break;
+        case 0x4b:
+            gpu_write_wx(value);
+            break;
+        case 0x4f:
+            gpu_write_vbk(value);
+            break;
+        case 0x68:
+            gpu_write_bgpi(value);
+            break;
+        case 0x69:
+            gpu_write_bgpd(value);
+            break;
+        case 0x6a:
+            gpu_write_obpi(value);
+            break;
+        case 0x6b:
+            gpu_write_obpd(value);
+            break;
+        case 0x4d:
             MMU.speed_switch = (MMU.speed_switch & 0xfe) | (value & 1);
-            return;
-        case 0xff50:
+            break;
+        case 0x50:
             /* Disable internal ROM. */
-            return;
-        case 0xff56:
-            /* Infrared communication port. */
-            MMU.io[addr - 0xff00] = value;
-            return;
-        case 0xff70:
+            break;
+        case 0x56:
+            MMU.ir = value;
+            break;
+        case 0x70:
             MMU.wram_bank = value & 7;
-            return;
-    }
-    if (addr >= 0xff04 && addr <= 0xff07) {
-        timer_write_byte(addr, value);
-    } else if (addr >= 0xff10 && addr <= 0xff3f) {
-        sound_write_byte(addr, value);
-    } else if (addr >= 0xff40 && addr < 0xff80) {
-        gpu_write_byte(addr, value);
-    } else {
-        /* I/O ports. */
-        printf("IO W addr=0x%04x, i=0x%04x, value=0x%02x\n", addr,
-               addr - 0xff00, value);
-        MMU.io[addr - 0xff00] = value;
-    }
-}
-
-static void mmu_write_byte_ffxx(uint16_t addr, uint8_t value)
-{
-    if (addr == 0xffff) {
-        /* Interrupt Enable Register. */
-        interrupt_set_enable(value);
-    } else if (addr >= 0xff80) {
-        /* Internal RAM. */
-        MMU.zram[addr & 0x007f] = value;
-    } else {
-        mmu_io_write_byte(addr, value);
+            break;
+        default:
+            printf("%s: not implemented: 0x%04x=0x%02x\n", __func__, addr,
+                   value);
+            break;
     }
 }
 
@@ -179,20 +308,27 @@ uint8_t mmu_read_byte_dma(uint16_t addr)
         /* 4KB Work RAM Bank 1 (Switchable WRAM). */
         return MMU.wram[wram_get_bank()][addr & 0x0fff];
     } else if (addr < 0xfe00) {
-        /* Echo of 8kB Internal RAM; */
+        /* Echo of 8kB Internal RAM. */
         return MMU.wram[0][addr & 0x1fff];
     } else if (addr < 0xff00) {
         /* Sprite Attrib Memory (OAM). */
         if (addr < 0xfea0) {
             return gpu_read_oam(addr);
-        } else {
-            /* Remaining bytes read as 0. */
-            printf("??: 0x00\n");
+        } else if (addr < 0xff00) {
+            /* Empty. */
             return 0;
         }
+    } else if (addr < 0xff80) {
+        /* I/O Registers. */
+        return mmu_read_reg(addr);
+    } else if (addr < 0xffff) {
+        /* Internal RAM. */
+        return MMU.zram[addr & 0x007f];
     } else {
-        return mmu_read_byte_ffxx(addr);
+        /* Interrupt Enable Register. */
+        return interrupt_get_enable();
     }
+    abort();
 }
 
 uint8_t mmu_read_byte(uint16_t addr)
@@ -234,8 +370,15 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
             gpu_write_oam(addr, value);
         }
         /* Don't change 0xfea0 - 0xfeff. */
+    } else if (addr < 0xff80) {
+        /* I/O Registers. */
+        mmu_write_reg(addr, value);
+    } else if (addr < 0xffff) {
+        /* Internal RAM. */
+        MMU.zram[addr & 0x007f] = value;
     } else {
-        mmu_write_byte_ffxx(addr, value);
+        /* Interrupt Enable Register. */
+        interrupt_set_enable(value);
     }
 }
 

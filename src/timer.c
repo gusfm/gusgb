@@ -67,58 +67,62 @@ void timer_step(uint32_t clock_step)
     delay_bit = bit;
 }
 
-uint8_t timer_read_byte(uint16_t addr)
+uint8_t timer_read_div(void)
 {
-    switch (addr) {
-        case 0xFF04:
-            return clk_sys >> 8;
-        case 0xFF05:
-            return tima;
-        case 0xFF06:
-            return tma;
-        case 0xFF07:
-            return tac;
-    }
-    error("not implemented: addr=0x%04x", addr);
+    return clk_sys >> 8;
 }
 
-void timer_write_byte(uint16_t addr, uint8_t val)
+void timer_write_div(void)
 {
-    switch (addr) {
-        case 0xFF04:
-            clk_sys = 0;
+    clk_sys = 0;
+}
+
+uint8_t timer_read_tima(void)
+{
+    return tima;
+}
+
+void timer_write_tima(uint8_t val)
+{
+    switch (tima_state) {
+        case TIMA_STATE_COUNTING:
+            /* Normal operation. */
+            tima = val;
             break;
-        case 0xFF05:
-            switch (tima_state) {
-                case TIMA_STATE_COUNTING:
-                    /* Normal operation. */
-                    tima = val;
-                    break;
-                case TIMA_STATE_OVERFLOW:
-                    /* Prevent reload if writing to it during overflow cycle. */
-                    tima = val;
-                    tima_state = TIMA_STATE_COUNTING;
-                    break;
-                case TIMA_STATE_RELOADING:
-                    /* Ignore writes if TIMA was just reloaded. */
-                    break;
-            }
+        case TIMA_STATE_OVERFLOW:
+            /* Prevent reload if writing to it during overflow cycle. */
+            tima = val;
+            tima_state = TIMA_STATE_COUNTING;
             break;
-        case 0xFF06:
-            tma = val;
-            if (tima_state == TIMA_STATE_RELOADING) {
-                /* If TMA is written in the same cycle that TIMA is reloaded,
-                 * write the value to TIMA as well. */
-                tima = tma;
-            }
-            break;
-        case 0xFF07:
-            tac = val;
-            break;
-        default:
-            error("not implemented: 0x%04x=0x%02x", addr, val);
+        case TIMA_STATE_RELOADING:
+            /* Ignore writes if TIMA was just reloaded. */
             break;
     }
+}
+
+uint8_t timer_read_tma(void)
+{
+    return tma;
+}
+
+void timer_write_tma(uint8_t val)
+{
+    tma = val;
+    if (tima_state == TIMA_STATE_RELOADING) {
+        /* If TMA is written in the same cycle that TIMA is reloaded,
+         * write the value to TIMA as well. */
+        tima = tma;
+    }
+}
+
+uint8_t timer_read_tac(void)
+{
+    return tac;
+}
+
+void timer_write_tac(uint8_t val)
+{
+    tac = val;
 }
 
 void timer_change_speed(unsigned int speed)
@@ -129,8 +133,8 @@ void timer_change_speed(unsigned int speed)
 void timer_dump(void)
 {
     printf("Timer dump:\n");
-    printf("[$ff04] div=0x%.2x\n", timer_read_byte(0xff04));
-    printf("[$ff05] tima=0x%.2x\n", timer_read_byte(0xff05));
-    printf("[$ff06] tma=0x%.2x\n", timer_read_byte(0xff06));
-    printf("[$ff07] tac=0x%.2x\n", timer_read_byte(0xff07));
+    printf("[$ff04] div=0x%.2x\n", timer_read_div());
+    printf("[$ff05] tima=0x%.2x\n", timer_read_tima());
+    printf("[$ff06] tma=0x%.2x\n", timer_read_tma());
+    printf("[$ff07] tac=0x%.2x\n", timer_read_tac());
 }

@@ -8,13 +8,10 @@ typedef void (*switch_ext_rom_cb_t)(void);
 
 typedef struct {
     uint8_t wram[8][0x1000]; /* Working RAM. */
-    uint8_t zram[0x80];   /* Zero-page RAM. */
-    uint8_t io[0x100];    /* Memory-mapped I/O. */
-    uint8_t cart_type;
-    /* FF4D - KEY1 - CGB Mode Only - Prepare Speed Switch */
-    uint8_t speed_switch;
-    /* FF70 - SVBK - CGB Mode Only - WRAM Bank */
-    unsigned int wram_bank;
+    uint8_t zram[0x80];      /* Zero-page RAM. */
+    uint8_t ir;              /* 0xff56 (RP): Infrared Port */
+    uint8_t speed_switch;    /* 0xff4d (KEY1): Prepare Speed Switch */
+    unsigned int wram_bank;  /* 0xff70 (SVBK): WRAM Bank */
 } mmu_t;
 
 /* Init MMU subsystem. */

@@ -58,10 +58,10 @@ void gpu_reset(void)
     memset(&GPU, 0, sizeof(GPU));
     GPU.lcd_control = 0x91;
     GPU.lcd_status = 0x85;
-    gpu_write_byte(0xff47, 0xfc);
+    gpu_write_bgp(0xfc);
     if (!cart_is_cgb()) {
-        gpu_write_byte(0xff48, 0xFF);
-        gpu_write_byte(0xff49, 0xFF);
+        gpu_write_obp0(0xFF);
+        gpu_write_obp1(0xFF);
     }
     GPU.speed = 1;
 }
@@ -161,50 +161,6 @@ static void gpu_set_cgb_sprite_palette(uint8_t value)
     GPU.cgb_sprite_pal_idx = (reg & ~0x3f) | ((i + (reg >> 7)) & 0x3f);
 }
 
-uint8_t gpu_read_byte(uint16_t addr)
-{
-    switch (addr) {
-        case 0xff40:
-            return GPU.lcd_control;
-        case 0xff41:
-            return (uint8_t)(GPU.lcd_status |
-                             (GPU.scanline == GPU.lyc ? 4u : 0u) |
-                             GPU.mode_flag);
-        case 0xff42:
-            return GPU.scroll_y;
-        case 0xff43:
-            return GPU.scroll_x;
-        case 0xff44:
-            return GPU.scanline;
-        case 0xff45:
-            return GPU.lyc;
-        case 0xff46:
-            return GPU.dma;
-        case 0xff47:
-            return GPU.bgp;
-        case 0xff48:
-            return GPU.obp0;
-        case 0xff49:
-            return GPU.obp1;
-        case 0xff4a:
-            return GPU.window_y;
-        case 0xff4b:
-            return GPU.window_x;
-        case 0xff4f:
-            return GPU.vram_bank;
-        case 0xff68:
-            return GPU.cgb_bg_pal_idx;
-        case 0xff69:
-            return GPU.cgb_bg_pal_data[GPU.cgb_bg_pal_idx & 0x3f];
-        case 0xff6a:
-            return GPU.cgb_sprite_pal_idx;
-        case 0xff6b:
-            return GPU.cgb_sprite_pal_data[GPU.cgb_sprite_pal_idx & 0x3f];
-        default:
-            error("not implemented: addr=0x%04x", addr);
-    }
-}
-
 static void gpu_clear_line(int y)
 {
     for (int x = 0; x < GB_SCREEN_WIDTH; ++x) {
@@ -220,94 +176,186 @@ static void gpu_clear_screen(void)
     }
 }
 
-void gpu_write_byte(uint16_t addr, uint8_t val)
+uint8_t gpu_read_lcdc(void)
 {
-    switch (addr) {
-        case 0xff40:
-            /* If disabling LCD */
-            if (GPU.lcd_enable && (val & 0x80) == 0) {
-                assert(GPU.mode_flag == GPU_MODE_VBLANK);
-                /* Clear screen. */
-                gpu_clear_screen();
-                /* Reset modeclock. */
-                GPU.modeclock = 0;
-                GPU.scanline = 0;
-                GPU.mode_flag = GPU_MODE_OAM;
-            }
-            GPU.lcd_control = val;
-            break;
-        case 0xff41:
-            GPU.lcd_status = (val & 0xf8) | (GPU.lcd_status & 0x07);
-            break;
-        case 0xff42:
-            GPU.scroll_y = val;
-            break;
-        case 0xff43:
-            GPU.scroll_x = val;
-            break;
-        case 0xff44:
-            break;
-        case 0xff45:
-            GPU.lyc = val;
-            break;
-        case 0xff46:
-            /* OAM DMA. */
-            GPU.dma = val;
-            for (int i = 0; i < GB_SCREEN_WIDTH; i++) {
-                uint16_t dma_addr = (uint16_t)((val << 8) + i);
-                uint8_t v = mmu_read_byte_dma(dma_addr);
-                GPU.oam[i] = v;
-            }
-            break;
-        case 0xff47:
-            /* BG palette mapping. */
-            GPU.bgp = val;
-            gpu_set_bg_palette(val);
-            break;
-        case 0xff48:
-            /* OBJ0 palette mapping. */
-            GPU.obp0 = val;
-            gpu_set_sprite_palette0(val);
-            break;
-        case 0xff49:
-            /* OBJ1 palette mapping. */
-            GPU.obp1 = val;
-            gpu_set_sprite_palette1(val);
-            break;
-        case 0xff4a:
-            /* Window Y position. */
-            GPU.window_y = val;
-            break;
-        case 0xff4b:
-            /* Window X position. */
-            GPU.window_x = val;
-            break;
-        case 0xff4f:
-            /* Select VRAM bank. */
-            GPU.vram_bank = val & 1;
-            break;
-        case 0xff68:
-            /* GBC: BG palette index. */
-            GPU.cgb_bg_pal_idx = val;
-            break;
-        case 0xff69:
-            /* GBC: BG palette data. */
-            gpu_set_cgb_bg_palette(val);
-            break;
-        case 0xff6a:
-            /* GBC: sprite palette index. */
-            GPU.cgb_sprite_pal_idx = val;
-            break;
-        case 0xff6b:
-            /* GBC: sprite palette data. */
-            gpu_set_cgb_sprite_palette(val);
-            break;
-        case 0xff7f:
-            warn("not implemented: 0x%04x=0x%02x", addr, val);
-            break;
-        default:
-            error("not implemented: 0x%04x=0x%02x", addr, val);
+    return GPU.lcd_control;
+}
+
+void gpu_write_lcdc(uint8_t val)
+{
+    if (GPU.lcd_enable && (val & 0x80) == 0) {
+        /* If disabling LCD */
+        assert(GPU.mode_flag == GPU_MODE_VBLANK);
+        gpu_clear_screen();
+        GPU.modeclock = 0;
+        GPU.scanline = 0;
+        GPU.mode_flag = GPU_MODE_OAM;
     }
+    GPU.lcd_control = val;
+}
+
+uint8_t gpu_read_stat(void)
+{
+    return (uint8_t)(GPU.lcd_status | (GPU.scanline == GPU.lyc ? 4u : 0u) |
+                     GPU.mode_flag);
+}
+
+void gpu_write_stat(uint8_t val)
+{
+    GPU.lcd_status = (val & 0xf8) | (GPU.lcd_status & 0x07);
+}
+
+uint8_t gpu_read_scy(void)
+{
+    return GPU.scroll_y;
+}
+
+void gpu_write_scy(uint8_t val)
+{
+    GPU.scroll_y = val;
+}
+
+uint8_t gpu_read_scx(void)
+{
+    return GPU.scroll_x;
+}
+
+void gpu_write_scx(uint8_t val)
+{
+    GPU.scroll_x = val;
+}
+
+uint8_t gpu_read_ly(void)
+{
+    return GPU.scanline;
+}
+
+uint8_t gpu_read_lyc(void)
+{
+    return GPU.lyc;
+}
+
+void gpu_write_lyc(uint8_t val)
+{
+    GPU.lyc = val;
+}
+
+uint8_t gpu_read_dma(void)
+{
+    return GPU.dma;
+}
+
+void gpu_write_dma(uint8_t val)
+{
+    GPU.dma = val;
+    for (int i = 0; i < GB_SCREEN_WIDTH; i++) {
+        uint16_t dma_addr = (uint16_t)((val << 8) + i);
+        uint8_t v = mmu_read_byte_dma(dma_addr);
+        GPU.oam[i] = v;
+    }
+}
+
+uint8_t gpu_read_bgp(void)
+{
+    return GPU.bgp;
+}
+
+void gpu_write_bgp(uint8_t val)
+{
+    GPU.bgp = val;
+    gpu_set_bg_palette(val);
+}
+
+uint8_t gpu_read_obp0(void)
+{
+    return GPU.obp0;
+}
+
+void gpu_write_obp0(uint8_t val)
+{
+    GPU.obp0 = val;
+    gpu_set_sprite_palette0(val);
+}
+
+uint8_t gpu_read_obp1(void)
+{
+    return GPU.obp1;
+}
+
+void gpu_write_obp1(uint8_t val)
+{
+    GPU.obp1 = val;
+    gpu_set_sprite_palette1(val);
+}
+
+uint8_t gpu_read_wy(void)
+{
+    return GPU.window_y;
+}
+
+void gpu_write_wy(uint8_t val)
+{
+    GPU.window_y = val;
+}
+
+uint8_t gpu_read_wx(void)
+{
+    return GPU.window_x;
+}
+
+void gpu_write_wx(uint8_t val)
+{
+    GPU.window_x = val;
+}
+
+uint8_t gpu_read_vbk(void)
+{
+    return GPU.vram_bank;
+}
+
+void gpu_write_vbk(uint8_t val)
+{
+    GPU.vram_bank = val & 1;
+}
+
+uint8_t gpu_read_bgpi(void)
+{
+    return GPU.cgb_bg_pal_idx;
+}
+
+void gpu_write_bgpi(uint8_t val)
+{
+    GPU.cgb_bg_pal_idx = val;
+}
+
+uint8_t gpu_read_bgpd(void)
+{
+    return GPU.cgb_bg_pal_data[GPU.cgb_bg_pal_idx & 0x3f];
+}
+
+void gpu_write_bgpd(uint8_t val)
+{
+    gpu_set_cgb_bg_palette(val);
+}
+
+uint8_t gpu_read_obpi(void)
+{
+    return GPU.cgb_sprite_pal_idx;
+}
+
+void gpu_write_obpi(uint8_t val)
+{
+    GPU.cgb_sprite_pal_idx = val;
+}
+
+uint8_t gpu_read_obpd(void)
+{
+    return GPU.cgb_sprite_pal_data[GPU.cgb_sprite_pal_idx & 0x3f];
+}
+
+void gpu_write_obpd(uint8_t val)
+{
+    gpu_set_cgb_sprite_palette(val);
 }
 
 static uint32_t gpu_get_tile_id(int mapoffs, int map_row, int map_col)
