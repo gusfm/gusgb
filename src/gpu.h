@@ -15,6 +15,8 @@ typedef enum {
     GPU_MODE_VRAM = 3,
 } gpu_mode_e;
 
+typedef void (*render_callback_t)(void);
+
 typedef struct {
 #if (SDL_BYTE_ORDER == SDL_BIG_ENDIAN)
     uint8_t a, r, g, b;
@@ -121,7 +123,7 @@ typedef struct {
     };
 } cgb_bg_attr_t;
 
-int gpu_init(SDL_Window *win);
+int gpu_init(SDL_Window *win, render_callback_t cb);
 void gpu_finish(void);
 void gpu_reset(void);
 

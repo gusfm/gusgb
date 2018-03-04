@@ -9,6 +9,7 @@
 #include "mmu.h"
 
 typedef struct {
+    render_callback_t cb;
     SDL_Renderer *ren;
     SDL_Texture *tex;
 } gpu_gl_t;
@@ -30,9 +31,11 @@ const color_t g_palette[4] = {
 #endif
 };
 
-int gpu_init(SDL_Window *win)
+int gpu_init(SDL_Window *win, render_callback_t cb)
 {
     gpu_reset();
+    assert(cb != NULL);
+    GPU_GL.cb = cb;
     /* Create SDL renderer */
     GPU_GL.ren = SDL_CreateRenderer(
         win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -545,6 +548,7 @@ void gpu_render_framebuffer(void)
     SDL_UpdateTexture(GPU_GL.tex, NULL, GPU.framebuffer, GB_SCREEN_WIDTH * 4);
     SDL_RenderCopy(GPU_GL.ren, GPU_GL.tex, NULL, NULL);
     SDL_RenderPresent(GPU_GL.ren);
+    GPU_GL.cb();
 }
 
 static void gpu_change_mode(gpu_mode_e new_mode)
