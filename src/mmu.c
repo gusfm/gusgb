@@ -8,7 +8,7 @@
 #include "gpu.h"
 #include "interrupt.h"
 #include "keys.h"
-#include "sound.h"
+#include "apu.h"
 #include "timer.h"
 
 mmu_t MMU;
@@ -95,7 +95,7 @@ static uint8_t mmu_read_reg(uint16_t addr)
         case 0x3d:
         case 0x3e:
         case 0x3f:
-            return sound_read_byte(addr);
+            return apu_read_byte(addr);
         case 0x40:
             return gpu_read_lcdc();
         case 0x41:
@@ -176,6 +176,8 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x12:
         case 0x13:
         case 0x14:
+            apu_write_byte(addr, value);
+            break;
         case 0x16:
         case 0x17:
         case 0x18:
@@ -185,6 +187,8 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x1c:
         case 0x1d:
         case 0x1e:
+            apu_write_byte(addr, value);
+            break;
         case 0x20:
         case 0x21:
         case 0x22:
@@ -192,6 +196,8 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x24:
         case 0x25:
         case 0x26:
+            apu_write_byte(addr, value);
+            break;
         case 0x30:
         case 0x31:
         case 0x32:
@@ -208,7 +214,7 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x3d:
         case 0x3e:
         case 0x3f:
-            sound_write_byte(addr, value);
+            apu_write_byte(addr, value);
             break;
         case 0x40:
             gpu_write_lcdc(value);
