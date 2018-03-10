@@ -1,10 +1,23 @@
 #include "apu.h"
+#include <SDL.h>
 
-uint8_t nr10, nr11, nr12, nr13, nr14;
-uint8_t nr21, nr22, nr23, nr24;
-uint8_t nr30, nr31, nr32, nr33, nr34;
-uint8_t nr41, nr42, nr43, nr44;
-uint8_t nr50, nr51, nr52;
+#define NR52_SOUND_ENABLE (1 << 7)
+
+/*** Registers ***/
+static uint8_t nr10, nr11, nr12, nr13, nr14;
+static uint8_t nr21, nr22, nr23, nr24;
+static uint8_t nr30, nr31, nr32, nr33, nr34;
+static uint8_t nr41, nr42, nr43, nr44;
+/* 0xff24 (NR50): Vin sel and L/R Volume control (R/W) */
+static uint8_t vin_sel_vol_ctrl;
+/* 0xff25 (NR51): Selection of Sound output terminal (R/W) */
+static uint8_t ch_out_sel;
+/* 0xff26 (NR52): Sound on/off */
+static uint8_t enable;
+
+/*** Internal data ***/
+uint16_t left_vol;  /* left volume: 0 - 32767 */
+uint16_t right_vol; /* right volume: 0 - 32767 */
 
 void apu_sdl_cb(void *userdata, uint8_t *stream, int len)
 {
@@ -15,6 +28,8 @@ void apu_sdl_cb(void *userdata, uint8_t *stream, int len)
 
 void apu_reset(void)
 {
+    left_vol = 0;
+    right_vol = 0;
     apu_write_nr10(0x80);
     apu_write_nr11(0xbf);
     apu_write_nr12(0xf3);
@@ -220,32 +235,35 @@ void apu_write_nr44(uint8_t val)
 
 uint8_t apu_read_nr50(void)
 {
-    return nr50;
+    return vin_sel_vol_ctrl;
 }
 
 void apu_write_nr50(uint8_t val)
 {
-    nr50 = val;
+    vin_sel_vol_ctrl = val;
+    left_vol = (vin_sel_vol_ctrl & 0x7) * 4681;
+    right_vol = ((vin_sel_vol_ctrl & 0x70) >> 4) * 4681;
 }
 
 uint8_t apu_read_nr51(void)
 {
-    return nr51;
+    return ch_out_sel;
 }
 
 void apu_write_nr51(uint8_t val)
 {
-    nr51 = val;
+    ch_out_sel = val;
 }
 
 uint8_t apu_read_nr52(void)
 {
-    return nr52;
+    return enable;
 }
 
 void apu_write_nr52(uint8_t val)
 {
-    nr51 = val;
+    enable = 0xf0 & val;
+    SDL_PauseAudio(!(enable & NR52_SOUND_ENABLE));
 }
 
 uint8_t apu_read_wave(uint8_t addr)
