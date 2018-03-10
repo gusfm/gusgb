@@ -63,6 +63,10 @@ static uint8_t mmu_read_reg(uint16_t addr)
         case 0x12:
         case 0x13:
         case 0x14:
+            return apu_read_byte(addr);
+        case 0x15:
+            /* Not used */
+            return 0xff;
         case 0x16:
         case 0x17:
         case 0x18:
@@ -72,6 +76,10 @@ static uint8_t mmu_read_reg(uint16_t addr)
         case 0x1c:
         case 0x1d:
         case 0x1e:
+            return apu_read_byte(addr);
+        case 0x1f:
+            /* Not used */
+            return 0xff;
         case 0x20:
         case 0x21:
         case 0x22:
@@ -79,6 +87,18 @@ static uint8_t mmu_read_reg(uint16_t addr)
         case 0x24:
         case 0x25:
         case 0x26:
+            return apu_read_byte(addr);
+        case 0x27:
+        case 0x28:
+        case 0x29:
+        case 0x2a:
+        case 0x2b:
+        case 0x2c:
+        case 0x2d:
+        case 0x2e:
+        case 0x2f:
+            /* Not used */
+            return 0xff;
         case 0x30:
         case 0x31:
         case 0x32:
@@ -178,6 +198,9 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x14:
             apu_write_byte(addr, value);
             break;
+        case 0x15:
+            /* Not used */
+            break;
         case 0x16:
         case 0x17:
         case 0x18:
@@ -189,6 +212,9 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x1e:
             apu_write_byte(addr, value);
             break;
+        case 0x1f:
+            /* Not used */
+            break;
         case 0x20:
         case 0x21:
         case 0x22:
@@ -197,6 +223,17 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x25:
         case 0x26:
             apu_write_byte(addr, value);
+            break;
+        case 0x27:
+        case 0x28:
+        case 0x29:
+        case 0x2a:
+        case 0x2b:
+        case 0x2c:
+        case 0x2d:
+        case 0x2e:
+        case 0x2f:
+            /* Not used */
             break;
         case 0x30:
         case 0x31:
