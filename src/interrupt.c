@@ -11,7 +11,7 @@ unsigned int ime_cnt; /* IE takes efect after next instruction. */
 unsigned int enable;  /* Interrupt enable: 0xffff register */
 unsigned int flag;    /* Interrupt flag: 0xff0f register */
 
-void interrupt_init(void)
+void interrupt_reset(void)
 {
     ime = 1;
     ime_cnt = 0;

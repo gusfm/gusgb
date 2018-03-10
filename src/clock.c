@@ -3,9 +3,9 @@
 
 unsigned int step;
 
-void clock_init(void)
+void clock_reset(void)
 {
-    timer_init();
+    timer_reset();
 }
 
 void clock_step(unsigned int cycles)

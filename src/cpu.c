@@ -356,8 +356,7 @@ void cpu_reset(void)
         g_cpu.reg.de = 0x00d8;
         g_cpu.reg.hl = 0x014d;
     }
-    clock_init();
-    gpu_reset();
+    clock_reset();
     mmu_reset();
 }
 

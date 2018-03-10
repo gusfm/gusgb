@@ -9,7 +9,7 @@
 #define INTERRUPTS_SERIAL (1 << 3)
 #define INTERRUPTS_JOYPAD (1 << 4)
 
-void interrupt_init(void);
+void interrupt_reset(void);
 
 void interrupt_set_master(uint8_t value);
 

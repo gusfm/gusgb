@@ -11,7 +11,7 @@ typedef struct {
 
 keys_t KEY;
 
-void keys_init(void)
+void keys_reset(void)
 {
     KEY.rows[0] = 0x0F;
     KEY.rows[1] = 0x0F;

@@ -33,9 +33,10 @@ void mmu_reset(void)
     memset(MMU.wram, 0, sizeof(MMU.wram));
     memset(MMU.zram, 0, sizeof(MMU.zram));
     MMU.wram_bank = 0;
-    interrupt_init();
-    keys_init();
+    interrupt_reset();
+    keys_reset();
     apu_reset();
+    gpu_reset();
 }
 
 static uint8_t mmu_read_reg(uint16_t addr)

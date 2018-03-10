@@ -16,7 +16,7 @@ typedef enum {
     KEY_MAX
 } key_e;
 
-void keys_init(void);
+void keys_reset(void);
 uint8_t keys_read(void);
 void keys_write(uint8_t value);
 void key_press(key_e key);

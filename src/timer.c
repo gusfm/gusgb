@@ -21,7 +21,7 @@ tima_state_t tima_state; /* TIMA operation states. */
 unsigned int delay_bit;  /* Falling edge detector delay bit. */
 static uint16_t masks[4] = {0x200, 0x8, 0x20, 0x80};
 
-void timer_init(void)
+void timer_reset(void)
 {
     clk_speed = 0;
     tima = 0;
