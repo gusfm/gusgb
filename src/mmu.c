@@ -3,12 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "apu.h"
 #include "cartridge/cart.h"
 #include "clock.h"
 #include "gpu.h"
 #include "interrupt.h"
 #include "keys.h"
-#include "apu.h"
 #include "timer.h"
 
 mmu_t MMU;
@@ -35,6 +35,7 @@ void mmu_reset(void)
     MMU.wram_bank = 0;
     interrupt_init();
     keys_init();
+    apu_reset();
 }
 
 static uint8_t mmu_read_reg(uint16_t addr)
@@ -59,35 +60,51 @@ static uint8_t mmu_read_reg(uint16_t addr)
         case 0x0f:
             return interrupt_get_flag();
         case 0x10:
+            return apu_read_nr10();
         case 0x11:
+            return apu_read_nr11();
         case 0x12:
+            return apu_read_nr12();
         case 0x13:
+            return apu_read_nr13();
         case 0x14:
-            return apu_read_byte(addr);
+            return apu_read_nr14();
         case 0x15:
-            /* Not used */
             return 0xff;
         case 0x16:
+            return apu_read_nr21();
         case 0x17:
+            return apu_read_nr22();
         case 0x18:
+            return apu_read_nr23();
         case 0x19:
+            return apu_read_nr24();
         case 0x1a:
+            return apu_read_nr30();
         case 0x1b:
+            return apu_read_nr31();
         case 0x1c:
+            return apu_read_nr32();
         case 0x1d:
+            return apu_read_nr33();
         case 0x1e:
-            return apu_read_byte(addr);
+            return apu_read_nr34();
         case 0x1f:
-            /* Not used */
             return 0xff;
         case 0x20:
+            return apu_read_nr41();
         case 0x21:
+            return apu_read_nr42();
         case 0x22:
+            return apu_read_nr43();
         case 0x23:
+            return apu_read_nr44();
         case 0x24:
+            return apu_read_nr50();
         case 0x25:
+            return apu_read_nr51();
         case 0x26:
-            return apu_read_byte(addr);
+            return apu_read_nr52();
         case 0x27:
         case 0x28:
         case 0x29:
@@ -97,7 +114,6 @@ static uint8_t mmu_read_reg(uint16_t addr)
         case 0x2d:
         case 0x2e:
         case 0x2f:
-            /* Not used */
             return 0xff;
         case 0x30:
         case 0x31:
@@ -115,7 +131,7 @@ static uint8_t mmu_read_reg(uint16_t addr)
         case 0x3d:
         case 0x3e:
         case 0x3f:
-            return apu_read_byte(addr);
+            return apu_read_wave(addr);
         case 0x40:
             return gpu_read_lcdc();
         case 0x41:
@@ -192,37 +208,71 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
             interrupt_set_flag(value);
             break;
         case 0x10:
+            apu_write_nr10(value);
+            break;
         case 0x11:
+            apu_write_nr11(value);
+            break;
         case 0x12:
+            apu_write_nr12(value);
+            break;
         case 0x13:
+            apu_write_nr13(value);
+            break;
         case 0x14:
-            apu_write_byte(addr, value);
+            apu_write_nr14(value);
             break;
         case 0x15:
-            /* Not used */
             break;
         case 0x16:
+            apu_write_nr21(value);
+            break;
         case 0x17:
+            apu_write_nr22(value);
+            break;
         case 0x18:
+            apu_write_nr23(value);
+            break;
         case 0x19:
+            apu_write_nr24(value);
+            break;
         case 0x1a:
+            apu_write_nr30(value);
+            break;
         case 0x1b:
+            apu_write_nr31(value);
+            break;
         case 0x1c:
+            apu_write_nr32(value);
+            break;
         case 0x1d:
+            apu_write_nr33(value);
+            break;
         case 0x1e:
-            apu_write_byte(addr, value);
+            apu_write_nr34(value);
             break;
         case 0x1f:
-            /* Not used */
             break;
         case 0x20:
+            apu_write_nr41(value);
+            break;
         case 0x21:
+            apu_write_nr42(value);
+            break;
         case 0x22:
+            apu_write_nr43(value);
+            break;
         case 0x23:
+            apu_write_nr44(value);
+            break;
         case 0x24:
+            apu_write_nr50(value);
+            break;
         case 0x25:
+            apu_write_nr51(value);
+            break;
         case 0x26:
-            apu_write_byte(addr, value);
+            apu_write_nr52(value);
             break;
         case 0x27:
         case 0x28:
@@ -233,7 +283,6 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x2d:
         case 0x2e:
         case 0x2f:
-            /* Not used */
             break;
         case 0x30:
         case 0x31:
@@ -251,7 +300,7 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x3d:
         case 0x3e:
         case 0x3f:
-            apu_write_byte(addr, value);
+            apu_write_wave(addr, value);
             break;
         case 0x40:
             gpu_write_lcdc(value);

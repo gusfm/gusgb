@@ -1,6 +1,7 @@
 #include "game_boy.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "apu.h"
 #include "cpu.h"
 #include "gpu.h"
 #include "keys.h"
@@ -113,8 +114,17 @@ static void handle_events(void)
 static SDL_Window *sdl_init(const char *name, int width, int height)
 {
     /* Initialize SDL. */
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO) != 0)
         return NULL;
+    SDL_AudioSpec desired;
+    desired.freq = AUDIO_SAMPLE_RATE;
+    desired.format = AUDIO_S16SYS;
+    desired.channels = 2;
+    desired.samples = 1024;
+    desired.callback = apu_sdl_cb;
+    if (SDL_OpenAudio(&desired, NULL) != 0) {
+        return NULL;
+    }
     return SDL_CreateWindow(name, SDL_WINDOWPOS_UNDEFINED,
                             SDL_WINDOWPOS_UNDEFINED, width, height,
                             SDL_WINDOW_SHOWN);
