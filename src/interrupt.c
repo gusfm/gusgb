@@ -4,12 +4,12 @@
 #include "cpu.h"
 #include "cpu_opcodes.h"
 
-extern cpu_t g_cpu;
+extern cpu_t CPU;
 
-unsigned int ime;     /* Interrupt master enable: IE -> enable, DI -> disable */
-unsigned int ime_cnt; /* IE takes efect after next instruction. */
-unsigned int enable;  /* Interrupt enable: 0xffff register */
-unsigned int flag;    /* Interrupt flag: 0xff0f register */
+static unsigned int ime;     /* Interrupt master enable: IE, DI */
+static unsigned int ime_cnt; /* IE takes efect after next instr. */
+static unsigned int enable;  /* Interrupt enable: 0xffff register */
+static unsigned int flag;    /* Interrupt flag: 0xff0f register */
 
 void interrupt_reset(void)
 {
@@ -54,7 +54,7 @@ void interrupt_raise(uint8_t bit)
 {
     flag |= bit;
     if (enable & bit)
-        g_cpu.halt = false;
+        CPU.halt = false;
 }
 
 void interrupt_clear_flag_bit(uint8_t bit)
@@ -64,36 +64,36 @@ void interrupt_clear_flag_bit(uint8_t bit)
 
 static void vblank(void)
 {
-    push(g_cpu.reg.pc);
-    g_cpu.reg.pc = 0x40;
+    push(CPU.reg.pc);
+    CPU.reg.pc = 0x40;
     clock_step(12);
 }
 
 static void lcd_stat(void)
 {
-    push(g_cpu.reg.pc);
-    g_cpu.reg.pc = 0x48;
+    push(CPU.reg.pc);
+    CPU.reg.pc = 0x48;
     clock_step(12);
 }
 
 static void timer(void)
 {
-    push(g_cpu.reg.pc);
-    g_cpu.reg.pc = 0x50;
+    push(CPU.reg.pc);
+    CPU.reg.pc = 0x50;
     clock_step(12);
 }
 
 static void serial(void)
 {
-    push(g_cpu.reg.pc);
-    g_cpu.reg.pc = 0x58;
+    push(CPU.reg.pc);
+    CPU.reg.pc = 0x58;
     clock_step(12);
 }
 
 static void joypad(void)
 {
-    push(g_cpu.reg.pc);
-    g_cpu.reg.pc = 0x60;
+    push(CPU.reg.pc);
+    CPU.reg.pc = 0x60;
     clock_step(12);
 }
 

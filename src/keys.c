@@ -9,7 +9,7 @@ typedef struct {
     uint8_t column;
 } keys_t;
 
-keys_t KEY;
+static keys_t KEY;
 
 void keys_reset(void)
 {

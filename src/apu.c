@@ -16,8 +16,8 @@ static uint8_t ch_out_sel;
 static uint8_t enable;
 
 /*** Internal data ***/
-uint16_t left_vol;  /* left volume: 0 - 32767 */
-uint16_t right_vol; /* right volume: 0 - 32767 */
+static uint16_t left_vol;  /* left volume: 0 - 32767 */
+static uint16_t right_vol; /* right volume: 0 - 32767 */
 
 void apu_sdl_cb(void *userdata, uint8_t *stream, int len)
 {

@@ -11,7 +11,7 @@
 #include "keys.h"
 #include "timer.h"
 
-mmu_t MMU;
+static mmu_t MMU;
 
 int mmu_init(const char *rom_path)
 {

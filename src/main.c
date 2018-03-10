@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include "game_boy.h"
 
-int scale = 4;
-char *romfile = NULL;
+static int scale = 4;
+static char *romfile = NULL;
 
 static int parse_args(int argc, char **argv)
 {

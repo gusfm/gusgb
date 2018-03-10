@@ -12,13 +12,13 @@ typedef enum {
     TIMA_STATE_RELOADING,    /* TIMA is being reloaded. */
 } tima_state_t;
 
-unsigned int clk_speed;  /* Clock speed: 0 or 1. */
-uint16_t clk_sys;        /* Internal timer clock. */
-uint8_t tima;            /* [$ff05] Timer counter (R/W) */
-uint8_t tma;             /* [$ff06] Timer Modulo (R/W) */
-uint8_t tac;             /* [$ff07] Timer Control (R/W) */
-tima_state_t tima_state; /* TIMA operation states. */
-unsigned int delay_bit;  /* Falling edge detector delay bit. */
+static unsigned int clk_speed;  /* Clock speed: 0 or 1. */
+static uint16_t clk_sys;        /* Internal timer clock. */
+static uint8_t tima;            /* [$ff05] Timer counter (R/W) */
+static uint8_t tma;             /* [$ff06] Timer Modulo (R/W) */
+static uint8_t tac;             /* [$ff07] Timer Control (R/W) */
+static tima_state_t tima_state; /* TIMA operation states. */
+static unsigned int delay_bit;  /* Falling edge detector delay bit. */
 static uint16_t masks[4] = {0x200, 0x8, 0x20, 0x80};
 
 void timer_reset(void)

@@ -14,7 +14,7 @@ typedef struct {
     SDL_Window *window;
 } game_boy_t;
 
-game_boy_t GB;
+static game_boy_t GB;
 
 static void gb_key_press(uint8_t key)
 {

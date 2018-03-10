@@ -1,7 +1,7 @@
 #include "clock.h"
 #include "timer.h"
 
-unsigned int step;
+static unsigned int step;
 
 void clock_reset(void)
 {

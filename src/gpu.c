@@ -14,10 +14,10 @@ typedef struct {
     SDL_Texture *tex;
 } gpu_gl_t;
 
-gpu_t GPU;
-gpu_gl_t GPU_GL;
+static gpu_t GPU;
+static gpu_gl_t GPU_GL;
 
-const color_t g_palette[4] = {
+static const color_t g_palette[4] = {
 #if (SDL_BYTE_ORDER == SDL_BIG_ENDIAN)
     {SDL_ALPHA_OPAQUE, 0xe0, 0xf8, 0xd0}, /* off */
     {SDL_ALPHA_OPAQUE, 0x88, 0xc0, 0x70}, /* 33% on */

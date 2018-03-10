@@ -1,7 +1,7 @@
 #include "cpu_utils.h"
 #include "cpu.h"
 
-extern cpu_t g_cpu;
+extern cpu_t CPU;
 
 /* Rotate value left. Old bit 7 to Carry flag. */
 uint8_t rlc(uint8_t value)
