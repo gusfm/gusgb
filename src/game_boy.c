@@ -17,9 +17,21 @@ typedef struct {
 
 static game_boy_t GB;
 
-static void gb_key_press(uint8_t key)
+static void gb_toggle_fullscreen(void)
 {
-    switch (key) {
+    GB.fullscreen = !GB.fullscreen;
+    if (GB.fullscreen) {
+        SDL_SetWindowFullscreen(GB.window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        SDL_ShowCursor(SDL_DISABLE);
+    } else {
+        SDL_SetWindowFullscreen(GB.window, 0);
+        SDL_ShowCursor(SDL_ENABLE);
+    }
+}
+
+static void gb_key_press(const SDL_Keysym *keysym)
+{
+    switch (keysym->scancode) {
         case SDL_SCANCODE_A:
             key_press(KEY_A);
             break;
@@ -27,7 +39,11 @@ static void gb_key_press(uint8_t key)
             key_press(KEY_B);
             break;
         case SDL_SCANCODE_RETURN:
-            key_press(KEY_START);
+            if (keysym->mod & KMOD_ALT) {
+                gb_toggle_fullscreen();
+            } else {
+                key_press(KEY_START);
+            }
             break;
         case SDL_SCANCODE_LSHIFT:
             key_press(KEY_SELECT);
@@ -62,9 +78,9 @@ static void gb_key_press(uint8_t key)
     }
 }
 
-static void gb_key_release(uint8_t key)
+static void gb_key_release(const SDL_Keysym *keysym)
 {
-    switch (key) {
+    switch (keysym->scancode) {
         case SDL_SCANCODE_A:
             key_release(KEY_A);
             break;
@@ -100,10 +116,10 @@ static void handle_events(void)
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
             case SDL_KEYDOWN:
-                gb_key_press(e.key.keysym.scancode);
+                gb_key_press(&e.key.keysym);
                 break;
             case SDL_KEYUP:
-                gb_key_release(e.key.keysym.scancode);
+                gb_key_release(&e.key.keysym);
                 break;
             case SDL_QUIT:
                 GB.running = false;

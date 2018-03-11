@@ -26,19 +26,20 @@ static int parse_args(int argc, char **argv)
                 printf(
                     "%s:\n"
                     "Controls:\n"
-                    "P:\tPause emulation\n"
-                    "O:\tDump emulator debugs\n"
-                    "ESC, Q:\tQuit program\n"
+                    "P:\t\tPause emulation\n"
+                    "O:\t\tDump emulator debugs\n"
+                    "ESC, Q:\t\tQuit program\n"
+                    "Alt + Enter:\tToggle fullscreen mode\n"
                     "\n"
                     "Key mapping:\n"
-                    "Up:\tup\n"
-                    "Down:\tdown\n"
-                    "Left:\tleft\n"
-                    "Right:\tright\n"
-                    "A:\ta\n"
-                    "B:\ts\n"
-                    "Start:\tenter\n"
-                    "Select:\tleft shift\n",
+                    "Up:\t\tup\n"
+                    "Down:\t\tdown\n"
+                    "Left:\t\tleft\n"
+                    "Right:\t\tright\n"
+                    "A:\t\ta\n"
+                    "B:\t\ts\n"
+                    "Start:\t\tenter\n"
+                    "Select:\t\tleft shift\n",
                     argv[0]);
                 exit(EXIT_SUCCESS);
             default:
