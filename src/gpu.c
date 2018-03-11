@@ -41,6 +41,8 @@ int gpu_init(SDL_Window *win, render_callback_t cb)
         win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (GPU_GL.ren == NULL)
         return -1;
+    /* Set device independent resolution for rendering */
+    SDL_RenderSetLogicalSize(GPU_GL.ren, GB_SCREEN_WIDTH, GB_SCREEN_HEIGHT);
     /* Create SDL texture */
     GPU_GL.tex = SDL_CreateTexture(GPU_GL.ren, SDL_PIXELFORMAT_ARGB8888,
                                    SDL_TEXTUREACCESS_STREAMING, GB_SCREEN_WIDTH,

@@ -4,7 +4,7 @@
 #include <SDL.h>
 #include <stdbool.h>
 
-int gb_init(int scale, const char *rom_path);
+int gb_init(int scale, const char *rom_path, bool fullscreen);
 void gb_finish(void);
 void gb_main(void);
 

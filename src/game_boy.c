@@ -11,6 +11,7 @@ typedef struct {
     int height;
     bool running;
     bool paused;
+    bool fullscreen;
     SDL_Window *window;
 } game_boy_t;
 
@@ -111,7 +112,8 @@ static void handle_events(void)
     }
 }
 
-static SDL_Window *sdl_init(const char *name, int width, int height)
+static SDL_Window *sdl_init(const char *name, int width, int height,
+                            bool fullscreen)
 {
     /* Initialize SDL. */
     if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO) != 0)
@@ -125,19 +127,24 @@ static SDL_Window *sdl_init(const char *name, int width, int height)
     if (SDL_OpenAudio(&desired, NULL) != 0) {
         return NULL;
     }
+    uint32_t flags = SDL_WINDOW_SHOWN;
+    if (fullscreen) {
+        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        SDL_ShowCursor(SDL_DISABLE);
+    }
     return SDL_CreateWindow(name, SDL_WINDOWPOS_UNDEFINED,
-                            SDL_WINDOWPOS_UNDEFINED, width, height,
-                            SDL_WINDOW_SHOWN);
+                            SDL_WINDOWPOS_UNDEFINED, width, height, flags);
 }
 
-int gb_init(int scale, const char *rom_path)
+int gb_init(int scale, const char *rom_path, bool fullscreen)
 {
     GB.width = GB_SCREEN_WIDTH * scale;
     GB.height = GB_SCREEN_HEIGHT * scale;
     GB.running = true;
     GB.paused = false;
+    GB.fullscreen = fullscreen;
     /* Initialize SDL. */
-    GB.window = sdl_init("gusgb", GB.width, GB.height);
+    GB.window = sdl_init("gusgb", GB.width, GB.height, GB.fullscreen);
     if (GB.window == NULL) {
         fprintf(stderr, "ERROR: %s\n", SDL_GetError());
         return -1;

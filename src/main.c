@@ -5,11 +5,12 @@
 
 static int scale = 4;
 static char *romfile = NULL;
+static bool fullscreen = false;
 
 static int parse_args(int argc, char **argv)
 {
     int opt;
-    while ((opt = getopt(argc, argv, "s:ch")) != -1) {
+    while ((opt = getopt(argc, argv, "s:fch")) != -1) {
         switch (opt) {
             case 's':
                 scale = strtol(optarg, NULL, 10);
@@ -17,6 +18,9 @@ static int parse_args(int argc, char **argv)
                     fprintf(stderr, "Invalid scale: %d\n", scale);
                     return -1;
                 }
+                break;
+            case 'f':
+                fullscreen = true;
                 break;
             case 'c':
                 printf(
@@ -54,6 +58,7 @@ static void print_help(char **argv)
             "Usage: %s [options] romfile\n"
             "Options:\n"
             "  -c\t\tPrint keyboard controls\n"
+            "  -f\t\tStart in fullscreen mode\n"
             "  -h\t\tPrint help and exit\n"
             "  -s <scale>\tScale video output\n",
             argv[0]);
@@ -65,7 +70,7 @@ int main(int argc, char *argv[])
         print_help(argv);
         exit(EXIT_FAILURE);
     }
-    int ret = gb_init(scale, romfile);
+    int ret = gb_init(scale, romfile, fullscreen);
     if (ret < 0) {
         exit(EXIT_FAILURE);
     }
