@@ -5,11 +5,12 @@
 
 static int scale = 4;
 static char *romfile = NULL;
+static bool fullscreen = false;
 
 static int parse_args(int argc, char **argv)
 {
     int opt;
-    while ((opt = getopt(argc, argv, "s:ch")) != -1) {
+    while ((opt = getopt(argc, argv, "s:fch")) != -1) {
         switch (opt) {
             case 's':
                 scale = strtol(optarg, NULL, 10);
@@ -18,23 +19,27 @@ static int parse_args(int argc, char **argv)
                     return -1;
                 }
                 break;
+            case 'f':
+                fullscreen = true;
+                break;
             case 'c':
                 printf(
                     "%s:\n"
                     "Controls:\n"
-                    "P:\tPause emulation\n"
-                    "O:\tDump emulator debugs\n"
-                    "ESQ:\tQuit program\n"
+                    "P:\t\tPause emulation\n"
+                    "O:\t\tDump emulator debugs\n"
+                    "ESC, Q:\t\tQuit program\n"
+                    "Alt + Enter:\tToggle fullscreen mode\n"
                     "\n"
                     "Key mapping:\n"
-                    "Up:\tup\n"
-                    "Down:\tdown\n"
-                    "Left:\tleft\n"
-                    "Right:\tright\n"
-                    "A:\ta\n"
-                    "B:\ts\n"
-                    "Start:\tenter\n"
-                    "Select:\tleft shift\n",
+                    "Up:\t\tup\n"
+                    "Down:\t\tdown\n"
+                    "Left:\t\tleft\n"
+                    "Right:\t\tright\n"
+                    "A:\t\ta\n"
+                    "B:\t\ts\n"
+                    "Start:\t\tenter\n"
+                    "Select:\t\tleft shift\n",
                     argv[0]);
                 exit(EXIT_SUCCESS);
             default:
@@ -54,6 +59,7 @@ static void print_help(char **argv)
             "Usage: %s [options] romfile\n"
             "Options:\n"
             "  -c\t\tPrint keyboard controls\n"
+            "  -f\t\tStart in fullscreen mode\n"
             "  -h\t\tPrint help and exit\n"
             "  -s <scale>\tScale video output\n",
             argv[0]);
@@ -65,7 +71,7 @@ int main(int argc, char *argv[])
         print_help(argv);
         exit(EXIT_FAILURE);
     }
-    int ret = gb_init(scale, romfile);
+    int ret = gb_init(scale, romfile, fullscreen);
     if (ret < 0) {
         exit(EXIT_FAILURE);
     }
