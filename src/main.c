@@ -24,7 +24,7 @@ static int parse_args(int argc, char **argv)
                     "Controls:\n"
                     "P:\tPause emulation\n"
                     "O:\tDump emulator debugs\n"
-                    "ESC:\tQuit program\n"
+                    "ESC, Q:\tQuit program\n"
                     "\n"
                     "Key mapping:\n"
                     "Up:\tup\n"
