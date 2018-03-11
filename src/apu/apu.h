@@ -7,6 +7,7 @@
 
 void apu_sdl_cb(void *userdata, uint8_t *stream, int len);
 void apu_reset(void);
+void apu_tick(unsigned int clock_step);
 
 uint8_t apu_read_nr10(void);
 uint8_t apu_read_nr11(void);

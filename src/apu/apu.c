@@ -1,35 +1,75 @@
-#include "apu.h"
+#include "apu/apu.h"
 #include <SDL.h>
-
-#define NR52_SOUND_ENABLE (1 << 7)
+#include "apu/ch2.h"
+#include "apu/timer.h"
 
 /*** Registers ***/
 static uint8_t nr10, nr11, nr12, nr13, nr14;
-static uint8_t nr21, nr22, nr23, nr24;
 static uint8_t nr30, nr31, nr32, nr33, nr34;
 static uint8_t nr41, nr42, nr43, nr44;
 /* 0xff24 (NR50): Vin sel and L/R Volume control (R/W) */
 static uint8_t vin_sel_vol_ctrl;
 /* 0xff25 (NR51): Selection of Sound output terminal (R/W) */
-static uint8_t ch_out_sel;
+uint8_t ch_out_sel;
 /* 0xff26 (NR52): Sound on/off */
-static uint8_t enable;
+uint8_t sound_enable;
 
 /*** Internal data ***/
-static uint16_t left_vol;  /* left volume: 0 - 32767 */
-static uint16_t right_vol; /* right volume: 0 - 32767 */
+int16_t left_vol;  /* left volume: 0 - 32767 */
+int16_t right_vol; /* right volume: 0 - 32767 */
+
+int16_t ch2_out_buf[2048];
+static apu_timer_t frame_sequencer = {0};
+static apu_timer_t output_timer = {0};
 
 void apu_sdl_cb(void *userdata, uint8_t *stream, int len)
 {
     (void)userdata;
     (void)stream;
     (void)len;
+    int ptr = output_timer.out_clock < 1024 ? 0 : 1024;
+    memcpy(stream, &ch2_out_buf[ptr], 1024);
+}
+
+static void apu_frame_sequencer_cb(unsigned int clock)
+{
+    switch (clock & 0x7) {
+        case 0:
+            ch2_lengt_counter();
+            break;
+        case 1:
+            break;
+        case 2:
+            ch2_lengt_counter();
+            break;
+        case 3:
+            break;
+        case 4:
+            ch2_lengt_counter();
+            break;
+        case 5:
+            break;
+        case 6:
+            ch2_lengt_counter();
+            break;
+        case 7:
+            break;
+    }
+}
+
+static void apu_output_timer_cb(unsigned int clock)
+{
+    ch2_output(&ch2_out_buf[clock]);
 }
 
 void apu_reset(void)
 {
     left_vol = 0;
     right_vol = 0;
+    memset(ch2_out_buf, 0, sizeof(ch2_out_buf));
+    apu_timer_init(&frame_sequencer, 8192, 1, 0x7, apu_frame_sequencer_cb);
+    apu_timer_init(&output_timer, 87, 2, 0x7ff, apu_output_timer_cb);
+    ch2_reset();
     apu_write_nr10(0x80);
     apu_write_nr11(0xbf);
     apu_write_nr12(0xf3);
@@ -51,6 +91,13 @@ void apu_reset(void)
     apu_write_nr50(0x77);
     apu_write_nr51(0xf3);
     apu_write_nr52(0xf1);
+}
+
+void apu_tick(unsigned int clock_step)
+{
+    apu_timer_tick(&frame_sequencer, clock_step);
+    apu_timer_tick(&output_timer, clock_step);
+    ch2_tick(clock_step);
 }
 
 uint8_t apu_read_nr10(void)
@@ -105,42 +152,42 @@ void apu_write_nr14(uint8_t val)
 
 uint8_t apu_read_nr21(void)
 {
-    return nr21;
+    return ch2_read_reg1();
 }
 
 void apu_write_nr21(uint8_t val)
 {
-    nr21 = val;
+    ch2_write_reg1(val);
 }
 
 uint8_t apu_read_nr22(void)
 {
-    return nr22;
+    return ch2_read_reg2();
 }
 
 void apu_write_nr22(uint8_t val)
 {
-    nr22 = val;
+    ch2_write_reg2(val);
 }
 
 uint8_t apu_read_nr23(void)
 {
-    return nr23;
+    return ch2_read_reg3();
 }
 
 void apu_write_nr23(uint8_t val)
 {
-    nr23 = val;
+    ch2_write_reg3(val);
 }
 
 uint8_t apu_read_nr24(void)
 {
-    return nr24;
+    return ch2_read_reg4();
 }
 
 void apu_write_nr24(uint8_t val)
 {
-    nr24 = val;
+    ch2_write_reg4(val);
 }
 
 uint8_t apu_read_nr30(void)
@@ -257,13 +304,12 @@ void apu_write_nr51(uint8_t val)
 
 uint8_t apu_read_nr52(void)
 {
-    return enable;
+    return sound_enable | (ch2_status() << 1);
 }
 
 void apu_write_nr52(uint8_t val)
 {
-    enable = 0xf0 & val;
-    SDL_PauseAudio(!(enable & NR52_SOUND_ENABLE));
+    sound_enable = 0xf0 & val;
 }
 
 uint8_t apu_read_wave(uint8_t addr)

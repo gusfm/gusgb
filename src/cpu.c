@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "apu/apu.h"
 #include "cartridge/cart.h"
 #include "clock.h"
 #include "cpu_ext_ops.h"
@@ -401,5 +402,6 @@ void cpu_emulate_cycle(void)
         uint8_t opcode = cpu_fetch_opcode();
         cpu_decode_opcode(opcode);
     }
+    apu_tick(clock_get_step());
     gpu_tick(clock_get_step());
 }

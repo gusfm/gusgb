@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "apu.h"
+#include "apu/apu.h"
 #include "cartridge/cart.h"
 #include "clock.h"
 #include "gpu.h"

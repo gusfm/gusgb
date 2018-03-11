@@ -1,7 +1,7 @@
 #include "game_boy.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "apu.h"
+#include "apu/apu.h"
 #include "cpu.h"
 #include "gpu.h"
 #include "keys.h"
@@ -143,6 +143,7 @@ static SDL_Window *sdl_init(const char *name, int width, int height,
     if (SDL_OpenAudio(&desired, NULL) != 0) {
         return NULL;
     }
+    SDL_PauseAudio(0);
     uint32_t flags = SDL_WINDOW_SHOWN;
     if (fullscreen) {
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -181,6 +182,7 @@ void gb_finish(void)
     gpu_finish();
     cpu_finish();
     SDL_DestroyWindow(GB.window);
+    SDL_PauseAudio(1);
     SDL_Quit();
 }
 
