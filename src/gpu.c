@@ -192,6 +192,8 @@ void gpu_write_lcdc(uint8_t val)
         /* If disabling LCD */
         assert(GPU.mode_flag == GPU_MODE_VBLANK);
         gpu_clear_screen();
+        GPU.lcd_disabled_clock = GPU.modeclock;
+        GPU.lcd_disabled_frame_rendered = false;
         GPU.modeclock = 0;
         GPU.scanline = 0;
         GPU.mode_flag = GPU_MODE_OAM;
@@ -576,13 +578,8 @@ static void gpu_change_mode(gpu_mode_e new_mode)
     }
 }
 
-/* Check GPU FSM.
- * Note: All clock values are divided by 4.
- */
-void gpu_step(uint32_t clock_step)
+static void gpu_tick_lcd_enabled(unsigned int clock_step)
 {
-    if (!GPU.lcd_enable)
-        return;
     GPU.modeclock += clock_step;
     switch (GPU.mode_flag) {
         case GPU_MODE_OAM:
@@ -630,6 +627,31 @@ void gpu_step(uint32_t clock_step)
             }
             break;
     }
+}
+
+/* Render blank screen if LCD is disabled */
+static void gpu_tick_lcd_disabled(unsigned int clock_step)
+{
+    GPU.lcd_disabled_clock += clock_step;
+    if (!GPU.lcd_disabled_frame_rendered) {
+        if (GPU.lcd_disabled_clock >= 144 * 456 * GPU.speed) {
+            GPU.lcd_disabled_frame_rendered = true;
+            gpu_render_framebuffer();
+        }
+    } else {
+        if (GPU.lcd_disabled_clock >= (144 + 10) * 456 * GPU.speed) {
+            GPU.lcd_disabled_frame_rendered = false;
+            GPU.lcd_disabled_clock -= (144 + 10) * 456 * GPU.speed;
+        }
+    }
+}
+
+void gpu_tick(unsigned int clock_step)
+{
+    if (GPU.lcd_enable)
+        gpu_tick_lcd_enabled(clock_step);
+    else
+        gpu_tick_lcd_disabled(clock_step);
 }
 
 void gpu_change_speed(unsigned int speed)

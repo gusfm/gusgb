@@ -83,13 +83,16 @@ typedef struct {
     uint8_t cgb_sprite_pal_idx;
     /* 0xff6b (OBPD): Sprite Palette Data - CGB only*/
     uint8_t cgb_sprite_pal_data[8 * 8];
-    uint32_t modeclock;
+    unsigned int modeclock;
     uint8_t vram[2][0x2000]; /* Video RAM. */
     uint8_t oam[0xa0];       /* Sprite info. */
     color_t framebuffer[GB_SCREEN_WIDTH * GB_SCREEN_HEIGHT];
     color_t bg_palette[8 * 4];
     color_t sprite_palette[8 * 4];
     unsigned int speed;
+    bool lcd_disabled_frame_rendered;
+    unsigned int lcd_disabled_clock;
+
 } gpu_t;
 
 typedef struct {
@@ -166,7 +169,7 @@ uint8_t gpu_read_vram(uint16_t addr);
 void gpu_write_vram(uint16_t addr, uint8_t val);
 uint8_t gpu_read_oam(uint16_t addr);
 void gpu_write_oam(uint16_t addr, uint8_t val);
-void gpu_step(uint32_t cpu_tick);
+void gpu_tick(unsigned int clock_step);
 void gpu_render_framebuffer(void);
 void gpu_change_speed(unsigned int speed);
 void gpu_dump(void);

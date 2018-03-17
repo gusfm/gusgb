@@ -401,5 +401,5 @@ void cpu_emulate_cycle(void)
         uint8_t opcode = cpu_fetch_opcode();
         cpu_decode_opcode(opcode);
     }
-    gpu_step(clock_get_step());
+    gpu_tick(clock_get_step());
 }
