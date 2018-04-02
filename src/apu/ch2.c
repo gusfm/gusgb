@@ -14,11 +14,6 @@ static uint8_t env_direction;
 static uint8_t env_period;
 static int env_count;
 
-extern uint8_t sound_enable;
-extern uint8_t ch_out_sel;
-extern int16_t left_vol;  /* left volume: 0 - 32767 */
-extern int16_t right_vol; /* right volume: 0 - 32767 */
-
 static uint8_t duty_table[4] = {
     0x01, /* 00000001: 12.5% */
     0x81, /* 10000001: 25% */
@@ -124,27 +119,15 @@ void ch2_volume_envelope(void)
     }
 }
 
-void ch2_output(int16_t *out_buf)
+int16_t ch2_output(void)
 {
     int16_t val;
-    if (sound_enable && status) {
+    if (status) {
         val = (duty_table[wave_duty] & (1 << wave_ptr)) >> wave_ptr;
     } else {
         val = 0;
     }
-    int16_t left, right;
-    if (env_volume && (ch_out_sel & 0x2)) {
-        left = val * left_vol / 15 * env_volume;
-    } else {
-        left = 0;
-    }
-    if (env_volume && (ch_out_sel & 0x20)) {
-        right = val * right_vol / 15 * env_volume;
-    } else {
-        right = 0;
-    }
-    out_buf[0] = left;
-    out_buf[1] = right;
+    return val * env_volume;
 }
 
 void ch2_tick(unsigned int clock_step)

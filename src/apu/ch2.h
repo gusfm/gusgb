@@ -9,7 +9,7 @@ uint8_t ch2_status(void);
 
 void ch2_lengt_counter(void);
 void ch2_volume_envelope(void);
-void ch2_output(int16_t *out_buf);
+int16_t ch2_output(void);
 
 uint8_t ch2_read_reg1(void);
 uint8_t ch2_read_reg2(void);

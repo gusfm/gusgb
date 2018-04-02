@@ -15,10 +15,9 @@ uint8_t ch_out_sel;
 uint8_t sound_enable;
 
 /*** Internal data ***/
-int16_t left_vol;  /* left volume: 0 - 32767 */
-int16_t right_vol; /* right volume: 0 - 32767 */
-
-int16_t ch2_out_buf[2048];
+static int16_t left_vol;  /* left volume: 0 - 32767 */
+static int16_t right_vol; /* right volume: 0 - 32767 */
+static int16_t ch2_out_buf[2048];
 static apu_timer_t frame_sequencer = {0};
 static apu_timer_t output_timer = {0};
 
@@ -60,7 +59,12 @@ static void apu_frame_sequencer_cb(unsigned int clock)
 
 static void apu_output_timer_cb(unsigned int clock)
 {
-    ch2_output(&ch2_out_buf[clock]);
+    int16_t ch2 = ch2_output();
+    int16_t left, right;
+    left = sound_enable && (ch_out_sel & 0x2) ? ch2 * left_vol : 0;
+    right = sound_enable && (ch_out_sel & 0x20) ? ch2 * right_vol : 0;
+    ch2_out_buf[clock] = left;
+    ch2_out_buf[clock + 1] = right;
 }
 
 void apu_reset(void)
@@ -289,8 +293,8 @@ uint8_t apu_read_nr50(void)
 void apu_write_nr50(uint8_t val)
 {
     vin_sel_vol_ctrl = val;
-    right_vol = (vin_sel_vol_ctrl & 0x7) * 4681;
-    left_vol = ((vin_sel_vol_ctrl & 0x70) >> 4) * 4681;
+    right_vol = (vin_sel_vol_ctrl & 0x7) * 312;
+    left_vol = ((vin_sel_vol_ctrl & 0x70) >> 4) * 312;
 }
 
 uint8_t apu_read_nr51(void)
