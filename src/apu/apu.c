@@ -53,6 +53,7 @@ static void apu_frame_sequencer_cb(unsigned int clock)
             ch2_lengt_counter();
             break;
         case 7:
+            ch2_volume_envelope();
             break;
     }
 }
@@ -288,8 +289,8 @@ uint8_t apu_read_nr50(void)
 void apu_write_nr50(uint8_t val)
 {
     vin_sel_vol_ctrl = val;
-    left_vol = (vin_sel_vol_ctrl & 0x7) * 4681;
-    right_vol = ((vin_sel_vol_ctrl & 0x70) >> 4) * 4681;
+    right_vol = (vin_sel_vol_ctrl & 0x7) * 4681;
+    left_vol = ((vin_sel_vol_ctrl & 0x70) >> 4) * 4681;
 }
 
 uint8_t apu_read_nr51(void)

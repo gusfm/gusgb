@@ -9,7 +9,10 @@ static unsigned int length_counter;
 static uint16_t frequency;
 static uint8_t status;
 static int timer;
-static int16_t volume;
+static uint8_t env_volume;
+static uint8_t env_direction;
+static uint8_t env_period;
+static int env_count;
 
 extern uint8_t sound_enable;
 extern uint8_t ch_out_sel;
@@ -32,7 +35,10 @@ void ch2_reset(void)
     status = 0;
     length_en = 0;
     timer = 0;
-    volume = 0x7fff;
+    env_volume = 0;
+    env_direction = 0;
+    env_period = 0;
+    env_count = 0;
 }
 
 uint8_t ch2_read_reg1(void)
@@ -48,12 +54,15 @@ void ch2_write_reg1(uint8_t val)
 
 uint8_t ch2_read_reg2(void)
 {
-    return 0;
+    return (env_volume << 4) | (env_direction << 3) | env_period;
 }
 
 void ch2_write_reg2(uint8_t val)
 {
-    (void)val;
+    env_volume = (val & 0xf0) >> 4;
+    env_direction = (val & 0x8) >> 3;
+    env_period = val & 0x7;
+    env_count = env_period;
 }
 
 uint8_t ch2_read_reg3(void)
@@ -83,7 +92,6 @@ void ch2_write_reg4(uint8_t val)
     length_en = (val & 0x40) != 0;
     frequency = ((val & 0x7) << 8) | (frequency & 0xff);
     timer = (2048 - frequency) * 4;
-    volume = 0x7fff;
     wave_ptr = 0;
     if (status && length_counter == 0) {
         length_counter = 64;
@@ -100,6 +108,22 @@ void ch2_lengt_counter(void)
     }
 }
 
+void ch2_volume_envelope(void)
+{
+    if (env_period > 0 && --env_count <= 0) {
+        env_count = env_period;
+        if (env_direction) {
+            if (env_volume < 0xf) {
+                ++env_volume;
+            }
+        } else {
+            if (env_volume > 0) {
+                --env_volume;
+            }
+        }
+    }
+}
+
 void ch2_output(int16_t *out_buf)
 {
     int16_t val;
@@ -108,8 +132,19 @@ void ch2_output(int16_t *out_buf)
     } else {
         val = 0;
     }
-    out_buf[0] = ch_out_sel & 0x2 ? val * left_vol : 0;
-    out_buf[1] = ch_out_sel & 0x20 ? val * right_vol : 0;
+    int16_t left, right;
+    if (env_volume && (ch_out_sel & 0x2)) {
+        left = val * left_vol / 15 * env_volume;
+    } else {
+        left = 0;
+    }
+    if (env_volume && (ch_out_sel & 0x20)) {
+        right = val * right_vol / 15 * env_volume;
+    } else {
+        right = 0;
+    }
+    out_buf[0] = left;
+    out_buf[1] = right;
 }
 
 void ch2_tick(unsigned int clock_step)
