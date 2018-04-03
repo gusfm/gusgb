@@ -14,11 +14,11 @@ static uint8_t env_direction;
 static uint8_t env_period;
 static int env_count;
 
-static uint8_t duty_table[4] = {
-    0x01, /* 00000001: 12.5% */
-    0x81, /* 10000001: 25% */
-    0x87, /* 10000111: 50% */
-    0x7e  /* 01111110: 75% */
+static uint8_t duty_table[4][8] = {
+    {0, 0, 0, 0, 0, 0, 0, 1}, /* 12.5% */
+    {1, 0, 0, 0, 0, 0, 0, 1}, /* 25% */
+    {1, 0, 0, 0, 0, 1, 1, 1}, /* 50% */
+    {0, 1, 1, 1, 1, 1, 1, 0}  /* 75% */
 };
 
 void ch2_reset(void)
@@ -121,12 +121,7 @@ void ch2_volume_envelope(void)
 
 int16_t ch2_output(void)
 {
-    int16_t val;
-    if (status) {
-        val = (duty_table[wave_duty] & (1 << wave_ptr)) >> wave_ptr;
-    } else {
-        val = 0;
-    }
+    int16_t val = status & duty_table[wave_duty][wave_ptr];
     return val * env_volume;
 }
 
