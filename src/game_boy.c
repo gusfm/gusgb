@@ -138,8 +138,8 @@ static SDL_Window *sdl_init(const char *name, int width, int height,
     desired.freq = AUDIO_SAMPLE_RATE;
     desired.format = AUDIO_S16SYS;
     desired.channels = 2;
-    desired.samples = 1024;
-    desired.callback = apu_sdl_cb;
+    desired.samples = AUDIO_SAMPLE_SIZE;
+    desired.callback = NULL;
     if (SDL_OpenAudio(&desired, NULL) != 0) {
         return NULL;
     }

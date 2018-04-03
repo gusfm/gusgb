@@ -17,18 +17,9 @@ uint8_t sound_enable;
 /*** Internal data ***/
 static int16_t left_vol;  /* left volume: 0 - 32767 */
 static int16_t right_vol; /* right volume: 0 - 32767 */
-static int16_t ch2_out_buf[2048];
+static int16_t ch2_out_buf[AUDIO_SAMPLE_SIZE];
 static apu_timer_t frame_sequencer = {0};
 static apu_timer_t output_timer = {0};
-
-void apu_sdl_cb(void *userdata, uint8_t *stream, int len)
-{
-    (void)userdata;
-    (void)stream;
-    (void)len;
-    int ptr = output_timer.out_clock < 1024 ? 0 : 1024;
-    memcpy(stream, &ch2_out_buf[ptr], 1024);
-}
 
 static void apu_frame_sequencer_cb(unsigned int clock)
 {
@@ -63,8 +54,16 @@ static void apu_output_timer_cb(unsigned int clock)
     int16_t left, right;
     left = sound_enable && (ch_out_sel & 0x2) ? ch2 * left_vol : 0;
     right = sound_enable && (ch_out_sel & 0x20) ? ch2 * right_vol : 0;
-    ch2_out_buf[clock] = left;
-    ch2_out_buf[clock + 1] = right;
+    ch2_out_buf[clock++] = left;
+    ch2_out_buf[clock++] = right;
+    if (clock == AUDIO_SAMPLE_SIZE) {
+        /* Delay while there's samples in the audio queue */
+        while (SDL_GetQueuedAudioSize(1) >
+               AUDIO_SAMPLE_SIZE * sizeof(int16_t)) {
+            SDL_Delay(1);
+        }
+        SDL_QueueAudio(1, ch2_out_buf, AUDIO_SAMPLE_SIZE * sizeof(int16_t));
+    }
 }
 
 void apu_reset(void)
@@ -73,7 +72,7 @@ void apu_reset(void)
     right_vol = 0;
     memset(ch2_out_buf, 0, sizeof(ch2_out_buf));
     apu_timer_init(&frame_sequencer, 8192, 1, 0x7, apu_frame_sequencer_cb);
-    apu_timer_init(&output_timer, 87, 2, 0x7ff, apu_output_timer_cb);
+    apu_timer_init(&output_timer, 87, 2, 0x3ff, apu_output_timer_cb);
     ch2_reset();
     apu_write_nr10(0x80);
     apu_write_nr11(0xbf);

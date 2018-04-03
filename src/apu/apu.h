@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #define AUDIO_SAMPLE_RATE 48000
+#define AUDIO_SAMPLE_SIZE 1024
 
-void apu_sdl_cb(void *userdata, uint8_t *stream, int len);
 void apu_reset(void);
 void apu_tick(unsigned int clock_step);
 
