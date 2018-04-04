@@ -25,7 +25,7 @@ add_library(gusgb_obj OBJECT
     src/gpu.c
     src/keys.c
     src/apu/timer.c
-    src/apu/ch2.c
+    src/apu/sqr_ch.c
     src/apu/apu.c
     src/mmu.c
     src/cpu_utils.c
