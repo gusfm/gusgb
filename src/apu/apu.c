@@ -4,7 +4,7 @@
 #include "apu/timer.h"
 
 /*** Registers ***/
-static uint8_t nr10, nr11, nr12, nr13, nr14;
+static uint8_t nr10; /* TODO */
 static uint8_t nr30, nr31, nr32, nr33, nr34;
 static uint8_t nr41, nr42, nr43, nr44;
 /* 0xff24 (NR50): Vin sel and L/R Volume control (R/W) */
@@ -20,47 +20,73 @@ static int16_t right_vol; /* right volume: 0 - 32767 */
 static int16_t out_buf[AUDIO_SAMPLE_SIZE];
 static apu_timer_t frame_sequencer = {0};
 static apu_timer_t output_timer = {0};
+static sqr_ch_t channel1;
 static sqr_ch_t channel2;
 
 static void apu_frame_sequencer_cb(unsigned int clock)
 {
     switch (clock & 0x7) {
         case 0:
+            sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             break;
         case 1:
             break;
         case 2:
+            sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             break;
         case 3:
             break;
         case 4:
+            sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             break;
         case 5:
             break;
         case 6:
+            sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             break;
         case 7:
+            sqr_ch_volume_envelope(&channel1);
             sqr_ch_volume_envelope(&channel2);
             break;
     }
 }
 
+static int16_t get_right_channel(int16_t ch1, int16_t ch2)
+{
+    int out = 0;
+    if (sound_enable) {
+        int a = ch_out_sel & 0x10 ? ch1 * right_vol : 0;
+        int b = ch_out_sel & 0x20 ? ch2 * right_vol : 0;
+        out = a + b - (a * b) / 0x7fff;
+    }
+    return out;
+}
+
+static int16_t get_left_channel(int16_t ch1, int16_t ch2)
+{
+    int out = 0;
+    if (sound_enable) {
+        int a = ch_out_sel & 0x1 ? ch1 * left_vol : 0;
+        int b = ch_out_sel & 0x2 ? ch2 * left_vol : 0;
+        out = a + b - (a * b) / 0x7fff;
+    }
+    return out;
+}
+
 static void apu_output_timer_cb(unsigned int clock)
 {
+    int16_t ch1 = sqr_ch_output(&channel1);
     int16_t ch2 = sqr_ch_output(&channel2);
-    int16_t left, right;
-    left = sound_enable && (ch_out_sel & 0x2) ? ch2 * left_vol : 0;
-    right = sound_enable && (ch_out_sel & 0x20) ? ch2 * right_vol : 0;
-    out_buf[clock++] = left;
-    out_buf[clock++] = right;
+    out_buf[clock++] = get_left_channel(ch1, ch2);
+    out_buf[clock++] = get_right_channel(ch1, ch2);
     if (clock == AUDIO_SAMPLE_SIZE) {
         /* Delay while there's samples in the audio queue */
         while (SDL_GetQueuedAudioSize(1) >
-               AUDIO_SAMPLE_SIZE * sizeof(int16_t)) {
+                AUDIO_SAMPLE_SIZE * sizeof(int16_t)) {
             SDL_Delay(1);
         }
         SDL_QueueAudio(1, out_buf, AUDIO_SAMPLE_SIZE * sizeof(int16_t));
@@ -74,6 +100,7 @@ void apu_reset(void)
     memset(out_buf, 0, sizeof(out_buf));
     apu_timer_init(&frame_sequencer, 8192, 1, 0x7, apu_frame_sequencer_cb);
     apu_timer_init(&output_timer, 87, 2, 0x3ff, apu_output_timer_cb);
+    sqr_ch_reset(&channel1);
     sqr_ch_reset(&channel2);
     apu_write_nr10(0x80);
     apu_write_nr11(0xbf);
@@ -102,6 +129,7 @@ void apu_tick(unsigned int clock_step)
 {
     apu_timer_tick(&frame_sequencer, clock_step);
     apu_timer_tick(&output_timer, clock_step);
+    sqr_ch_tick(&channel1, clock_step);
     sqr_ch_tick(&channel2, clock_step);
 }
 
@@ -117,42 +145,42 @@ void apu_write_nr10(uint8_t val)
 
 uint8_t apu_read_nr11(void)
 {
-    return nr11;
+    return sqr_ch_read_reg1(&channel1);
 }
 
 void apu_write_nr11(uint8_t val)
 {
-    nr11 = val;
+    sqr_ch_write_reg1(&channel1, val);
 }
 
 uint8_t apu_read_nr12(void)
 {
-    return nr12;
+    return sqr_ch_read_reg2(&channel1);
 }
 
 void apu_write_nr12(uint8_t val)
 {
-    nr12 = val;
+    sqr_ch_write_reg2(&channel1, val);
 }
 
 uint8_t apu_read_nr13(void)
 {
-    return nr13;
+    return sqr_ch_read_reg3(&channel1);
 }
 
 void apu_write_nr13(uint8_t val)
 {
-    nr13 = val;
+    sqr_ch_write_reg3(&channel1, val);
 }
 
 uint8_t apu_read_nr14(void)
 {
-    return nr14;
+    return sqr_ch_read_reg4(&channel1);
 }
 
 void apu_write_nr14(uint8_t val)
 {
-    nr14 = val;
+    sqr_ch_write_reg4(&channel1, val);
 }
 
 uint8_t apu_read_nr21(void)
@@ -309,7 +337,7 @@ void apu_write_nr51(uint8_t val)
 
 uint8_t apu_read_nr52(void)
 {
-    return sound_enable | (sqr_ch_status(&channel2) << 1);
+    return sound_enable | (sqr_ch_status(&channel2) << 1) | sqr_ch_status(&channel1);
 }
 
 void apu_write_nr52(uint8_t val)
