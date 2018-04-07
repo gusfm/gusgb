@@ -3,7 +3,8 @@ project(gusgb C)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
-find_package(SDL2 REQUIRED)
+include(FindPkgConfig)
+pkg_search_module(SDL2 REQUIRED sdl2)
 include_directories(${SDL2_INCLUDE_DIRS})
 
 SET (WARNINGS "-Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wnested-externs -Winline -Wno-long-long -Wuninitialized -Wstrict-prototypes")
