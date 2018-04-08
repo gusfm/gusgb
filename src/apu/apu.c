@@ -4,7 +4,6 @@
 #include "apu/timer.h"
 
 /*** Registers ***/
-static uint8_t nr10; /* TODO */
 static uint8_t nr30, nr31, nr32, nr33, nr34;
 static uint8_t nr41, nr42, nr43, nr44;
 /* 0xff24 (NR50): Vin sel and L/R Volume control (R/W) */
@@ -18,7 +17,7 @@ uint8_t sound_enable;
 static int16_t left_vol;  /* left volume: 0 - 32767 */
 static int16_t right_vol; /* right volume: 0 - 32767 */
 static int16_t out_buf[AUDIO_SAMPLE_SIZE];
-static apu_timer_t frame_sequencer = {0};
+apu_timer_t frame_sequencer = {0};
 static apu_timer_t output_timer = {0};
 static sqr_ch_t channel1;
 static sqr_ch_t channel2;
@@ -33,6 +32,7 @@ static void apu_frame_sequencer_cb(unsigned int clock)
         case 1:
             break;
         case 2:
+            sqr_ch_sweep(&channel1);
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             break;
@@ -45,6 +45,7 @@ static void apu_frame_sequencer_cb(unsigned int clock)
         case 5:
             break;
         case 6:
+            sqr_ch_sweep(&channel1);
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             break;
@@ -57,22 +58,26 @@ static void apu_frame_sequencer_cb(unsigned int clock)
 
 static int16_t get_right_channel(int16_t ch1, int16_t ch2)
 {
-    int out = 0;
+    int out;
     if (sound_enable) {
         int a = ch_out_sel & 0x10 ? ch1 * right_vol : 0;
         int b = ch_out_sel & 0x20 ? ch2 * right_vol : 0;
         out = a + b - (a * b) / 0x7fff;
+    } else {
+        out = 0;
     }
     return out;
 }
 
 static int16_t get_left_channel(int16_t ch1, int16_t ch2)
 {
-    int out = 0;
+    int out;
     if (sound_enable) {
         int a = ch_out_sel & 0x1 ? ch1 * left_vol : 0;
         int b = ch_out_sel & 0x2 ? ch2 * left_vol : 0;
         out = a + b - (a * b) / 0x7fff;
+    } else {
+        out = 0;
     }
     return out;
 }
@@ -135,12 +140,12 @@ void apu_tick(unsigned int clock_step)
 
 uint8_t apu_read_nr10(void)
 {
-    return nr10;
+    return sqr_ch_read_reg0(&channel1);
 }
 
 void apu_write_nr10(uint8_t val)
 {
-    nr10 = val;
+    sqr_ch_write_reg0(&channel1, val);
 }
 
 uint8_t apu_read_nr11(void)
