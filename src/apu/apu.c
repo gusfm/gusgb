@@ -342,12 +342,18 @@ void apu_write_nr51(uint8_t val)
 
 uint8_t apu_read_nr52(void)
 {
-    return sound_enable | (sqr_ch_status(&channel2) << 1) | sqr_ch_status(&channel1);
+    return sound_enable | 0x70 | (sqr_ch_status(&channel2) << 1) | sqr_ch_status(&channel1);
 }
 
 void apu_write_nr52(uint8_t val)
 {
-    sound_enable = 0xf0 & val;
+    uint8_t old_enable = sound_enable;
+    sound_enable = 0x80 & val;
+    if (!old_enable && sound_enable) {
+        /* Reset frame sequencer when enabling master sound */
+        frame_sequencer.in_clock = 0;
+        frame_sequencer.out_clock = 0;
+    }
 }
 
 uint8_t apu_read_wave(uint8_t addr)
