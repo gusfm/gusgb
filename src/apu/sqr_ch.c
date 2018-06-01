@@ -2,6 +2,8 @@
 #include <string.h>
 #include "apu/timer.h"
 
+extern apu_timer_t frame_sequencer;
+
 static uint8_t duty_table[4][8] = {
     {0, 0, 0, 0, 0, 0, 0, 1}, /* 12.5% */
     {1, 0, 0, 0, 0, 0, 0, 1}, /* 25% */
@@ -93,8 +95,13 @@ static void sqr_ch_trigger(sqr_ch_t *c)
     /* Only enable output if DAC is enabled. */
     if (c->env_volume | c->env_direction)
         c->status = 1;
-    if (c->length_counter == 0)
-        c->length_counter = 64;
+    if (c->length_counter == 0) {
+        if (frame_sequencer.out_clock & 1 && c->length_en) {
+            c->length_counter = 63;
+        } else {
+            c->length_counter = 64;
+        }
+    }
     c->timer = (2048 - c->frequency) * 4;
     c->wave_ptr = 0;
     c->sweep_frequency = c->frequency;
@@ -103,8 +110,6 @@ static void sqr_ch_trigger(sqr_ch_t *c)
         calc_sweep_freq(c);
     }
 }
-
-extern apu_timer_t frame_sequencer;
 
 void sqr_ch_write_reg4(sqr_ch_t *c, uint8_t val)
 {
