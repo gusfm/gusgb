@@ -18,14 +18,18 @@ void sqr_ch_reset(sqr_ch_t *c)
 
 uint8_t sqr_ch_read_reg0(sqr_ch_t *c)
 {
-    return (c->sweep_period << 4) | (c->sweep_negate << 3) | c->sweep_shift;
+    return (c->sweep.period << 4) | (c->sweep.negate << 3) | c->sweep.shift;
 }
 
 void sqr_ch_write_reg0(sqr_ch_t *c, uint8_t val)
 {
-    c->sweep_period = (val & 0x70) >> 4;
-    c->sweep_negate = (val & 0x8) >> 3;
-    c->sweep_shift = val & 0x7;
+    c->sweep.period = (val & 0x70) >> 4;
+    c->sweep.negate = (val & 0x8) >> 3;
+    c->sweep.shift = val & 0x7;
+    if (c->sweep.neg_calc && !c->sweep.negate) {
+        c->status = 0;
+        c->sweep.neg_calc = 0;
+    }
 }
 
 uint8_t sqr_ch_read_reg1(sqr_ch_t *c)
@@ -79,16 +83,29 @@ uint8_t sqr_ch_status(sqr_ch_t *c)
     return c->status;
 }
 
-static unsigned int calc_sweep_freq(sqr_ch_t *c)
+static unsigned int sweep_calc(sqr_ch_t *c)
 {
-    unsigned int freq_tmp = (c->sweep_frequency >> c->sweep_shift);
-    if (c->sweep_negate)
-        freq_tmp = c->sweep_frequency - freq_tmp;
-    else
-        freq_tmp = c->sweep_frequency + freq_tmp;
-    if (freq_tmp > 2047)
+    unsigned int freq = (c->sweep.frequency >> c->sweep.shift);
+    if (c->sweep.negate) {
+        freq = c->sweep.frequency - freq;
+        c->sweep.neg_calc = true;
+    } else {
+        freq = c->sweep.frequency + freq;
+    }
+    if (freq > 2047)
         c->status = 0;
-    return freq_tmp;
+    return freq;
+}
+
+static void sqr_ch_sweep_init(sqr_ch_t *c)
+{
+    c->sweep.neg_calc = false;
+    c->sweep.frequency = c->frequency;
+    c->sweep.period_tmp = (c->sweep.period == 0) ? 8 : c->sweep.period;
+    c->sweep.enabled = (c->sweep.period | c->sweep.shift) ? 1 : 0;
+    if (c->sweep.shift > 0) {
+        sweep_calc(c);
+    }
 }
 
 static void sqr_ch_trigger(sqr_ch_t *c)
@@ -105,11 +122,7 @@ static void sqr_ch_trigger(sqr_ch_t *c)
     }
     c->timer = (2048 - c->frequency) * 4;
     c->wave_ptr = 0;
-    c->sweep_frequency = c->frequency;
-    c->sweep_enabled = (c->sweep_period | c->sweep_shift) ? 1 : 0;
-    if (c->sweep_shift > 0) {
-        calc_sweep_freq(c);
-    }
+    sqr_ch_sweep_init(c);
 }
 
 void sqr_ch_write_reg4(sqr_ch_t *c, uint8_t val)
@@ -127,14 +140,16 @@ void sqr_ch_write_reg4(sqr_ch_t *c, uint8_t val)
 
 void sqr_ch_sweep(sqr_ch_t *c)
 {
-    if (c->sweep_enabled && c->sweep_period > 0) {
-        unsigned int freq = calc_sweep_freq(c);
-        if (freq <= 2047 && c->sweep_shift > 0) {
-            c->frequency = freq;
-            c->sweep_frequency = freq;
-            calc_sweep_freq(c);
+    if (--c->sweep.period_tmp <= 0) {
+        c->sweep.period_tmp = c->sweep.period == 0 ? 8 : c->sweep.period;
+        if (c->sweep.enabled && c->sweep.period > 0) {
+            unsigned int freq = sweep_calc(c);
+            if (freq <= 2047 && c->sweep.shift > 0) {
+                c->frequency = freq;
+                c->sweep.frequency = freq;
+                sweep_calc(c);
+            }
         }
-        calc_sweep_freq(c);
     }
 }
 

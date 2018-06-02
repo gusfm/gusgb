@@ -4,6 +4,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+struct sweep {
+    unsigned int period;
+    unsigned int period_tmp;
+    unsigned int negate;
+    unsigned int shift;
+    unsigned int enabled;
+    unsigned int frequency;
+    bool neg_calc;
+};
+
 typedef struct {
     unsigned int wave_duty;
     unsigned int wave_ptr;
@@ -16,11 +26,7 @@ typedef struct {
     unsigned int env_direction;
     unsigned int env_period;
     int env_count;
-    unsigned int sweep_period;
-    unsigned int sweep_negate;
-    unsigned int sweep_shift;
-    unsigned int sweep_enabled;
-    unsigned int sweep_frequency;
+    struct sweep sweep;
 } sqr_ch_t;
 
 void sqr_ch_reset(sqr_ch_t *c);
