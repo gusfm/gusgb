@@ -83,8 +83,9 @@ static unsigned int calc_sweep_freq(sqr_ch_t *c)
 {
     unsigned int freq_tmp = (c->sweep_frequency >> c->sweep_shift);
     if (c->sweep_negate)
-        freq_tmp = ~freq_tmp;
-    freq_tmp += c->sweep_frequency;
+        freq_tmp = c->sweep_frequency - freq_tmp;
+    else
+        freq_tmp = c->sweep_frequency + freq_tmp;
     if (freq_tmp > 2047)
         c->status = 0;
     return freq_tmp;
@@ -128,11 +129,12 @@ void sqr_ch_sweep(sqr_ch_t *c)
 {
     if (c->sweep_enabled && c->sweep_period > 0) {
         unsigned int freq = calc_sweep_freq(c);
-        if (freq <= 2047) {
+        if (freq <= 2047 && c->sweep_shift > 0) {
             c->frequency = freq;
             c->sweep_frequency = freq;
-            freq = calc_sweep_freq(c);
+            calc_sweep_freq(c);
         }
+        calc_sweep_freq(c);
     }
 }
 
