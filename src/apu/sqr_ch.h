@@ -3,6 +3,14 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "length_counter.h"
+
+struct volume_envelope {
+    unsigned int volume;
+    unsigned int direction;
+    unsigned int period;
+    int count;
+};
 
 struct sweep {
     unsigned int period;
@@ -17,15 +25,11 @@ struct sweep {
 typedef struct {
     unsigned int wave_duty;
     unsigned int wave_ptr;
-    bool length_en;
-    unsigned int length_counter;
     unsigned int frequency;
     bool status;
     int timer;
-    unsigned int env_volume;
-    unsigned int env_direction;
-    unsigned int env_period;
-    int env_count;
+    struct length_counter length;
+    struct volume_envelope env;
     struct sweep sweep;
 } sqr_ch_t;
 
