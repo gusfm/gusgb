@@ -2,9 +2,9 @@
 #include <SDL.h>
 #include "apu/sqr_ch.h"
 #include "apu/timer.h"
+#include "apu/wave_ch.h"
 
 /*** Registers ***/
-static uint8_t nr30, nr31, nr32, nr33, nr34;
 static uint8_t nr41, nr42, nr43, nr44;
 /* 0xff24 (NR50): Vin sel and L/R Volume control (R/W) */
 static uint8_t vin_sel_vol_ctrl;
@@ -21,6 +21,7 @@ apu_timer_t frame_sequencer = {0};
 static apu_timer_t output_timer = {0};
 static sqr_ch_t channel1;
 static sqr_ch_t channel2;
+static wave_ch_t channel3;
 
 static void apu_frame_sequencer_cb(unsigned int clock)
 {
@@ -28,6 +29,7 @@ static void apu_frame_sequencer_cb(unsigned int clock)
         case 0:
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
+            wave_ch_length_counter(&channel3);
             break;
         case 1:
             break;
@@ -35,12 +37,14 @@ static void apu_frame_sequencer_cb(unsigned int clock)
             sqr_ch_sweep(&channel1);
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
+            wave_ch_length_counter(&channel3);
             break;
         case 3:
             break;
         case 4:
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
+            wave_ch_length_counter(&channel3);
             break;
         case 5:
             break;
@@ -48,6 +52,7 @@ static void apu_frame_sequencer_cb(unsigned int clock)
             sqr_ch_sweep(&channel1);
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
+            wave_ch_length_counter(&channel3);
             break;
         case 7:
             sqr_ch_volume_envelope(&channel1);
@@ -91,7 +96,7 @@ static void apu_output_timer_cb(unsigned int clock)
     if (clock == AUDIO_SAMPLE_SIZE) {
         /* Delay while there's samples in the audio queue */
         while (SDL_GetQueuedAudioSize(1) >
-                AUDIO_SAMPLE_SIZE * sizeof(int16_t)) {
+               AUDIO_SAMPLE_SIZE * sizeof(int16_t)) {
             SDL_Delay(1);
         }
         SDL_QueueAudio(1, out_buf, AUDIO_SAMPLE_SIZE * sizeof(int16_t));
@@ -107,6 +112,7 @@ void apu_reset(void)
     apu_timer_init(&output_timer, 87, 2, 0x3ff, apu_output_timer_cb);
     sqr_ch_reset(&channel1);
     sqr_ch_reset(&channel2);
+    wave_ch_reset(&channel3);
     apu_write_nr10(0x80);
     apu_write_nr11(0xbf);
     apu_write_nr12(0xf3);
@@ -136,6 +142,7 @@ void apu_tick(unsigned int clock_step)
     apu_timer_tick(&output_timer, clock_step);
     sqr_ch_tick(&channel1, clock_step);
     sqr_ch_tick(&channel2, clock_step);
+    wave_ch_tick(&channel3, clock_step);
 }
 
 uint8_t apu_read_nr10(void)
@@ -230,52 +237,52 @@ void apu_write_nr24(uint8_t val)
 
 uint8_t apu_read_nr30(void)
 {
-    return nr30;
+    return wave_ch_read_reg0(&channel3);
 }
 
 void apu_write_nr30(uint8_t val)
 {
-    nr30 = val;
+    wave_ch_write_reg0(&channel3, val);
 }
 
 uint8_t apu_read_nr31(void)
 {
-    return nr31;
+    return wave_ch_read_reg1(&channel3);
 }
 
 void apu_write_nr31(uint8_t val)
 {
-    nr31 = val;
+    wave_ch_write_reg1(&channel3, val);
 }
 
 uint8_t apu_read_nr32(void)
 {
-    return nr32;
+    return wave_ch_read_reg2(&channel3);
 }
 
 void apu_write_nr32(uint8_t val)
 {
-    nr32 = val;
+    wave_ch_write_reg2(&channel3, val);
 }
 
 uint8_t apu_read_nr33(void)
 {
-    return nr33;
+    return wave_ch_read_reg3(&channel3);
 }
 
 void apu_write_nr33(uint8_t val)
 {
-    nr33 = val;
+    wave_ch_write_reg3(&channel3, val);
 }
 
 uint8_t apu_read_nr34(void)
 {
-    return nr34;
+    return wave_ch_read_reg4(&channel3);
 }
 
 void apu_write_nr34(uint8_t val)
 {
-    nr34 = val;
+    wave_ch_write_reg4(&channel3, val);
 }
 
 uint8_t apu_read_nr41(void)
@@ -342,7 +349,8 @@ void apu_write_nr51(uint8_t val)
 
 uint8_t apu_read_nr52(void)
 {
-    return sound_enable | 0x70 | (sqr_ch_status(&channel2) << 1) | sqr_ch_status(&channel1);
+    return sound_enable | 0x70 | (wave_ch_status(&channel3) << 2) |
+           (sqr_ch_status(&channel2) << 1) | sqr_ch_status(&channel1);
 }
 
 void apu_write_nr52(uint8_t val)
@@ -356,14 +364,12 @@ void apu_write_nr52(uint8_t val)
     }
 }
 
-uint8_t apu_read_wave(uint8_t addr)
+uint8_t apu_read_wave(int pos)
 {
-    (void)addr;
-    return 0xff;
+    return wave_ch_read_table(&channel3, pos);
 }
 
-void apu_write_wave(uint8_t addr, uint8_t val)
+void apu_write_wave(int pos, uint8_t val)
 {
-    (void)addr;
-    (void)val;
+    wave_ch_write_table(&channel3, pos, val);
 }

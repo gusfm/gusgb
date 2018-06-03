@@ -132,7 +132,7 @@ static uint8_t mmu_read_reg(uint16_t addr)
         case 0x3d:
         case 0x3e:
         case 0x3f:
-            return apu_read_wave(addr);
+            return apu_read_wave(addr & 0xf);
         case 0x40:
             return gpu_read_lcdc();
         case 0x41:
@@ -301,7 +301,7 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x3d:
         case 0x3e:
         case 0x3f:
-            apu_write_wave(addr, value);
+            apu_write_wave(addr & 0xf, value);
             break;
         case 0x40:
             gpu_write_lcdc(value);

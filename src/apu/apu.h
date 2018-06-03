@@ -30,7 +30,7 @@ uint8_t apu_read_nr44(void);
 uint8_t apu_read_nr50(void);
 uint8_t apu_read_nr51(void);
 uint8_t apu_read_nr52(void);
-uint8_t apu_read_wave(uint8_t addr);
+uint8_t apu_read_wave(int pos);
 
 void apu_write_nr10(uint8_t val);
 void apu_write_nr11(uint8_t val);
@@ -53,6 +53,6 @@ void apu_write_nr44(uint8_t val);
 void apu_write_nr50(uint8_t val);
 void apu_write_nr51(uint8_t val);
 void apu_write_nr52(uint8_t val);
-void apu_write_wave(uint8_t addr, uint8_t val);
+void apu_write_wave(int pos, uint8_t val);
 
 #endif /* APU_H */
