@@ -80,7 +80,7 @@ void sqr_ch_volume_envelope(sqr_ch_t *c)
             }
         } else {
             if (c->env.volume > 0) {
-                c->env.volume++;
+                c->env.volume--;
             }
         }
     }
