@@ -1,5 +1,8 @@
 #include "wave_ch.h"
 #include <string.h>
+#include "apu/timer.h"
+
+extern apu_timer_t frame_sequencer;
 
 void wave_ch_reset(wave_ch_t *c)
 {
@@ -91,15 +94,21 @@ uint8_t wave_ch_read_reg4(wave_ch_t *c)
 
 void wave_ch_write_reg4(wave_ch_t *c, uint8_t val)
 {
+    bool old_length_en = c->length.enabled;
     c->frequency = ((val & 0x7) << 8) | (c->frequency & 0xff);
     c->timer = (2048 - c->frequency) * 4;
     c->length.enabled = val & 0x40;
+    if (!old_length_en && frame_sequencer.out_clock & 1) {
+        wave_ch_length_counter(c);
+    }
     if (val & 0x80) {
         if (c->enabled)
             c->status = true;
         c->position = 0;
         if (c->length.counter == 0) {
             c->length.counter = 0x100;
+            if (frame_sequencer.out_clock & 1)
+                wave_ch_length_counter(c);
         }
     }
 }

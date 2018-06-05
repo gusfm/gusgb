@@ -164,11 +164,9 @@ static void sqr_ch_trigger(sqr_ch_t *c)
     if (c->env.volume | c->env.direction)
         c->status = 1;
     if (c->length.counter == 0) {
-        if (frame_sequencer.out_clock & 1 && c->length.enabled) {
-            c->length.counter = 63;
-        } else {
-            c->length.counter = 64;
-        }
+        c->length.counter = 64;
+        if (frame_sequencer.out_clock & 1)
+            sqr_ch_length_counter(c);
     }
     c->timer = (2048 - c->frequency) * 4;
     c->wave_ptr = 0;
@@ -179,7 +177,7 @@ void sqr_ch_write_reg4(sqr_ch_t *c, uint8_t val)
 {
     bool old_length_en = c->length.enabled;
     c->length.enabled = val & 0x40;
-    if (c->length.enabled && !old_length_en && frame_sequencer.out_clock & 1) {
+    if (!old_length_en && frame_sequencer.out_clock & 1) {
         sqr_ch_length_counter(c);
     }
     c->frequency = ((val & 0x7) << 8) | (c->frequency & 0xff);
