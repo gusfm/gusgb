@@ -66,13 +66,16 @@ static void apu_output_timer_cb(unsigned int clock)
     int left, right;
     int ch1 = sqr_ch_output(&channel1);
     int ch2 = sqr_ch_output(&channel2);
+    int ch3 = wave_ch_output(&channel3);
     if (sound_enable) {
         int lch1 = ch_out_sel & 0x1 ? ch1 : 0;
         int lch2 = ch_out_sel & 0x2 ? ch2 : 0;
+        int lch3 = ch_out_sel & 0x4 ? ch3 : 0;
         int rch1 = ch_out_sel & 0x10 ? ch1 : 0;
         int rch2 = ch_out_sel & 0x20 ? ch2 : 0;
-        left = (lch1 + lch2) * left_vol;
-        right = (rch1 + rch2) * right_vol;
+        int rch3 = ch_out_sel & 0x40 ? ch3 : 0;
+        left = (lch1 + lch2 + lch3) * left_vol;
+        right = (rch1 + rch2 + rch3) * right_vol;
     } else {
         left = 0;
         right = 0;
