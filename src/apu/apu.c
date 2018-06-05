@@ -61,38 +61,24 @@ static void apu_frame_sequencer_cb(unsigned int clock)
     }
 }
 
-static int16_t get_right_channel(int16_t ch1, int16_t ch2)
-{
-    int out;
-    if (sound_enable) {
-        int a = ch_out_sel & 0x10 ? ch1 * right_vol : 0;
-        int b = ch_out_sel & 0x20 ? ch2 * right_vol : 0;
-        out = a + b - (a * b) / 0x7fff;
-    } else {
-        out = 0;
-    }
-    return out;
-}
-
-static int16_t get_left_channel(int16_t ch1, int16_t ch2)
-{
-    int out;
-    if (sound_enable) {
-        int a = ch_out_sel & 0x1 ? ch1 * left_vol : 0;
-        int b = ch_out_sel & 0x2 ? ch2 * left_vol : 0;
-        out = a + b - (a * b) / 0x7fff;
-    } else {
-        out = 0;
-    }
-    return out;
-}
-
 static void apu_output_timer_cb(unsigned int clock)
 {
-    int16_t ch1 = sqr_ch_output(&channel1);
-    int16_t ch2 = sqr_ch_output(&channel2);
-    out_buf[clock++] = get_left_channel(ch1, ch2);
-    out_buf[clock++] = get_right_channel(ch1, ch2);
+    int left, right;
+    int ch1 = sqr_ch_output(&channel1);
+    int ch2 = sqr_ch_output(&channel2);
+    if (sound_enable) {
+        int lch1 = ch_out_sel & 0x1 ? ch1 : 0;
+        int lch2 = ch_out_sel & 0x2 ? ch2 : 0;
+        int rch1 = ch_out_sel & 0x10 ? ch1 : 0;
+        int rch2 = ch_out_sel & 0x20 ? ch2 : 0;
+        left = (lch1 + lch2) * left_vol;
+        right = (rch1 + rch2) * right_vol;
+    } else {
+        left = 0;
+        right = 0;
+    }
+    out_buf[clock++] = left;
+    out_buf[clock++] = right;
     if (clock == AUDIO_SAMPLE_SIZE) {
         /* Delay while there's samples in the audio queue */
         while (SDL_GetQueuedAudioSize(1) >
@@ -333,8 +319,8 @@ uint8_t apu_read_nr50(void)
 void apu_write_nr50(uint8_t val)
 {
     vin_sel_vol_ctrl = val;
-    right_vol = (vin_sel_vol_ctrl & 0x7) * 312;
-    left_vol = ((vin_sel_vol_ctrl & 0x70) >> 4) * 312;
+    right_vol = (vin_sel_vol_ctrl & 0x7) * 78;
+    left_vol = ((vin_sel_vol_ctrl & 0x70) >> 4) * 78;
 }
 
 uint8_t apu_read_nr51(void)
