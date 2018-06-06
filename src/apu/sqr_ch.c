@@ -30,9 +30,9 @@ uint8_t sqr_ch_status(sqr_ch_t *c)
     return c->status;
 }
 
-int16_t sqr_ch_output(sqr_ch_t *c)
+uint8_t sqr_ch_output(sqr_ch_t *c)
 {
-    int16_t val = c->status & duty_table[c->wave_duty][c->wave_ptr];
+    uint8_t val = c->status & duty_table[c->wave_duty][c->wave_ptr];
     return val * c->env.volume;
 }
 

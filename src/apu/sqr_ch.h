@@ -36,7 +36,7 @@ typedef struct {
 void sqr_ch_reset(sqr_ch_t *c);
 void sqr_ch_tick(sqr_ch_t *c, unsigned int clock_step);
 uint8_t sqr_ch_status(sqr_ch_t *c);
-int16_t sqr_ch_output(sqr_ch_t *c);
+uint8_t sqr_ch_output(sqr_ch_t *c);
 
 void sqr_ch_sweep(sqr_ch_t *c);
 void sqr_ch_length_counter(sqr_ch_t *c);

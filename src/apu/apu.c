@@ -322,8 +322,8 @@ uint8_t apu_read_nr50(void)
 void apu_write_nr50(uint8_t val)
 {
     vin_sel_vol_ctrl = val;
-    right_vol = (vin_sel_vol_ctrl & 0x7) * 78;
-    left_vol = ((vin_sel_vol_ctrl & 0x70) >> 4) * 78;
+    right_vol = ((vin_sel_vol_ctrl & 0x7) + 1) * 68;
+    left_vol = (((vin_sel_vol_ctrl & 0x70) >> 4) + 1) * 68;
 }
 
 uint8_t apu_read_nr51(void)

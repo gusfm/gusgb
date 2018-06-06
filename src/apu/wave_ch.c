@@ -32,7 +32,7 @@ uint8_t wave_ch_status(wave_ch_t *c)
     return c->status;
 }
 
-int16_t wave_ch_output(wave_ch_t *c)
+uint8_t wave_ch_output(wave_ch_t *c)
 {
     return c->out_volume;
 }
