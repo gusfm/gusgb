@@ -27,13 +27,15 @@ void sqr_ch_tick(sqr_ch_t *c, unsigned int clock_step)
 
 uint8_t sqr_ch_status(sqr_ch_t *c)
 {
-    return c->status;
+    return c->enabled;
 }
 
-uint8_t sqr_ch_output(sqr_ch_t *c)
+int sqr_ch_output(sqr_ch_t *c)
 {
-    uint8_t val = c->status & duty_table[c->wave_duty][c->wave_ptr];
-    return val * c->env.volume;
+    if (c->enabled)
+        return duty_table[c->wave_duty][c->wave_ptr] * c->env.volume - 8;
+    else
+        return 0;
 }
 
 static unsigned int sweep_calc(sqr_ch_t *c)
@@ -46,7 +48,7 @@ static unsigned int sweep_calc(sqr_ch_t *c)
         freq = c->sweep.frequency + freq;
     }
     if (freq > 2047)
-        c->status = 0;
+        c->enabled = 0;
     return freq;
 }
 
@@ -67,7 +69,7 @@ void sqr_ch_sweep(sqr_ch_t *c)
 
 void sqr_ch_length_counter(sqr_ch_t *c)
 {
-    length_counter_tick(&c->length, &c->status);
+    length_counter_tick(&c->length, &c->enabled);
 }
 
 void sqr_ch_volume_envelope(sqr_ch_t *c)
@@ -82,6 +84,8 @@ void sqr_ch_volume_envelope(sqr_ch_t *c)
             if (c->env.volume > 0) {
                 c->env.volume--;
             }
+            if (c->env.volume == 0)
+                c->enabled = 0;
         }
     }
 }
@@ -96,7 +100,7 @@ void sqr_ch_write_reg0(sqr_ch_t *c, uint8_t val)
     c->sweep.negate = (val & 0x8) >> 3;
     c->sweep.shift = val & 0x7;
     if (c->sweep.neg_calc && !c->sweep.negate) {
-        c->status = 0;
+        c->enabled = 0;
         c->sweep.neg_calc = 0;
     }
 }
@@ -126,7 +130,7 @@ void sqr_ch_write_reg2(sqr_ch_t *c, uint8_t val)
     /* Check if DAC is disabled */
     if (!(val & 0xf8)) {
         /* Disable channel output */
-        c->status = 0;
+        c->enabled = 0;
     }
 }
 
@@ -162,7 +166,7 @@ static void sqr_ch_trigger(sqr_ch_t *c)
 {
     /* Only enable output if DAC is enabled. */
     if (c->env.volume | c->env.direction)
-        c->status = 1;
+        c->enabled = 1;
     if (c->length.counter == 0) {
         c->length.counter = 64;
         if (frame_sequencer.out_clock & 1)

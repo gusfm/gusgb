@@ -15,7 +15,7 @@ void wave_ch_tick(wave_ch_t *c, unsigned int clock_step)
     if (c->timer <= 0) {
         c->timer += (2048 - c->frequency) * 4;
         c->position = (c->position + 1) & 0x1f;
-        if (c->enabled && c->status && c->volume) {
+        if (c->volume) {
             uint8_t out = c->table[c->position / 2];
             if (!(c->position & 1)) {
                 out >>= 4;
@@ -29,30 +29,32 @@ void wave_ch_tick(wave_ch_t *c, unsigned int clock_step)
 
 uint8_t wave_ch_status(wave_ch_t *c)
 {
-    return c->status;
+    return c->enabled;
 }
 
-uint8_t wave_ch_output(wave_ch_t *c)
+int wave_ch_output(wave_ch_t *c)
 {
-    return c->out_volume;
+    if (c->enabled)
+        return c->out_volume - 8;
+    else
+        return 0;
 }
 
 void wave_ch_length_counter(wave_ch_t *c)
 {
-    length_counter_tick(&c->length, &c->status);
+    length_counter_tick(&c->length, &c->enabled);
 }
 
 uint8_t wave_ch_read_reg0(wave_ch_t *c)
 {
-    return (c->enabled << 7) | 0x7f;
+    return (c->dac_enabled << 7) | 0x7f;
 }
 
 void wave_ch_write_reg0(wave_ch_t *c, uint8_t val)
 {
-    c->enabled = val >> 7;
-    if (!c->enabled) {
-        c->status = false;
-    }
+    c->dac_enabled = val >> 7;
+    if (!c->dac_enabled)
+        c->enabled = 0;
 }
 
 uint8_t wave_ch_read_reg1(wave_ch_t *c)
@@ -102,8 +104,8 @@ void wave_ch_write_reg4(wave_ch_t *c, uint8_t val)
         wave_ch_length_counter(c);
     }
     if (val & 0x80) {
-        if (c->enabled)
-            c->status = true;
+        if (c->dac_enabled)
+            c->enabled = 1;
         c->position = 0;
         if (c->length.counter == 0) {
             c->length.counter = 0x100;

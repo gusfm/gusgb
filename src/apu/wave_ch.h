@@ -10,7 +10,7 @@ typedef struct {
     int timer;
     int position;
     bool enabled;
-    bool status;
+    bool dac_enabled;
     uint8_t table[16];
     uint8_t sound_length;
     uint8_t volume;
@@ -21,7 +21,7 @@ typedef struct {
 void wave_ch_reset(wave_ch_t *c);
 void wave_ch_tick(wave_ch_t *c, unsigned int clock_step);
 uint8_t wave_ch_status(wave_ch_t *c);
-uint8_t wave_ch_output(wave_ch_t *c);
+int wave_ch_output(wave_ch_t *c);
 
 void wave_ch_length_counter(wave_ch_t *c);
 
