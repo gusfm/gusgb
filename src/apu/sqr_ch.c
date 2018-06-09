@@ -84,8 +84,6 @@ void sqr_ch_volume_envelope(sqr_ch_t *c)
             if (c->env.volume > 0) {
                 c->env.volume--;
             }
-            if (c->env.volume == 0)
-                c->enabled = 0;
         }
     }
 }
