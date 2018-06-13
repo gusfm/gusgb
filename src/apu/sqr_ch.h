@@ -4,13 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "length_counter.h"
-
-struct volume_envelope {
-    unsigned int volume;
-    unsigned int direction;
-    unsigned int period;
-    int count;
-};
+#include "volume_envelope.h"
 
 struct sweep {
     unsigned int period;
@@ -35,7 +29,7 @@ typedef struct {
 
 void sqr_ch_reset(sqr_ch_t *c);
 void sqr_ch_tick(sqr_ch_t *c, unsigned int clock_step);
-uint8_t sqr_ch_status(sqr_ch_t *c);
+bool sqr_ch_status(sqr_ch_t *c);
 int sqr_ch_output(sqr_ch_t *c);
 
 void sqr_ch_sweep(sqr_ch_t *c);

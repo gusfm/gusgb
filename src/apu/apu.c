@@ -1,17 +1,17 @@
 #include "apu/apu.h"
 #include <SDL.h>
+#include "apu/noise_ch.h"
 #include "apu/sqr_ch.h"
 #include "apu/timer.h"
 #include "apu/wave_ch.h"
 
 /*** Registers ***/
-static uint8_t nr41, nr42, nr43, nr44;
 /* 0xff24 (NR50): Vin sel and L/R Volume control (R/W) */
 static uint8_t vin_sel_vol_ctrl;
 /* 0xff25 (NR51): Selection of Sound output terminal (R/W) */
 uint8_t ch_out_sel;
 /* 0xff26 (NR52): Sound on/off */
-uint8_t sound_enable;
+uint8_t sound_enabled;
 
 /*** Internal data ***/
 static int16_t left_vol;  /* left volume: 0 - 32767 */
@@ -22,6 +22,7 @@ static apu_timer_t output_timer = {0};
 static sqr_ch_t channel1;
 static sqr_ch_t channel2;
 static wave_ch_t channel3;
+static noise_ch_t channel4;
 
 static void apu_frame_sequencer_cb(unsigned int clock)
 {
@@ -30,6 +31,7 @@ static void apu_frame_sequencer_cb(unsigned int clock)
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             wave_ch_length_counter(&channel3);
+            noise_ch_length_counter(&channel4);
             break;
         case 1:
             break;
@@ -38,6 +40,7 @@ static void apu_frame_sequencer_cb(unsigned int clock)
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             wave_ch_length_counter(&channel3);
+            noise_ch_length_counter(&channel4);
             break;
         case 3:
             break;
@@ -45,6 +48,7 @@ static void apu_frame_sequencer_cb(unsigned int clock)
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             wave_ch_length_counter(&channel3);
+            noise_ch_length_counter(&channel4);
             break;
         case 5:
             break;
@@ -53,10 +57,12 @@ static void apu_frame_sequencer_cb(unsigned int clock)
             sqr_ch_length_counter(&channel1);
             sqr_ch_length_counter(&channel2);
             wave_ch_length_counter(&channel3);
+            noise_ch_length_counter(&channel4);
             break;
         case 7:
             sqr_ch_volume_envelope(&channel1);
             sqr_ch_volume_envelope(&channel2);
+            noise_ch_volume_envelope(&channel4);
             break;
     }
 }
@@ -67,7 +73,7 @@ static void apu_output_timer_cb(unsigned int clock)
     int ch1 = sqr_ch_output(&channel1);
     int ch2 = sqr_ch_output(&channel2);
     int ch3 = wave_ch_output(&channel3);
-    if (sound_enable) {
+    if (sound_enabled) {
         int lch1 = ch_out_sel & 0x1 ? ch1 : 0;
         int lch2 = ch_out_sel & 0x2 ? ch2 : 0;
         int lch3 = ch_out_sel & 0x4 ? ch3 : 0;
@@ -102,20 +108,18 @@ void apu_reset(void)
     sqr_ch_reset(&channel1);
     sqr_ch_reset(&channel2);
     wave_ch_reset(&channel3);
+    noise_ch_reset(&channel4);
     apu_write_nr10(0x80);
     apu_write_nr11(0xbf);
     apu_write_nr12(0xf3);
-    // apu_write_nr13(0xff);
     apu_write_nr14(0xbf);
     apu_write_nr21(0x3f);
     apu_write_nr22(0x00);
-    // apu_write_nr23(0xff);
     apu_write_nr24(0xbf);
     apu_write_nr30(0x7f);
     apu_write_nr31(0xff);
     apu_write_nr32(0x9f);
     apu_write_nr33(0xbf);
-    // apu_write_nr34(0xff);
     apu_write_nr41(0xff);
     apu_write_nr42(0x00);
     apu_write_nr43(0x00);
@@ -132,6 +136,7 @@ void apu_tick(unsigned int clock_step)
     sqr_ch_tick(&channel1, clock_step);
     sqr_ch_tick(&channel2, clock_step);
     wave_ch_tick(&channel3, clock_step);
+    noise_ch_tick(&channel4, clock_step);
 }
 
 uint8_t apu_read_nr10(void)
@@ -141,7 +146,8 @@ uint8_t apu_read_nr10(void)
 
 void apu_write_nr10(uint8_t val)
 {
-    sqr_ch_write_reg0(&channel1, val);
+    if (sound_enabled)
+        sqr_ch_write_reg0(&channel1, val);
 }
 
 uint8_t apu_read_nr11(void)
@@ -151,7 +157,8 @@ uint8_t apu_read_nr11(void)
 
 void apu_write_nr11(uint8_t val)
 {
-    sqr_ch_write_reg1(&channel1, val);
+    if (sound_enabled)
+        sqr_ch_write_reg1(&channel1, val);
 }
 
 uint8_t apu_read_nr12(void)
@@ -161,7 +168,8 @@ uint8_t apu_read_nr12(void)
 
 void apu_write_nr12(uint8_t val)
 {
-    sqr_ch_write_reg2(&channel1, val);
+    if (sound_enabled)
+        sqr_ch_write_reg2(&channel1, val);
 }
 
 uint8_t apu_read_nr13(void)
@@ -171,7 +179,8 @@ uint8_t apu_read_nr13(void)
 
 void apu_write_nr13(uint8_t val)
 {
-    sqr_ch_write_reg3(&channel1, val);
+    if (sound_enabled)
+        sqr_ch_write_reg3(&channel1, val);
 }
 
 uint8_t apu_read_nr14(void)
@@ -181,7 +190,8 @@ uint8_t apu_read_nr14(void)
 
 void apu_write_nr14(uint8_t val)
 {
-    sqr_ch_write_reg4(&channel1, val);
+    if (sound_enabled)
+        sqr_ch_write_reg4(&channel1, val);
 }
 
 uint8_t apu_read_nr21(void)
@@ -191,7 +201,8 @@ uint8_t apu_read_nr21(void)
 
 void apu_write_nr21(uint8_t val)
 {
-    sqr_ch_write_reg1(&channel2, val);
+    if (sound_enabled)
+        sqr_ch_write_reg1(&channel2, val);
 }
 
 uint8_t apu_read_nr22(void)
@@ -201,7 +212,8 @@ uint8_t apu_read_nr22(void)
 
 void apu_write_nr22(uint8_t val)
 {
-    sqr_ch_write_reg2(&channel2, val);
+    if (sound_enabled)
+        sqr_ch_write_reg2(&channel2, val);
 }
 
 uint8_t apu_read_nr23(void)
@@ -211,7 +223,8 @@ uint8_t apu_read_nr23(void)
 
 void apu_write_nr23(uint8_t val)
 {
-    sqr_ch_write_reg3(&channel2, val);
+    if (sound_enabled)
+        sqr_ch_write_reg3(&channel2, val);
 }
 
 uint8_t apu_read_nr24(void)
@@ -221,7 +234,8 @@ uint8_t apu_read_nr24(void)
 
 void apu_write_nr24(uint8_t val)
 {
-    sqr_ch_write_reg4(&channel2, val);
+    if (sound_enabled)
+        sqr_ch_write_reg4(&channel2, val);
 }
 
 uint8_t apu_read_nr30(void)
@@ -231,7 +245,8 @@ uint8_t apu_read_nr30(void)
 
 void apu_write_nr30(uint8_t val)
 {
-    wave_ch_write_reg0(&channel3, val);
+    if (sound_enabled)
+        wave_ch_write_reg0(&channel3, val);
 }
 
 uint8_t apu_read_nr31(void)
@@ -241,7 +256,8 @@ uint8_t apu_read_nr31(void)
 
 void apu_write_nr31(uint8_t val)
 {
-    wave_ch_write_reg1(&channel3, val);
+    if (sound_enabled)
+        wave_ch_write_reg1(&channel3, val);
 }
 
 uint8_t apu_read_nr32(void)
@@ -251,7 +267,8 @@ uint8_t apu_read_nr32(void)
 
 void apu_write_nr32(uint8_t val)
 {
-    wave_ch_write_reg2(&channel3, val);
+    if (sound_enabled)
+        wave_ch_write_reg2(&channel3, val);
 }
 
 uint8_t apu_read_nr33(void)
@@ -261,7 +278,8 @@ uint8_t apu_read_nr33(void)
 
 void apu_write_nr33(uint8_t val)
 {
-    wave_ch_write_reg3(&channel3, val);
+    if (sound_enabled)
+        wave_ch_write_reg3(&channel3, val);
 }
 
 uint8_t apu_read_nr34(void)
@@ -271,47 +289,52 @@ uint8_t apu_read_nr34(void)
 
 void apu_write_nr34(uint8_t val)
 {
-    wave_ch_write_reg4(&channel3, val);
+    if (sound_enabled)
+        wave_ch_write_reg4(&channel3, val);
 }
 
 uint8_t apu_read_nr41(void)
 {
-    return nr41;
+    return noise_ch_read_reg1(&channel4);
 }
 
 void apu_write_nr41(uint8_t val)
 {
-    nr41 = val;
+    if (sound_enabled)
+        noise_ch_write_reg1(&channel4, val);
 }
 
 uint8_t apu_read_nr42(void)
 {
-    return nr42;
+    return noise_ch_read_reg2(&channel4);
 }
 
 void apu_write_nr42(uint8_t val)
 {
-    nr42 = val;
+    if (sound_enabled)
+        noise_ch_write_reg2(&channel4, val);
 }
 
 uint8_t apu_read_nr43(void)
 {
-    return nr43;
+    return noise_ch_read_reg3(&channel4);
 }
 
 void apu_write_nr43(uint8_t val)
 {
-    nr43 = val;
+    if (sound_enabled)
+        noise_ch_write_reg3(&channel4, val);
 }
 
 uint8_t apu_read_nr44(void)
 {
-    return nr44;
+    return noise_ch_read_reg4(&channel4);
 }
 
 void apu_write_nr44(uint8_t val)
 {
-    nr44 = val;
+    if (sound_enabled)
+        noise_ch_write_reg4(&channel4, val);
 }
 
 uint8_t apu_read_nr50(void)
@@ -321,9 +344,11 @@ uint8_t apu_read_nr50(void)
 
 void apu_write_nr50(uint8_t val)
 {
-    vin_sel_vol_ctrl = val;
-    right_vol = ((vin_sel_vol_ctrl & 7) + 1) * 128;
-    left_vol = (((vin_sel_vol_ctrl >> 4 ) & 7) + 1) * 128;
+    if (sound_enabled) {
+        vin_sel_vol_ctrl = val;
+        right_vol = ((vin_sel_vol_ctrl & 7) + 1) * 128;
+        left_vol = (((vin_sel_vol_ctrl >> 4) & 7) + 1) * 128;
+    }
 }
 
 uint8_t apu_read_nr51(void)
@@ -333,24 +358,58 @@ uint8_t apu_read_nr51(void)
 
 void apu_write_nr51(uint8_t val)
 {
-    ch_out_sel = val;
+    if (sound_enabled)
+        ch_out_sel = val;
 }
 
 uint8_t apu_read_nr52(void)
 {
-    return sound_enable | 0x70 | (wave_ch_status(&channel3) << 2) |
-           (sqr_ch_status(&channel2) << 1) | sqr_ch_status(&channel1);
+    uint8_t tmp;
+    if (sound_enabled) {
+        tmp = 0xf0 | (noise_ch_status(&channel4) << 3) |
+              (wave_ch_status(&channel3) << 2) |
+              (sqr_ch_status(&channel2) << 1) | sqr_ch_status(&channel1);
+    } else {
+        tmp = 0x70;
+    }
+    return tmp;
 }
 
 void apu_write_nr52(uint8_t val)
 {
-    uint8_t old_enable = sound_enable;
-    sound_enable = 0x80 & val;
-    if (!old_enable && sound_enable) {
-        /* Reset frame sequencer when enabling master sound */
-        frame_sequencer.in_clock = 0;
-        frame_sequencer.out_clock = 0;
+    uint8_t old_enable = sound_enabled;
+    uint8_t new_enable = 0x80 & val;
+    if (old_enable) {
+        if (!new_enable) {
+            apu_write_nr10(0);
+            apu_write_nr11(0);
+            apu_write_nr12(0);
+            apu_write_nr13(0);
+            apu_write_nr14(0);
+            apu_write_nr21(0);
+            apu_write_nr22(0);
+            apu_write_nr23(0);
+            apu_write_nr24(0);
+            apu_write_nr30(0);
+            apu_write_nr31(0);
+            apu_write_nr32(0);
+            apu_write_nr33(0);
+            apu_write_nr34(0);
+            apu_write_nr41(0);
+            apu_write_nr42(0);
+            apu_write_nr43(0);
+            apu_write_nr44(0);
+            apu_write_nr50(0);
+            apu_write_nr51(0);
+        }
+    } else {
+        if (new_enable) {
+            /* Reset frame sequencer when enabling master sound */
+            frame_sequencer.in_clock = 0;
+            frame_sequencer.out_clock = 0;
+        }
     }
+    sound_enabled = new_enable;
 }
 
 uint8_t apu_read_wave(int pos)

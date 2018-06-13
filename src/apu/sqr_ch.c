@@ -25,7 +25,7 @@ void sqr_ch_tick(sqr_ch_t *c, unsigned int clock_step)
     }
 }
 
-uint8_t sqr_ch_status(sqr_ch_t *c)
+bool sqr_ch_status(sqr_ch_t *c)
 {
     return c->enabled;
 }
@@ -89,13 +89,14 @@ void sqr_ch_volume_envelope(sqr_ch_t *c)
 }
 uint8_t sqr_ch_read_reg0(sqr_ch_t *c)
 {
-    return (c->sweep.period << 4) | (c->sweep.negate << 3) | c->sweep.shift;
+    return 0x80 | (c->sweep.period << 4) | (c->sweep.negate << 3) |
+           c->sweep.shift;
 }
 
 void sqr_ch_write_reg0(sqr_ch_t *c, uint8_t val)
 {
-    c->sweep.period = (val & 0x70) >> 4;
-    c->sweep.negate = (val & 0x8) >> 3;
+    c->sweep.period = val >> 4;
+    c->sweep.negate = (val >> 3) & 1;
     c->sweep.shift = val & 0x7;
     if (c->sweep.neg_calc && !c->sweep.negate) {
         c->enabled = 0;
@@ -177,7 +178,7 @@ static void sqr_ch_trigger(sqr_ch_t *c)
 
 void sqr_ch_write_reg4(sqr_ch_t *c, uint8_t val)
 {
-    bool old_length_en = c->length.enabled;
+    uint8_t old_length_en = c->length.enabled;
     c->length.enabled = val & 0x40;
     if (!old_length_en && frame_sequencer.out_clock & 1) {
         sqr_ch_length_counter(c);

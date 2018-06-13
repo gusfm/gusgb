@@ -29,6 +29,7 @@ add_library(gusgb_obj OBJECT
     src/apu/length_counter.c
     src/apu/sqr_ch.c
     src/apu/wave_ch.c
+    src/apu/noise_ch.c
     src/apu/apu.c
     src/mmu.c
     src/cpu_utils.c

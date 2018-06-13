@@ -2,10 +2,11 @@
 #define LENGTH_COUNTER_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 struct length_counter {
     unsigned int counter;
-    bool enabled;
+    uint8_t enabled;
 };
 
 void length_counter_tick(struct length_counter *lc, bool *output);
