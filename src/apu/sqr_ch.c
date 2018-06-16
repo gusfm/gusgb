@@ -48,7 +48,7 @@ static unsigned int sweep_calc(sqr_ch_t *c)
         freq = c->sweep.frequency + freq;
     }
     if (freq > 2047)
-        c->enabled = 0;
+        c->enabled = false;
     return freq;
 }
 
@@ -90,7 +90,7 @@ void sqr_ch_write_reg0(sqr_ch_t *c, uint8_t val)
     c->sweep.negate = (val >> 3) & 1;
     c->sweep.shift = val & 0x7;
     if (c->sweep.neg_calc && !c->sweep.negate) {
-        c->enabled = 0;
+        c->enabled = false;
         c->sweep.neg_calc = 0;
     }
 }
@@ -148,7 +148,7 @@ static void sqr_ch_trigger(sqr_ch_t *c)
 {
     /* Only enable output if DAC is enabled. */
     if (c->env.volume | c->env.direction)
-        c->enabled = 1;
+        c->enabled = true;
     if (c->length.counter == 0) {
         c->length.counter = 64;
         if (frame_sequencer.out_clock & 1)
