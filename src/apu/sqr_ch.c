@@ -74,19 +74,9 @@ void sqr_ch_length_counter(sqr_ch_t *c)
 
 void sqr_ch_volume_envelope(sqr_ch_t *c)
 {
-    if (c->env.period > 0 && --c->env.count <= 0) {
-        c->env.count = c->env.period;
-        if (c->env.direction) {
-            if (c->env.volume < 0xf) {
-                c->env.volume++;
-            }
-        } else {
-            if (c->env.volume > 0) {
-                c->env.volume--;
-            }
-        }
-    }
+    volume_envelope_tick(&c->env);
 }
+
 uint8_t sqr_ch_read_reg0(sqr_ch_t *c)
 {
     return 0x80 | (c->sweep.period << 4) | (c->sweep.negate << 3) |
@@ -117,20 +107,12 @@ void sqr_ch_write_reg1(sqr_ch_t *c, uint8_t val)
 
 uint8_t sqr_ch_read_reg2(sqr_ch_t *c)
 {
-    return (c->env.volume << 4) | (c->env.direction << 3) | c->env.period;
+    return volume_envelope_read(&c->env);
 }
 
 void sqr_ch_write_reg2(sqr_ch_t *c, uint8_t val)
 {
-    c->env.volume = (val & 0xf0) >> 4;
-    c->env.direction = (val & 0x8) >> 3;
-    c->env.period = val & 0x7;
-    c->env.count = c->env.period;
-    /* Check if DAC is disabled */
-    if (!(val & 0xf8)) {
-        /* Disable channel output */
-        c->enabled = 0;
-    }
+    volume_envelope_write(&c->env, val, &c->enabled);
 }
 
 uint8_t sqr_ch_read_reg3(sqr_ch_t *c)

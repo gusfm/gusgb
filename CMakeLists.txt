@@ -27,6 +27,7 @@ add_library(gusgb_obj OBJECT
     src/keys.c
     src/apu/timer.c
     src/apu/length_counter.c
+    src/apu/volume_envelope.c
     src/apu/sqr_ch.c
     src/apu/wave_ch.c
     src/apu/noise_ch.c
