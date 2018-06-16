@@ -74,7 +74,8 @@ void sqr_ch_length_counter(sqr_ch_t *c)
 
 void sqr_ch_volume_envelope(sqr_ch_t *c)
 {
-    volume_envelope_tick(&c->env);
+    if (c->enabled)
+        volume_envelope_tick(&c->env);
 }
 
 uint8_t sqr_ch_read_reg0(sqr_ch_t *c)

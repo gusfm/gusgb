@@ -33,7 +33,8 @@ void noise_ch_length_counter(noise_ch_t *c)
 
 void noise_ch_volume_envelope(noise_ch_t *c)
 {
-    volume_envelope_tick(&c->env);
+    if (c->enabled)
+        volume_envelope_tick(&c->env);
 }
 
 uint8_t noise_ch_read_reg1(noise_ch_t *c)
