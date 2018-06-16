@@ -4,6 +4,7 @@
 #include "apu/sqr_ch.h"
 #include "apu/timer.h"
 #include "apu/wave_ch.h"
+#include "cartridge/cart.h"
 
 /*** Registers ***/
 /* 0xff24 (NR50): Vin sel and L/R Volume control (R/W) */
@@ -24,40 +25,38 @@ static sqr_ch_t channel2;
 static wave_ch_t channel3;
 static noise_ch_t channel4;
 
+static void apu_length_counter(void)
+{
+    if (sound_enabled) {
+        sqr_ch_length_counter(&channel1);
+        sqr_ch_length_counter(&channel2);
+        wave_ch_length_counter(&channel3);
+        noise_ch_length_counter(&channel4);
+    }
+}
+
 static void apu_frame_sequencer_cb(unsigned int clock)
 {
     switch (clock & 0x7) {
         case 0:
-            sqr_ch_length_counter(&channel1);
-            sqr_ch_length_counter(&channel2);
-            wave_ch_length_counter(&channel3);
-            noise_ch_length_counter(&channel4);
+            apu_length_counter();
             break;
         case 1:
             break;
         case 2:
             sqr_ch_sweep(&channel1);
-            sqr_ch_length_counter(&channel1);
-            sqr_ch_length_counter(&channel2);
-            wave_ch_length_counter(&channel3);
-            noise_ch_length_counter(&channel4);
+            apu_length_counter();
             break;
         case 3:
             break;
         case 4:
-            sqr_ch_length_counter(&channel1);
-            sqr_ch_length_counter(&channel2);
-            wave_ch_length_counter(&channel3);
-            noise_ch_length_counter(&channel4);
+            apu_length_counter();
             break;
         case 5:
             break;
         case 6:
             sqr_ch_sweep(&channel1);
-            sqr_ch_length_counter(&channel1);
-            sqr_ch_length_counter(&channel2);
-            wave_ch_length_counter(&channel3);
-            noise_ch_length_counter(&channel4);
+            apu_length_counter();
             break;
         case 7:
             sqr_ch_volume_envelope(&channel1);
@@ -157,7 +156,7 @@ uint8_t apu_read_nr11(void)
 
 void apu_write_nr11(uint8_t val)
 {
-    if (sound_enabled)
+    if (sound_enabled || !cart_is_cgb())
         sqr_ch_write_reg1(&channel1, val);
 }
 
@@ -201,7 +200,7 @@ uint8_t apu_read_nr21(void)
 
 void apu_write_nr21(uint8_t val)
 {
-    if (sound_enabled)
+    if (sound_enabled || !cart_is_cgb())
         sqr_ch_write_reg1(&channel2, val);
 }
 
@@ -256,7 +255,7 @@ uint8_t apu_read_nr31(void)
 
 void apu_write_nr31(uint8_t val)
 {
-    if (sound_enabled)
+    if (sound_enabled || !cart_is_cgb())
         wave_ch_write_reg1(&channel3, val);
 }
 
@@ -300,7 +299,7 @@ uint8_t apu_read_nr41(void)
 
 void apu_write_nr41(uint8_t val)
 {
-    if (sound_enabled)
+    if (sound_enabled || !cart_is_cgb())
         noise_ch_write_reg1(&channel4, val);
 }
 
@@ -364,15 +363,9 @@ void apu_write_nr51(uint8_t val)
 
 uint8_t apu_read_nr52(void)
 {
-    uint8_t tmp;
-    if (sound_enabled) {
-        tmp = 0xf0 | (noise_ch_status(&channel4) << 3) |
-              (wave_ch_status(&channel3) << 2) |
-              (sqr_ch_status(&channel2) << 1) | sqr_ch_status(&channel1);
-    } else {
-        tmp = 0x70;
-    }
-    return tmp;
+    return sound_enabled | 0x70 | (noise_ch_status(&channel4) << 3) |
+           (wave_ch_status(&channel3) << 2) | (sqr_ch_status(&channel2) << 1) |
+           sqr_ch_status(&channel1);
 }
 
 void apu_write_nr52(uint8_t val)

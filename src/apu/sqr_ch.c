@@ -3,6 +3,7 @@
 #include "apu/timer.h"
 
 extern apu_timer_t frame_sequencer;
+extern uint8_t sound_enabled;
 
 static uint8_t duty_table[4][8] = {
     {0, 0, 0, 0, 0, 0, 0, 1}, /* 12.5% */
@@ -102,7 +103,8 @@ uint8_t sqr_ch_read_reg1(sqr_ch_t *c)
 
 void sqr_ch_write_reg1(sqr_ch_t *c, uint8_t val)
 {
-    c->wave_duty = val >> 6;
+    if (sound_enabled)
+        c->wave_duty = val >> 6;
     c->length.counter = 64 - (val & 0x3f);
 }
 
