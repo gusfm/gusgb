@@ -1,10 +1,10 @@
-#include "apu/apu.h"
-#include <SDL.h>
-#include "apu/noise_ch.h"
-#include "apu/sqr_ch.h"
-#include "apu/timer.h"
-#include "apu/wave_ch.h"
-#include "cartridge/cart.h"
+#include "apu.h"
+#include <SDL2/SDL.h>
+#include "../cartridge/cart.h"
+#include "noise_ch.h"
+#include "sqr_ch.h"
+#include "timer.h"
+#include "wave_ch.h"
 
 /*** Registers ***/
 /* 0xff24 (NR50): Vin sel and L/R Volume control (R/W) */

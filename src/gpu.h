@@ -1,7 +1,7 @@
 #ifndef GPU_H
 #define GPU_H
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
 

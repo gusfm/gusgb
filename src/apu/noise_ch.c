@@ -1,6 +1,6 @@
 #include "noise_ch.h"
 #include <string.h>
-#include "apu/timer.h"
+#include "timer.h"
 
 extern apu_timer_t frame_sequencer;
 

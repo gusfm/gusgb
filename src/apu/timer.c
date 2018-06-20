@@ -1,4 +1,4 @@
-#include "apu/timer.h"
+#include "timer.h"
 #include <stdlib.h>
 
 void apu_timer_init(apu_timer_t *t, unsigned int freq, unsigned int sum,
