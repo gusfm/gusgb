@@ -1,4 +1,7 @@
 *.swp
+*.o
+*.d
+gusgb
 build
 roms
 tags
