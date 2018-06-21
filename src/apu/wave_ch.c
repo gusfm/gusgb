@@ -16,7 +16,7 @@ void wave_ch_tick(wave_ch_t *c, unsigned int clock_step)
         c->timer += (2048 - c->frequency) * 4;
         c->position = (c->position + 1) & 0x1f;
         if (c->volume) {
-            uint8_t out = c->table[c->position / 2];
+            uint8_t out = c->wave_ram[c->position / 2];
             if (!(c->position & 1)) {
                 out >>= 4;
             }
@@ -118,10 +118,16 @@ void wave_ch_write_reg4(wave_ch_t *c, uint8_t val)
 
 uint8_t wave_ch_read_table(wave_ch_t *c, int pos)
 {
-    return c->table[pos];
+    if (c->enabled) {
+        pos = c->position / 2;
+    }
+    return c->wave_ram[pos];
 }
 
 void wave_ch_write_table(wave_ch_t *c, int pos, uint8_t val)
 {
-    c->table[pos] = val;
+    if (c->enabled) {
+        pos = c->position / 2;
+    }
+    c->wave_ram[pos] = val;
 }

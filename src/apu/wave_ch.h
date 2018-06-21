@@ -11,7 +11,7 @@ typedef struct {
     int position;
     bool enabled;
     bool dac_enabled;
-    uint8_t table[16];
+    uint8_t wave_ram[16];
     uint8_t sound_length;
     uint8_t volume;
     uint8_t out_volume;
