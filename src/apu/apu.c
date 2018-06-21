@@ -88,7 +88,7 @@ static void apu_output_timer_cb(unsigned int clock)
     out_buf[clock++] = left;
     out_buf[clock++] = right;
     if (clock == AUDIO_SAMPLE_SIZE) {
-        /* Delay while there's samples in the audio queue */
+        /* Delay while there are samples in the audio queue */
         while (SDL_GetQueuedAudioSize(1) >
                AUDIO_SAMPLE_SIZE * sizeof(int16_t)) {
             SDL_Delay(1);
