@@ -127,7 +127,6 @@ uint8_t sqr_ch_read_reg3(sqr_ch_t *c)
 void sqr_ch_write_reg3(sqr_ch_t *c, uint8_t val)
 {
     c->frequency = (c->frequency & 0x700) | val;
-    c->timer = (2048 - c->frequency) * 4;
 }
 
 uint8_t sqr_ch_read_reg4(sqr_ch_t *c)
