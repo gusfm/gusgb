@@ -114,7 +114,7 @@ void wave_ch_write_reg4(wave_ch_t *c, uint8_t val)
     }
 }
 
-uint8_t wave_ch_read_table(wave_ch_t *c, int pos)
+uint8_t wave_ram_read(wave_ch_t *c, int pos)
 {
     if (c->enabled) {
         pos = c->position / 2;
@@ -122,7 +122,7 @@ uint8_t wave_ch_read_table(wave_ch_t *c, int pos)
     return c->wave_ram[pos];
 }
 
-void wave_ch_write_table(wave_ch_t *c, int pos, uint8_t val)
+void wave_ram_write(wave_ch_t *c, int pos, uint8_t val)
 {
     if (c->enabled) {
         pos = c->position / 2;

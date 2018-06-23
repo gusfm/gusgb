@@ -409,10 +409,10 @@ void apu_write_nr52(uint8_t val)
 
 uint8_t apu_read_wave(int pos)
 {
-    return wave_ch_read_table(&channel3, pos);
+    return wave_ram_read(&channel3, pos);
 }
 
 void apu_write_wave(int pos, uint8_t val)
 {
-    wave_ch_write_table(&channel3, pos, val);
+    wave_ram_write(&channel3, pos, val);
 }

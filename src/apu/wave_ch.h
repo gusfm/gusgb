@@ -30,13 +30,13 @@ uint8_t wave_ch_read_reg1(wave_ch_t *c);
 uint8_t wave_ch_read_reg2(wave_ch_t *c);
 uint8_t wave_ch_read_reg3(wave_ch_t *c);
 uint8_t wave_ch_read_reg4(wave_ch_t *c);
-uint8_t wave_ch_read_table(wave_ch_t *c, int pos);
+uint8_t wave_ram_read(wave_ch_t *c, int pos);
 
 void wave_ch_write_reg0(wave_ch_t *c, uint8_t val);
 void wave_ch_write_reg1(wave_ch_t *c, uint8_t val);
 void wave_ch_write_reg2(wave_ch_t *c, uint8_t val);
 void wave_ch_write_reg3(wave_ch_t *c, uint8_t val);
 void wave_ch_write_reg4(wave_ch_t *c, uint8_t val);
-void wave_ch_write_table(wave_ch_t *c, int pos, uint8_t val);
+void wave_ram_write(wave_ch_t *c, int pos, uint8_t val);
 
 #endif /* WAVE_CH */
