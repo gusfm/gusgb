@@ -545,6 +545,7 @@ static void gpu_render_scanline(void)
         gpu_update_fb_sprite(scanline_row);
 }
 
+
 void gpu_render_framebuffer(void)
 {
     SDL_SetRenderDrawColor(GPU_GL.ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -553,6 +554,17 @@ void gpu_render_framebuffer(void)
     SDL_RenderCopy(GPU_GL.ren, GPU_GL.tex, NULL, NULL);
     SDL_RenderPresent(GPU_GL.ren);
     GPU_GL.cb();
+#ifdef FPS
+    static uint32_t frames;
+    static uint32_t last_time;
+    ++frames;
+    uint32_t time = SDL_GetTicks();
+    if (time >= last_time + 1000) {
+        printf("%u fps\n", frames);
+        frames = 0;
+        last_time = time;
+    }
+#endif
 }
 
 static void gpu_change_mode(gpu_mode_e new_mode)
