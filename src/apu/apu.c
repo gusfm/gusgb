@@ -132,10 +132,12 @@ void apu_tick(unsigned int clock_step)
 {
     apu_timer_tick(&frame_sequencer, clock_step);
     apu_timer_tick(&output_timer, clock_step);
-    sqr_ch_tick(&channel1, clock_step);
-    sqr_ch_tick(&channel2, clock_step);
-    wave_ch_tick(&channel3, clock_step);
-    noise_ch_tick(&channel4, clock_step);
+    for (unsigned int i = 0; i < clock_step; ++i) {
+        sqr_ch_tick(&channel1);
+        sqr_ch_tick(&channel2);
+        wave_ch_tick(&channel3);
+        noise_ch_tick(&channel4);
+    }
 }
 
 uint8_t apu_read_nr10(void)

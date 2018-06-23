@@ -9,7 +9,7 @@ void noise_ch_reset(noise_ch_t *c)
     memset(c, 0, sizeof(*c));
 }
 
-void noise_ch_tick(noise_ch_t *c, unsigned int clock_step)
+void noise_ch_tick(noise_ch_t *c)
 {
 }
 

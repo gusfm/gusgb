@@ -16,7 +16,7 @@ typedef struct {
 } noise_ch_t;
 
 void noise_ch_reset(noise_ch_t *c);
-void noise_ch_tick(noise_ch_t *c, unsigned int clock_step);
+void noise_ch_tick(noise_ch_t *c);
 bool noise_ch_status(noise_ch_t *c);
 int noise_ch_output(noise_ch_t *c);
 
