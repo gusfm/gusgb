@@ -147,8 +147,7 @@ static void sqr_ch_sweep_init(sqr_ch_t *c)
 
 static void sqr_ch_trigger(sqr_ch_t *c)
 {
-    /* Only enable output if DAC is enabled. */
-    if (c->env.volume | c->env.direction)
+    if (c->env.dac_enabled)
         c->enabled = true;
     if (c->length.counter == 0) {
         c->length.counter = 64;
@@ -157,6 +156,7 @@ static void sqr_ch_trigger(sqr_ch_t *c)
     }
     c->timer = 6 + (2048 - c->frequency) * 4;
     c->wave_ptr = 0;
+    volume_envelope_trigger(&c->env);
     sqr_ch_sweep_init(c);
 }
 

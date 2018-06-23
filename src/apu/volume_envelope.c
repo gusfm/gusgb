@@ -2,18 +2,17 @@
 
 uint8_t volume_envelope_read(struct volume_envelope *env)
 {
-    return (env->volume << 4) | (env->direction << 3) | env->period;
+    return (env->volume_load << 4) | (env->direction << 3) | env->period;
 }
 
 void volume_envelope_write(struct volume_envelope *env, uint8_t val,
                            bool *enabled)
 {
-    env->volume = val >> 4;
+    env->dac_enabled = val & 0xf8;
+    env->volume_load = val >> 4;
     env->direction = (val >> 3) & 1;
     env->period = val & 0x7;
-    env->count = env->period;
-    /* Check if DAC is disabled */
-    if (!(val & 0xf8)) {
+    if (!(env->dac_enabled)) {
         /* Disable channel output */
         *enabled = false;
     }
@@ -33,4 +32,10 @@ void volume_envelope_tick(struct volume_envelope *env)
             }
         }
     }
+}
+
+void volume_envelope_trigger(struct volume_envelope *env)
+{
+    env->count = env->period;
+    env->volume = env->volume_load;
 }

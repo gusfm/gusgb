@@ -77,14 +77,14 @@ uint8_t noise_ch_read_reg4(noise_ch_t *c)
 
 static void noise_ch_trigger(noise_ch_t *c)
 {
-    /* Only enable output if DAC is enabled. */
-    if (c->env.volume | c->env.direction)
+    if (c->env.dac_enabled)
         c->enabled = true;
     if (c->length.counter == 0) {
         c->length.counter = 64;
         if (frame_sequencer.out_clock & 1)
             noise_ch_length_counter(c);
     }
+    volume_envelope_trigger(&c->env);
 }
 
 void noise_ch_write_reg4(noise_ch_t *c, uint8_t val)
