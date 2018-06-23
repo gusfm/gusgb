@@ -154,7 +154,7 @@ static void sqr_ch_trigger(sqr_ch_t *c)
         if (frame_sequencer.out_clock & 1)
             sqr_ch_length_counter(c);
     }
-    c->timer = (2048 - c->frequency) * 4;
+    c->timer = 6 + (2048 - c->frequency) * 4;
     c->wave_ptr = 0;
     sqr_ch_sweep_init(c);
 }

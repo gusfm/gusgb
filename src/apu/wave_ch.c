@@ -105,7 +105,7 @@ void wave_ch_write_reg4(wave_ch_t *c, uint8_t val)
         if (c->dac_enabled)
             c->enabled = true;
         c->position = 0;
-        c->timer = (2048 - c->frequency) * 2;
+        c->timer = 6 + (2048 - c->frequency) * 2;
         if (c->length.counter == 0) {
             c->length.counter = 0x100;
             if (frame_sequencer.out_clock & 1)
