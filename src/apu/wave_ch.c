@@ -11,7 +11,8 @@ void wave_ch_reset(wave_ch_t *c)
 
 void wave_ch_tick(wave_ch_t *c)
 {
-    if (--c->timer <= 0) {
+    c->timer -= 2;
+    if (c->timer <= 0) {
         c->timer = (2048 - c->frequency) * 2;
         c->position = (c->position + 1) & 0x1f;
         if (c->volume) {

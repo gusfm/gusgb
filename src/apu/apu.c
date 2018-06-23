@@ -132,7 +132,7 @@ void apu_tick(unsigned int clock_step)
 {
     apu_timer_tick(&frame_sequencer, clock_step);
     apu_timer_tick(&output_timer, clock_step);
-    for (unsigned int i = 0; i < clock_step; ++i) {
+    for (unsigned int i = 0; i < clock_step; i += 2) {
         sqr_ch_tick(&channel1);
         sqr_ch_tick(&channel2);
         wave_ch_tick(&channel3);
