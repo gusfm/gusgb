@@ -9,8 +9,11 @@
 typedef struct {
     bool enabled;
     uint8_t shift_clock;
-    uint8_t counter_step;
+    uint8_t width_mode;
     uint8_t div_ratio;
+    uint8_t out_volume;
+    uint16_t lfsr;
+    int timer;
     struct length_counter length;
     struct volume_envelope env;
 } noise_ch_t;
