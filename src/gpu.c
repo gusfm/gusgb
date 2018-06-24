@@ -134,20 +134,37 @@ static void gpu_set_sprite_palette1(uint8_t value)
     }
 }
 
+static void rgb5_to_rgb8(uint16_t rgb555, color_t *color)
+{
+    uint8_t c;
+    color->a = SDL_ALPHA_OPAQUE;
+    /* Red */
+    c = (rgb555 & 0x1f);
+    color->r = (c << 3) | (c >> 2);
+    /* Green */
+    c = (rgb555 >> 5) & 0x1f;
+    color->g = (c << 3) | (c >> 2);
+    /* Blue */
+    c = (rgb555 >> 10) & 0x1f;
+    color->b = (c << 3) | (c >> 2);
+}
+
 static void gpu_set_cgb_bg_palette(uint8_t value)
 {
+    uint8_t datah, datal;
     uint8_t reg = GPU.cgb_bg_pal_idx;
     unsigned int i = reg & 0x3f;
     GPU.cgb_bg_pal_data[i] = value;
-    uint16_t c = (GPU.cgb_bg_pal_data[i + 1] << 8) | value;
-    color_t color;
-    color.a = SDL_ALPHA_OPAQUE;
-    color.r = (c & 0x1f) * 255 / 31;
-    color.g = ((c >> 5) & 0x1f) * 255 / 31;
-    color.b = ((c >> 10) & 0x1f) * 255 / 31;
-    GPU.bg_palette[i >> 1] = color;
+    if (i & 1) {
+        datah = value;
+        datal = GPU.cgb_bg_pal_data[i - 1];
+    } else {
+        datah = GPU.cgb_bg_pal_data[i + 1];
+        datal = value;
+    }
+    rgb5_to_rgb8((datah << 8) | datal, &GPU.bg_palette[i >> 1]);
     /* Auto increment index. */
-    GPU.cgb_bg_pal_idx = (reg & ~0x3f) | ((i + (reg >> 7)) & 0x3f);
+    GPU.cgb_bg_pal_idx = (reg & 0x80) | ((i + (reg >> 7)) & 0x3f);
 }
 
 static void gpu_set_cgb_sprite_palette(uint8_t value)
