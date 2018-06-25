@@ -1,5 +1,6 @@
 obj = src/cartridge/mbc1.o \
 	  src/cartridge/mbc3.o \
+	  src/cartridge/mbc5.o \
 	  src/cartridge/cart.o \
 	  src/clock.o \
 	  src/interrupt.o \

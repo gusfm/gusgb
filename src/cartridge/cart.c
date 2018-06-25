@@ -4,6 +4,7 @@
 #include <string.h>
 #include "mbc1.h"
 #include "mbc3.h"
+#include "mbc5.h"
 
 #define ROM_OFFSET_TITLE 0x134
 
@@ -62,6 +63,17 @@ static int cart_get_mbc(uint8_t cart_type, cart_mbc_t *mbc)
             mbc->write = mbc3_write;
             mbc->ram_read = mbc3_ram_read;
             mbc->ram_write = mbc3_ram_write;
+            return 0;
+        case CART_MBC5:
+        case CART_MBC5_RAM:
+        case CART_MBC5_RAM_BATTERY:
+        case CART_MBC5_RUMBLE:
+        case CART_MBC5_RUMBLE_RAM:
+        case CART_MBC5_RUMBLE_RAM_BATTERY:
+            mbc->init = mbc5_init;
+            mbc->write = mbc5_write;
+            mbc->ram_read = mbc5_ram_read;
+            mbc->ram_write = mbc5_ram_write;
             return 0;
         default:
             return -1;
