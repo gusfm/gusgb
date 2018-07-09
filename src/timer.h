@@ -17,7 +17,6 @@ void timer_write_tma(uint8_t val);
 void timer_write_tac(uint8_t val);
 
 void timer_write_byte(uint16_t addr, uint8_t val);
-void timer_change_speed(unsigned int speed);
 void timer_dump(void);
 
 #endif /* TIMER_H */

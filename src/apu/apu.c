@@ -15,6 +15,7 @@ uint8_t ch_out_sel;
 uint8_t sound_enabled;
 
 /*** Internal data ***/
+static unsigned int speed;
 static int16_t left_vol;  /* left volume: 0 - 32767 */
 static int16_t right_vol; /* right volume: 0 - 32767 */
 static int16_t out_buf[AUDIO_SAMPLE_SIZE];
@@ -102,6 +103,7 @@ static void apu_output_timer_cb(unsigned int clock)
 
 void apu_reset(void)
 {
+    speed = 0;
     left_vol = 0;
     right_vol = 0;
     memset(out_buf, 0, sizeof(out_buf));
@@ -133,6 +135,7 @@ void apu_reset(void)
 
 void apu_tick(unsigned int clock_step)
 {
+    clock_step >>= speed;
     apu_timer_tick(&frame_sequencer, clock_step);
     apu_timer_tick(&output_timer, clock_step);
     for (unsigned int i = 0; i < clock_step; i += 2) {
@@ -141,6 +144,11 @@ void apu_tick(unsigned int clock_step)
         wave_ch_tick(&channel3);
         noise_ch_tick(&channel4);
     }
+}
+
+void apu_change_speed(unsigned int new_speed)
+{
+    speed = new_speed;
 }
 
 uint8_t apu_read_nr10(void)

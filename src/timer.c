@@ -12,7 +12,6 @@ typedef enum {
     TIMA_STATE_RELOADING,    /* TIMA is being reloaded. */
 } tima_state_t;
 
-static unsigned int clk_speed;  /* Clock speed: 0 or 1. */
 static uint16_t clk_sys;        /* Internal timer clock. */
 static uint8_t tima;            /* [$ff05] Timer counter (R/W) */
 static uint8_t tma;             /* [$ff06] Timer Modulo (R/W) */
@@ -23,7 +22,6 @@ static uint16_t masks[4] = {0x200, 0x8, 0x20, 0x80};
 
 void timer_reset(void)
 {
-    clk_speed = 0;
     tima = 0;
     tma = 0;
     tac = 0;
@@ -34,7 +32,7 @@ void timer_reset(void)
 
 static inline unsigned int mux(uint8_t sel, uint16_t in)
 {
-    return in & (masks[sel & 3] << clk_speed);
+    return in & masks[sel & 3];
 }
 
 void timer_step(uint32_t clock_step)
@@ -123,11 +121,6 @@ uint8_t timer_read_tac(void)
 void timer_write_tac(uint8_t val)
 {
     tac = val;
-}
-
-void timer_change_speed(unsigned int speed)
-{
-    clk_speed = speed;
 }
 
 void timer_dump(void)

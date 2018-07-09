@@ -319,7 +319,5 @@ void cart_write_ram(uint16_t addr, uint8_t val)
 
 bool cart_is_cgb(void)
 {
-    if (CART.rom.header->cgb & 0x80)
-        return true;
-    return false;
+    return CART.rom.header->cgb & 0x80;
 }

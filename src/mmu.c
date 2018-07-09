@@ -32,6 +32,10 @@ void mmu_reset(void)
 {
     memset(MMU.wram, 0, sizeof(MMU.wram));
     memset(MMU.zram, 0, sizeof(MMU.zram));
+    if (cart_is_cgb())
+        MMU.speed_switch = 0x7e;
+    else
+        MMU.speed_switch = 0xff;
     MMU.wram_bank = 0;
     interrupt_reset();
     keys_reset();
@@ -354,7 +358,8 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
             gpu_write_obpd(value);
             break;
         case 0x4d:
-            MMU.speed_switch = (MMU.speed_switch & 0xfe) | (value & 1);
+            if (cart_is_cgb())
+                MMU.speed_switch = (MMU.speed_switch & 0xfe) | (value & 1);
             break;
         case 0x50:
             /* Disable internal ROM. */
@@ -484,10 +489,11 @@ void mmu_write_word(uint16_t addr, uint16_t value)
 
 void mmu_stop(void)
 {
-    if (MMU.speed_switch & 1) {
-        MMU.speed_switch = (~MMU.speed_switch) & 0x80;
-        gpu_change_speed(MMU.speed_switch >> 7);
-        timer_change_speed(MMU.speed_switch >> 7);
+    if (cart_is_cgb() && MMU.speed_switch & 1) {
+        MMU.speed_switch = ((~MMU.speed_switch) & 0x80) | 0x7e;
+        uint8_t speed = MMU.speed_switch >> 7;
+        gpu_change_speed(speed);
+        apu_change_speed(speed);
     }
 }
 

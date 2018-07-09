@@ -8,6 +8,7 @@
 
 void apu_reset(void);
 void apu_tick(unsigned int clock_step);
+void apu_change_speed(unsigned int new_speed);
 
 uint8_t apu_read_nr10(void);
 uint8_t apu_read_nr11(void);

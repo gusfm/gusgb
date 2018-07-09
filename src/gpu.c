@@ -68,7 +68,7 @@ void gpu_reset(void)
         gpu_write_obp0(0xFF);
         gpu_write_obp1(0xFF);
     }
-    GPU.speed = 1;
+    GPU.speed = 0;
 }
 
 /* Check if the CPU can access VRAM. */
@@ -562,7 +562,6 @@ static void gpu_render_scanline(void)
         gpu_update_fb_sprite(scanline_row);
 }
 
-
 void gpu_render_framebuffer(void)
 {
     SDL_SetRenderDrawColor(GPU_GL.ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -607,21 +606,27 @@ static void gpu_change_mode(gpu_mode_e new_mode)
     }
 }
 
+static unsigned int mode_switch_clocks[2][4] = {
+    {200, 456, 80, 172},
+    {400, 912, 164, 344},
+};
+
 static void gpu_tick_lcd_enabled(unsigned int clock_step)
 {
     GPU.modeclock += clock_step;
+    unsigned int switch_clock = mode_switch_clocks[GPU.speed][GPU.mode_flag];
     switch (GPU.mode_flag) {
         case GPU_MODE_OAM:
             /* Mode 2 takes between 77 and 83 clocks. */
-            if (GPU.modeclock >= 80 * GPU.speed) {
-                GPU.modeclock -= 80 * GPU.speed;
+            if (GPU.modeclock >= switch_clock) {
+                GPU.modeclock -= switch_clock;
                 gpu_change_mode(GPU_MODE_VRAM);
             }
             break;
         case GPU_MODE_VRAM:
             /* Mode 3 takes between 169 and 175 clocks. */
-            if (GPU.modeclock >= 172 * GPU.speed) {
-                GPU.modeclock -= 172 * GPU.speed;
+            if (GPU.modeclock >= switch_clock) {
+                GPU.modeclock -= switch_clock;
                 gpu_change_mode(GPU_MODE_HBLANK);
                 /* End of scanline. Write a scanline to framebuffer. */
                 gpu_render_scanline();
@@ -629,8 +634,8 @@ static void gpu_tick_lcd_enabled(unsigned int clock_step)
             break;
         case GPU_MODE_HBLANK:
             /* Mode 0 takes between 201 and 207 clocks. */
-            if (GPU.modeclock >= 200 * GPU.speed) {
-                GPU.modeclock -= 200 * GPU.speed;
+            if (GPU.modeclock >= switch_clock) {
+                GPU.modeclock -= switch_clock;
                 GPU.scanline++;
                 if (GPU.coincidence_int && GPU.scanline == GPU.lyc) {
                     interrupt_raise(INTERRUPTS_LCDSTAT);
@@ -645,8 +650,8 @@ static void gpu_tick_lcd_enabled(unsigned int clock_step)
             break;
         case GPU_MODE_VBLANK:
             /* Mode 1 takes between 4560 clocks. */
-            if (GPU.modeclock >= 456 * GPU.speed) {
-                GPU.modeclock -= 456 * GPU.speed;
+            if (GPU.modeclock >= switch_clock) {
+                GPU.modeclock -= switch_clock;
                 if (GPU.scanline > 153) {
                     GPU.scanline = 0;
                     gpu_change_mode(GPU_MODE_OAM);
@@ -663,14 +668,14 @@ static void gpu_tick_lcd_disabled(unsigned int clock_step)
 {
     GPU.lcd_disabled_clock += clock_step;
     if (!GPU.lcd_disabled_frame_rendered) {
-        if (GPU.lcd_disabled_clock >= 144 * 456 * GPU.speed) {
+        if (GPU.lcd_disabled_clock >= 144 * (456u << GPU.speed)) {
             GPU.lcd_disabled_frame_rendered = true;
             gpu_render_framebuffer();
         }
     } else {
-        if (GPU.lcd_disabled_clock >= (144 + 10) * 456 * GPU.speed) {
+        if (GPU.lcd_disabled_clock >= (144 + 10) * (456u << GPU.speed)) {
             GPU.lcd_disabled_frame_rendered = false;
-            GPU.lcd_disabled_clock -= (144 + 10) * 456 * GPU.speed;
+            GPU.lcd_disabled_clock -= (144 + 10) * (456u << GPU.speed);
         }
     }
 }
@@ -685,7 +690,7 @@ void gpu_tick(unsigned int clock_step)
 
 void gpu_change_speed(unsigned int speed)
 {
-    GPU.speed = speed + 1;
+    GPU.speed = speed;
 }
 
 void gpu_dump(void)
