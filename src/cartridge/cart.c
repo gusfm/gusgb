@@ -39,7 +39,7 @@ const char *g_rom_types[256] = {
     [CART_POCKET_CAMERA] = "POCKET+CAMERA",
     [CART_BANDAI_TAMA5] = "BANDAI+TAMA5",
     [CART_HUC3] = "HUC3",
-    [CART_HUC1_RAM_BATTERY] = "HUC1+RAM+BATTERY"
+    [CART_HUC1_RAM_BATTERY] = "HUC1+RAM+BATTERY",
 };
 
 static int cart_get_mbc(uint8_t cart_type, cart_mbc_t *mbc)
@@ -119,7 +119,8 @@ static int cart_load_header(void)
     cart_header_t *header = (cart_header_t *)&CART.rom.bytes[ROM_OFFSET_TITLE];
     CART.rom.header = header;
     printf("Game title: %s\n", header->title);
-    printf("CGB: 0x%.2x (%s)\n", CART.rom.header->cgb, cart_is_cgb() ? "true" : "false");
+    printf("CGB: 0x%.2x (%s)\n", CART.rom.header->cgb,
+           cart_is_cgb() ? "true" : "false");
     /* Get cart type. */
     CART.type = header->cart_type;
     printf("Cartridge type: %s\n", g_rom_types[CART.type]);
@@ -130,12 +131,13 @@ static int cart_load_header(void)
     }
     /* Get ROM size. */
     unsigned int rom_size_tmp = 0x8000 << header->rom_size;
-    printf("ROM size: %hhu = %uKB\n", header->rom_size, rom_size_tmp / 1024);
+    CART.rom.max_bank = (1 << header->rom_size) * 2;
+    printf("ROM size: %uKB, banks: %u\n", rom_size_tmp / 1024,
+           CART.rom.max_bank);
     if (CART.rom.size != rom_size_tmp) {
         fprintf(stderr, "ROM file size does not equal header ROM size!\n");
         return -1;
     }
-    CART.rom.max_bank = (1 << header->rom_size) * 2;
     /* Get RAM size. */
     switch (header->ram_size) {
         case 0:
@@ -163,7 +165,8 @@ static int cart_load_header(void)
             CART.ram.max_bank = 8;
             break;
     }
-    printf("RAM size: %hhu = %luKB\n", header->ram_size, CART.ram.size / 1024);
+    printf("RAM size: %luKB, banks: %u\n", CART.ram.size / 1024,
+           CART.ram.max_bank);
     return 0;
 }
 

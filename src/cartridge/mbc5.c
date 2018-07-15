@@ -27,7 +27,7 @@ void mbc5_write(uint16_t addr, uint8_t val)
             break;
         case 3:
             /* 0x3000 - 0x3fff: High bit of ROM bank number */
-            rom_bank = ((uint16_t)(val & 1) << 8) | (rom_bank & 0xff);
+            rom_bank = ((uint32_t)(val & 1) << 8) | (rom_bank & 0xff);
             CART.rom.offset = (rom_bank % CART.rom.max_bank) << 14;
             break;
         case 4:
