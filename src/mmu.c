@@ -43,6 +43,26 @@ void mmu_reset(void)
     gpu_reset();
 }
 
+static void mmu_dma_start(uint8_t mode)
+{
+    uint16_t src = ((MMU.hdma1 << 8) | MMU.hdma2) & 0xfff0;
+    uint16_t dest = ((MMU.hdma3 << 8) | MMU.hdma4) & 0xfff0;
+    if (mode & 0x80) {
+        /* H-Blank DMA */
+        printf("%s: not implemented\n", __func__);
+    } else {
+        /* General Purpose DMA */
+        unsigned int length = (mode & 0x7f) + 1;
+        for (unsigned int i = 0; i < length; ++i) {
+            for (unsigned int j = 0; j < 16; ++j) {
+                mmu_write_byte_dma(dest++, mmu_read_byte_dma(src++));
+            }
+            clock_step(32 << MMU.clock_speed);
+        }
+        MMU.hdma5 = 0xff;
+    }
+}
+
 static uint8_t mmu_read_reg(uint16_t addr)
 {
     switch (addr & 0x007f) {
@@ -163,6 +183,16 @@ static uint8_t mmu_read_reg(uint16_t addr)
             return gpu_read_wx();
         case 0x4f:
             return gpu_read_vbk();
+        case 0x51:
+            return MMU.hdma1;
+        case 0x52:
+            return MMU.hdma2;
+        case 0x53:
+            return MMU.hdma3;
+        case 0x54:
+            return MMU.hdma4;
+        case 0x55:
+            return MMU.hdma5;
         case 0x68:
             return gpu_read_bgpi();
         case 0x69:
@@ -345,6 +375,23 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x4f:
             gpu_write_vbk(value);
             break;
+        case 0x51:
+            MMU.hdma1 = value;
+            break;
+        case 0x52:
+            MMU.hdma2 = value;
+            break;
+        case 0x53:
+            MMU.hdma3 = value;
+            break;
+        case 0x54:
+            MMU.hdma4 = value;
+            break;
+        case 0x55:
+            if (cart_is_cgb()) {
+                mmu_dma_start(value);
+            }
+            break;
         case 0x68:
             gpu_write_bgpi(value);
             break;
@@ -384,7 +431,6 @@ static uint8_t wram_get_bank(void)
     return MMU.wram_bank;
 }
 
-/* Read 8-bit byte from a given address */
 uint8_t mmu_read_byte_dma(uint16_t addr)
 {
     if (addr < 0x4000) {
@@ -441,9 +487,8 @@ uint16_t mmu_read_word(uint16_t addr)
     return (uint16_t)(mmu_read_byte(addrh) << 8 | mmu_read_byte(addr));
 }
 
-void mmu_write_byte(uint16_t addr, uint8_t value)
+void mmu_write_byte_dma(uint16_t addr, uint8_t value)
 {
-    clock_step(4);
     if (addr < 0x8000) {
         /* 16kB ROM bank 0 and 16kB switchable ROM bank. */
         cart_write_mbc(addr, value);
@@ -480,6 +525,12 @@ void mmu_write_byte(uint16_t addr, uint8_t value)
     }
 }
 
+void mmu_write_byte(uint16_t addr, uint8_t value)
+{
+    clock_step(4);
+    mmu_write_byte_dma(addr, value);
+}
+
 void mmu_write_word(uint16_t addr, uint16_t value)
 {
     uint16_t addrh = (uint16_t)(addr + 1);
@@ -491,9 +542,9 @@ void mmu_stop(void)
 {
     if (cart_is_cgb() && MMU.speed_switch & 1) {
         MMU.speed_switch = ((~MMU.speed_switch) & 0x80) | 0x7e;
-        uint8_t speed = MMU.speed_switch >> 7;
-        gpu_change_speed(speed);
-        apu_change_speed(speed);
+        MMU.clock_speed = MMU.speed_switch >> 7;
+        gpu_change_speed(MMU.clock_speed);
+        apu_change_speed(MMU.clock_speed);
     }
 }
 
