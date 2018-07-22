@@ -24,7 +24,7 @@ obj = src/cartridge/mbc1.o \
 
 dep = $(obj:.o=.d)
 
-CFLAGS = -Wall -Wextra -std=gnu11 -O3
+CFLAGS = -Wall -Wextra -std=gnu11 -O2
 CPPFLAGS = -I./src
 LDFLAGS = -lSDL2
 
