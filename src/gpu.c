@@ -17,7 +17,7 @@ typedef struct {
 static gpu_t GPU;
 static gpu_gl_t GPU_GL;
 
-static const color_t g_palette[4] = {
+static const color_t dmg_palette[4] = {
 #if (SDL_BYTE_ORDER == SDL_BIG_ENDIAN)
     {SDL_ALPHA_OPAQUE, 0xe0, 0xf8, 0xd0}, /* off */
     {SDL_ALPHA_OPAQUE, 0x88, 0xc0, 0x70}, /* 33% on */
@@ -64,9 +64,13 @@ void gpu_reset(void)
     GPU.lcd_control = 0x91;
     GPU.lcd_status = 0x85;
     gpu_write_bgp(0xfc);
+    gpu_write_obp0(0xff);
+    gpu_write_obp1(0xff);
     if (!cart_is_cgb()) {
-        gpu_write_obp0(0xFF);
-        gpu_write_obp1(0xFF);
+        for (int i = 0; i < 4; ++i) {
+            GPU.bg_palette_data[i] = dmg_palette[i];
+            GPU.sprite_palette_data[i] = dmg_palette[i];
+        }
     }
     GPU.speed = 0;
 }
@@ -113,27 +117,6 @@ void gpu_write_oam(uint16_t addr, uint8_t val)
         GPU.oam[addr & 0xff] = val;
 }
 
-static void gpu_set_bg_palette(uint8_t value)
-{
-    for (int i = 0; i < 4; ++i) {
-        GPU.bg_palette[i] = g_palette[(value >> (i << 1)) & 3];
-    }
-}
-
-static void gpu_set_sprite_palette0(uint8_t value)
-{
-    for (int i = 0; i < 4; ++i) {
-        GPU.sprite_palette[i] = g_palette[(value >> (i << 1)) & 3];
-    }
-}
-
-static void gpu_set_sprite_palette1(uint8_t value)
-{
-    for (int i = 0; i < 4; ++i) {
-        GPU.sprite_palette[i + 4] = g_palette[(value >> (i << 1)) & 3];
-    }
-}
-
 static void rgb5_to_rgb8(uint16_t rgb555, color_t *color)
 {
     uint8_t c;
@@ -162,7 +145,8 @@ static void gpu_set_cgb_bg_palette(uint8_t value)
         datah = GPU.cgb_bg_pal_data[i + 1];
         datal = value;
     }
-    rgb5_to_rgb8((datah << 8) | datal, &GPU.bg_palette[i >> 1]);
+    rgb5_to_rgb8((datah << 8) | datal, &GPU.bg_palette_data[i >> 1]);
+    GPU.bg_palette[i >> 1] = GPU.bg_palette_data[i >> 1];
     /* Auto increment index. */
     GPU.cgb_bg_pal_idx = (reg & 0x80) | ((i + (reg >> 7)) & 0x3f);
 }
@@ -180,7 +164,8 @@ static void gpu_set_cgb_sprite_palette(uint8_t value)
         datah = GPU.cgb_sprite_pal_data[i + 1];
         datal = value;
     }
-    rgb5_to_rgb8((datah << 8) | datal, &GPU.sprite_palette[i >> 1]);
+    rgb5_to_rgb8((datah << 8) | datal, &GPU.sprite_palette_data[i >> 1]);
+    GPU.sprite_palette[i >> 1] = GPU.sprite_palette_data[i >> 1];
     /* Auto increment index. */
     GPU.cgb_sprite_pal_idx = (reg & 0x80) | ((i + (reg >> 7)) & 0x3f);
 }
@@ -189,7 +174,7 @@ static void gpu_clear_line(int y)
 {
     for (int x = 0; x < GB_SCREEN_WIDTH; ++x) {
         int px = y * GB_SCREEN_WIDTH + x;
-        GPU.framebuffer[px] = g_palette[0];
+        GPU.framebuffer[px] = dmg_palette[0];
     }
 }
 
@@ -286,10 +271,18 @@ uint8_t gpu_read_bgp(void)
     return GPU.bgp;
 }
 
+static void gpu_set_palette(color_t *dest, const color_t *src, uint8_t data)
+{
+    dest[0] = src[data >> 0 & 3];
+    dest[1] = src[data >> 2 & 3];
+    dest[2] = src[data >> 4 & 3];
+    dest[3] = src[data >> 6 & 3];
+}
+
 void gpu_write_bgp(uint8_t val)
 {
     GPU.bgp = val;
-    gpu_set_bg_palette(val);
+    gpu_set_palette(&GPU.bg_palette[0], GPU.bg_palette_data, val);
 }
 
 uint8_t gpu_read_obp0(void)
@@ -300,7 +293,7 @@ uint8_t gpu_read_obp0(void)
 void gpu_write_obp0(uint8_t val)
 {
     GPU.obp0 = val;
-    gpu_set_sprite_palette0(val);
+    gpu_set_palette(&GPU.sprite_palette[0], GPU.sprite_palette_data, val);
 }
 
 uint8_t gpu_read_obp1(void)
@@ -311,7 +304,7 @@ uint8_t gpu_read_obp1(void)
 void gpu_write_obp1(uint8_t val)
 {
     GPU.obp1 = val;
-    gpu_set_sprite_palette1(val);
+    gpu_set_palette(&GPU.sprite_palette[4], GPU.sprite_palette_data, val);
 }
 
 uint8_t gpu_read_wy(void)

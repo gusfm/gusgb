@@ -89,6 +89,8 @@ typedef struct {
     color_t framebuffer[GB_SCREEN_WIDTH * GB_SCREEN_HEIGHT];
     color_t bg_palette[8 * 4];
     color_t sprite_palette[8 * 4];
+    color_t bg_palette_data[8 * 4];
+    color_t sprite_palette_data[8 * 4];
     unsigned int speed;
     bool lcd_disabled_frame_rendered;
     unsigned int lcd_disabled_clock;
