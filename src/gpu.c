@@ -34,8 +34,8 @@ typedef struct {
             uint8_t cgb_palette : 3;
             uint8_t cgb_vram_bank : 1;
             uint8_t palette : 1;
-            uint8_t xflip : 1;
-            uint8_t yflip : 1;
+            uint8_t hflip : 1;
+            uint8_t vflip : 1;
             uint8_t priority : 1;
         };
     };
@@ -53,7 +53,7 @@ typedef struct {
             uint8_t priority : 1; /* (0=Use OAM priority bit, 1=BG Priority) */
         };
     };
-} cgb_bg_attr_t;
+} bg_attr_t;
 
 typedef struct {
     /* 0xff40 (LCDC): LCD Control (R/W) */
@@ -512,27 +512,31 @@ typedef struct {
     uint8_t data_l;
 } tile_line_t;
 
-static tile_line_t get_tile_line(uint32_t tile_id, int y)
+static tile_line_t get_tile_line(bg_attr_t attr, uint32_t tile_id, uint32_t y)
 {
     tile_line_t tile_line;
+    if (attr.vflip) {
+        uint32_t ty = y & 7;
+        y = y - ty + 7 - ty;
+    }
     /* Get tile index for the correct line of the tile. Each tile is 16 bytes
      * long. */
     uint32_t tile_line_id = (tile_id << 4) + (uint32_t)((y & 7) << 1);
     /* Get tile line data: Each tile line takes 2 bytes. */
-    tile_line.data_l = GPU.vram[GPU.vram_bank][tile_line_id];
-    tile_line.data_h = GPU.vram[GPU.vram_bank][tile_line_id + 1];
+    tile_line.data_l = GPU.vram[attr.vram_bank][tile_line_id];
+    tile_line.data_h = GPU.vram[attr.vram_bank][tile_line_id + 1];
     return tile_line;
 }
 
-static uint32_t get_tile_palette(uint32_t tile_id)
+static bg_attr_t get_tile_attributes(uint32_t tile_id)
 {
+    bg_attr_t bg_attr;
     if (cart_is_cgb()) {
-        cgb_bg_attr_t bg_attr;
         bg_attr.attributes = GPU.vram[1][tile_id];
-        return bg_attr.pal_number;
     } else {
-        return 0;
+        bg_attr.attributes = 0;
     }
+    return bg_attr;
 }
 
 static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy,
@@ -540,7 +544,7 @@ static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy,
 {
     tile_line_t tile_line;
     uint32_t tile_y = (uint32_t)(GPU.scanline - sy);
-    if (sprite->yflip) {
+    if (sprite->vflip) {
         tile_y = ysize - tile_y - 1;
     }
     uint32_t tile_line_id = sprite->tile * 16 + tile_y * 2;
@@ -550,10 +554,11 @@ static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy,
     return tile_line;
 }
 
-static uint32_t gpu_get_tile_color(tile_line_t tile_line, int tile_x)
+static uint32_t gpu_get_tile_color(tile_line_t tile_line, int tile_x,
+                                   bool hflip)
 {
     /* Get bit index for pixel. */
-    uint32_t color_bit = (uint32_t)(7 - tile_x);
+    uint32_t color_bit = hflip ? tile_x : 7 - tile_x;
     /* Get color number. */
     uint32_t color_num = (tile_line.data_h & (1 << color_bit)) ? 2 : 0;
     color_num |= (tile_line.data_l & (1 << color_bit)) ? 1 : 0;
@@ -562,7 +567,7 @@ static uint32_t gpu_get_tile_color(tile_line_t tile_line, int tile_x)
 
 static void gpu_update_fb_bg(uint8_t *scanline_row)
 {
-    int mapoffs, bg_x, bg_y;
+    uint32_t mapoffs, bg_x, bg_y;
     /* Get background xy coordinate, and Get map offset relative to vram array.
      */
     if (GPU.window_enable && GPU.window_y <= GPU.scanline) {
@@ -575,28 +580,27 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
         mapoffs = (GPU.bg_tile_map) ? 0x1c00 : 0x1800;
     }
     /* Map row offset: (bg_y / 8) * 32. */
-    int map_row = (bg_y >> 3) << 5;
+    uint32_t map_row = (bg_y >> 3) << 5;
     uint32_t screen_x = 0;
     uint32_t pixeloffs = GPU.scanline * GB_SCREEN_WIDTH;
     while (screen_x < GB_SCREEN_WIDTH) {
         int map_col = (bg_x >> 3) & 0x1f;
         /* Get tile index adjusted for the 0x8000 - 0x97ff range. */
         uint32_t tile_id = gpu_get_tile_id(mapoffs, map_row, map_col);
+        bg_attr_t attr = get_tile_attributes(tile_id);
         /* Get tile line data. */
-        tile_line_t tile_line = get_tile_line(tile_id, bg_y);
-        /* Get correct palette. */
-        uint32_t palette_num = get_tile_palette(tile_id);
+        tile_line_t tile_line = get_tile_line(attr, tile_id, bg_y);
         /* Iterate over remaining pixels of the tile. */
         for (int tile_x = bg_x & 0x7; tile_x < 8; ++tile_x) {
             if (screen_x >= GB_SCREEN_WIDTH) {
                 return;
             }
             /* Get tile color number for coordinate. */
-            uint32_t color_num = gpu_get_tile_color(tile_line, tile_x);
-            scanline_row[screen_x] = (uint8_t)color_num;
+            uint32_t color = gpu_get_tile_color(tile_line, tile_x, attr.hflip);
+            scanline_row[screen_x] = (uint8_t)color;
             /* Copy color to frame buffer. */
             GPU.framebuffer[pixeloffs + screen_x] =
-                GPU.bg_palette[palette_num * 4 + color_num];
+                GPU.bg_palette[((uint32_t)attr.pal_number << 2) + color];
             ++screen_x;
             ++bg_x;
         }
@@ -641,9 +645,8 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
                     if (GPU.bg_display && sprite.priority == 1 &&
                         scanline_row[px] != 0)
                         continue;
-                    /* Check if sprite is x-flipped. */
-                    int tile_x_flip = sprite.xflip ? 7 - tile_x : tile_x;
-                    uint32_t color = gpu_get_tile_color(tile_line, tile_x_flip);
+                    uint32_t color =
+                        gpu_get_tile_color(tile_line, tile_x, sprite.hflip);
                     if (color != 0) {
                         /* Only show sprite of color not 0. */
                         GPU.framebuffer[pixeloffs] = pal[color];
@@ -842,8 +845,8 @@ void gpu_dump(void)
         printf("sprite %2u: ", i);
         printf("%.2hhx %.2hhx %.2hhx %.2hhx: ", s.y, s.x, s.tile, s.options);
         printf("xy=(%3d, %3d) ", (int)s.x - 8, (int)s.y - 16);
-        printf("options=[palette=%d, xflip=%d, yflip=%d, priority=%d] ",
-               s.palette, s.xflip, s.yflip, s.priority);
+        printf("options=[palette=%d, hflip=%d, vflip=%d, priority=%d] ",
+               s.palette, s.hflip, s.vflip, s.priority);
         printf("tile=0x%.2hhx tile addr=0x%.4x\n", s.tile,
                0x8000 + s.tile * 16);
     }
