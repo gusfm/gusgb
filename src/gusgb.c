@@ -7,6 +7,10 @@
 #include "gpu.h"
 #include "keys.h"
 
+#ifdef DEBUGGER
+#include "debugger/debugger.h"
+#endif
+
 struct gusgb {
     int width;
     int height;
@@ -66,6 +70,14 @@ static void gb_key_press(const SDL_Keysym *keysym)
         case SDL_SCANCODE_P:
             /* Pause emulation. */
             GB.paused = !GB.paused;
+#ifdef DEBUGGER
+            if (GB.paused) {
+                debugger_init(400, 400);
+            } else {
+                SDL_RaiseWindow(GB.window);
+                debugger_finish();
+            }
+#endif
             break;
         case SDL_SCANCODE_O:
             /* Debug CPU. */
@@ -217,6 +229,9 @@ void gusgb_main(void)
     while (GB.running) {
         if (GB.paused) {
             gpu_render_framebuffer();
+#ifdef DEBUGGER
+            debugger_render();
+#endif
         } else {
             cpu_emulate_cycle();
         }

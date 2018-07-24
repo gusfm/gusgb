@@ -22,9 +22,16 @@ obj = src/cartridge/mbc1.o \
 	  src/gusgb.o \
 	  src/main.o
 
+# Debugger option
+DEBUGGER ?= n
+ifeq ($(DEBUGGER),y)
+obj += src/debugger/debugger.o
+FLAGS = -DDEBUGGER
+endif
+
 dep = $(obj:.o=.d)
 
-CFLAGS = -Wall -Wextra -std=gnu11 -O2
+CFLAGS = -Wall -Wextra -std=gnu11 -O2 $(FLAGS)
 CPPFLAGS = -I./src
 LDFLAGS = -lSDL2
 
