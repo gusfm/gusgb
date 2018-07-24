@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "game_boy.h"
+#include "gusgb.h"
 
 static int scale = 4;
 static char *romfile = NULL;
@@ -71,11 +71,11 @@ int main(int argc, char *argv[])
         print_help(argv);
         exit(EXIT_FAILURE);
     }
-    int ret = gb_init(scale, romfile, fullscreen);
+    int ret = gusgb_init(scale, romfile, fullscreen);
     if (ret < 0) {
         exit(EXIT_FAILURE);
     }
-    gb_main();
-    gb_finish();
+    gusgb_main();
+    gusgb_finish();
     return 0;
 }

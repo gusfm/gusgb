@@ -38,7 +38,7 @@ add_library(gusgb_obj OBJECT
     src/cpu_opcodes.c
     src/cpu_ext_ops.c
     src/cpu.c
-    src/game_boy.c
+    src/gusgb.c
     )
 
 # gusgb

@@ -19,7 +19,7 @@ obj = src/cartridge/mbc1.o \
 	  src/cpu_opcodes.o \
 	  src/cpu_ext_ops.o \
 	  src/cpu.o \
-	  src/game_boy.o \
+	  src/gusgb.o \
 	  src/main.o
 
 dep = $(obj:.o=.d)

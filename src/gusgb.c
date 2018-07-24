@@ -1,4 +1,4 @@
-#include "game_boy.h"
+#include "gusgb.h"
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,7 +7,7 @@
 #include "gpu.h"
 #include "keys.h"
 
-typedef struct {
+struct gusgb {
     int width;
     int height;
     bool running;
@@ -16,11 +16,11 @@ typedef struct {
     SDL_Window *window;
     SDL_Renderer *ren;
     SDL_Texture *tex;
-} game_boy_t;
+};
 
-static game_boy_t GB;
+static struct gusgb GB;
 
-static void gb_toggle_fullscreen(void)
+static void toggle_fullscreen(void)
 {
     GB.fullscreen = !GB.fullscreen;
     if (GB.fullscreen) {
@@ -43,7 +43,7 @@ static void gb_key_press(const SDL_Keysym *keysym)
             break;
         case SDL_SCANCODE_RETURN:
             if (keysym->mod & KMOD_ALT) {
-                gb_toggle_fullscreen();
+                toggle_fullscreen();
             } else {
                 key_press(KEY_START);
             }
@@ -179,7 +179,7 @@ static int sdl_init(const char *name, int width, int height, bool fullscreen)
     return 0;
 }
 
-int gb_init(int scale, const char *rom_path, bool fullscreen)
+int gusgb_init(int scale, const char *rom_path, bool fullscreen)
 {
     GB.width = GB_SCREEN_WIDTH * scale;
     GB.height = GB_SCREEN_HEIGHT * scale;
@@ -202,7 +202,7 @@ int gb_init(int scale, const char *rom_path, bool fullscreen)
     return 0;
 }
 
-void gb_finish(void)
+void gusgb_finish(void)
 {
     cpu_finish();
     SDL_PauseAudio(1);
@@ -212,7 +212,7 @@ void gb_finish(void)
     SDL_Quit();
 }
 
-void gb_main(void)
+void gusgb_main(void)
 {
     while (GB.running) {
         if (GB.paused) {
