@@ -9,8 +9,7 @@
 
 typedef void (*render_callback_t)(void);
 
-int gpu_init(SDL_Window *win, render_callback_t cb);
-void gpu_finish(void);
+int gpu_init(SDL_Renderer *ren, SDL_Texture *tex, render_callback_t cb);
 void gpu_reset(void);
 
 uint8_t gpu_read_lcdc(void);

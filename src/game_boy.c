@@ -1,4 +1,5 @@
 #include "game_boy.h"
+#include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "apu/apu.h"
@@ -13,6 +14,8 @@ typedef struct {
     bool paused;
     bool fullscreen;
     SDL_Window *window;
+    SDL_Renderer *ren;
+    SDL_Texture *tex;
 } game_boy_t;
 
 static game_boy_t GB;
@@ -128,29 +131,52 @@ static void handle_events(void)
     }
 }
 
-static SDL_Window *sdl_init(const char *name, int width, int height,
-                            bool fullscreen)
+static int sdl_init(const char *name, int width, int height, bool fullscreen)
 {
+    SDL_AudioSpec desired;
+    uint32_t flags = 0;
+
     /* Initialize SDL. */
     if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO) != 0)
-        return NULL;
-    SDL_AudioSpec desired;
+        return -1;
+
+    /* Initialize main window. */
+    if (fullscreen) {
+        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        SDL_ShowCursor(SDL_DISABLE);
+    }
+    GB.window = SDL_CreateWindow(name, SDL_WINDOWPOS_UNDEFINED,
+                                 SDL_WINDOWPOS_UNDEFINED, width, height, flags);
+    if (GB.window == NULL) {
+        return -1;
+    }
+
+    /* Create SDL renderer */
+    GB.ren = SDL_CreateRenderer(
+        GB.window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (GB.ren == NULL)
+        return -1;
+
+    /* Set device independent resolution for rendering */
+    SDL_RenderSetLogicalSize(GB.ren, GB_SCREEN_WIDTH, GB_SCREEN_HEIGHT);
+    /* Create SDL texture */
+    GB.tex = SDL_CreateTexture(GB.ren, SDL_PIXELFORMAT_ARGB8888,
+                               SDL_TEXTUREACCESS_STREAMING, GB_SCREEN_WIDTH,
+                               GB_SCREEN_HEIGHT);
+    if (GB.tex == NULL)
+        return -1;
+
+    /* Initialized audio. */
     desired.freq = AUDIO_SAMPLE_RATE;
     desired.format = AUDIO_S16SYS;
     desired.channels = 2;
     desired.samples = AUDIO_SAMPLE_SIZE;
     desired.callback = NULL;
     if (SDL_OpenAudio(&desired, NULL) != 0) {
-        return NULL;
+        return -1;
     }
     SDL_PauseAudio(0);
-    uint32_t flags = SDL_WINDOW_SHOWN;
-    if (fullscreen) {
-        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-        SDL_ShowCursor(SDL_DISABLE);
-    }
-    return SDL_CreateWindow(name, SDL_WINDOWPOS_UNDEFINED,
-                            SDL_WINDOWPOS_UNDEFINED, width, height, flags);
+    return 0;
 }
 
 int gb_init(int scale, const char *rom_path, bool fullscreen)
@@ -161,8 +187,7 @@ int gb_init(int scale, const char *rom_path, bool fullscreen)
     GB.paused = false;
     GB.fullscreen = fullscreen;
     /* Initialize SDL. */
-    GB.window = sdl_init("gusgb", GB.width, GB.height, GB.fullscreen);
-    if (GB.window == NULL) {
+    if (sdl_init("gusgb", GB.width, GB.height, GB.fullscreen) != 0) {
         fprintf(stderr, "ERROR: %s\n", SDL_GetError());
         return -1;
     }
@@ -171,7 +196,7 @@ int gb_init(int scale, const char *rom_path, bool fullscreen)
         fprintf(stderr, "ERROR: Could not load rom: %s\n", rom_path);
         return -1;
     }
-    if (gpu_init(GB.window, handle_events) < 0) {
+    if (gpu_init(GB.ren, GB.tex, handle_events) < 0) {
         fprintf(stderr, "ERROR: %s\n", SDL_GetError());
     }
     return 0;
@@ -179,10 +204,11 @@ int gb_init(int scale, const char *rom_path, bool fullscreen)
 
 void gb_finish(void)
 {
-    gpu_finish();
     cpu_finish();
-    SDL_DestroyWindow(GB.window);
     SDL_PauseAudio(1);
+    SDL_DestroyTexture(GB.tex);
+    SDL_DestroyRenderer(GB.ren);
+    SDL_DestroyWindow(GB.window);
     SDL_Quit();
 }
 

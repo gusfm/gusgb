@@ -149,31 +149,14 @@ static const color_t dmg_palette[4] = {
 #endif
 };
 
-int gpu_init(SDL_Window *win, render_callback_t cb)
+int gpu_init(SDL_Renderer *ren, SDL_Texture *tex, render_callback_t cb)
 {
     gpu_reset();
     assert(cb != NULL);
     GPU_GL.cb = cb;
-    /* Create SDL renderer */
-    GPU_GL.ren = SDL_CreateRenderer(
-        win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (GPU_GL.ren == NULL)
-        return -1;
-    /* Set device independent resolution for rendering */
-    SDL_RenderSetLogicalSize(GPU_GL.ren, GB_SCREEN_WIDTH, GB_SCREEN_HEIGHT);
-    /* Create SDL texture */
-    GPU_GL.tex = SDL_CreateTexture(GPU_GL.ren, SDL_PIXELFORMAT_ARGB8888,
-                                   SDL_TEXTUREACCESS_STREAMING, GB_SCREEN_WIDTH,
-                                   GB_SCREEN_HEIGHT);
-    if (GPU_GL.tex == NULL)
-        return -1;
+    GPU_GL.ren = ren;
+    GPU_GL.tex = tex;
     return 0;
-}
-
-void gpu_finish(void)
-{
-    SDL_DestroyTexture(GPU_GL.tex);
-    SDL_DestroyRenderer(GPU_GL.ren);
 }
 
 void gpu_reset(void)
