@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <stdint.h>
+#include "color.h"
 
 #define GB_SCREEN_WIDTH 160
 #define GB_SCREEN_HEIGHT 144
@@ -55,5 +56,8 @@ void gpu_tick(unsigned int clock_step);
 void gpu_render_framebuffer(void);
 void gpu_change_speed(unsigned int speed);
 void gpu_dump(void);
+
+color_t *gpu_get_bg_palette(void);
+color_t *gpu_get_sprite_palette(void);
 
 #endif /* GPU_H */

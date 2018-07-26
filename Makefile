@@ -25,15 +25,19 @@ obj = src/cartridge/mbc1.o \
 # Debugger option
 DEBUGGER ?= n
 ifeq ($(DEBUGGER),y)
+obj += src/debugger/button.o
+obj += src/debugger/text.o
+obj += src/debugger/palette_window.o
 obj += src/debugger/debugger.o
 FLAGS = -DDEBUGGER
+LDFLAGS += -lSDL2_ttf
 endif
 
 dep = $(obj:.o=.d)
 
 CFLAGS = -Wall -Wextra -std=gnu11 -O2 $(FLAGS)
 CPPFLAGS = -I./src
-LDFLAGS = -lSDL2
+LDFLAGS += -lSDL2
 
 gusgb: $(obj)
 	$(CC) -o $@ $^ $(LDFLAGS)

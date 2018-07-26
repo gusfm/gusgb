@@ -1,26 +1,32 @@
 #include "debugger.h"
 #include <SDL2/SDL.h>
+#include "palette_window.h"
 
-enum debugger_view {
-    DEBUGGER_PALETTE,
+enum debugger_windows {
+    DEBUGGER_PALETTE = 1,
 };
 
-static SDL_Window *window;
-static SDL_Renderer *renderer;
-static enum debugger_view view;
+static enum debugger_windows windows;
+static TTF_Font *font;
 
-int debugger_init(int width, int height)
+int debugger_init(void)
 {
     SDL_DisplayMode dm;
     SDL_GetCurrentDisplayMode(0, &dm);
-    /* Initialize debugger window. */
-    window = SDL_CreateWindow("debugger", dm.w - width, 0, width, height, 0);
-    if (window == NULL) {
+    if (TTF_Init() != 0) {
+        printf("TTF_Init: %s\n", TTF_GetError());
         return -1;
     }
-    renderer = SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (renderer == NULL) {
+    font = TTF_OpenFont("/usr/share/fonts/noto/NotoSansMono-Thin.ttf", 12);
+    if (font == NULL) {
+        TTF_Quit();
+        fprintf(stderr, "TTF_OpenFont: %s\n", TTF_GetError());
+        return -1;
+    }
+    windows = DEBUGGER_PALETTE;
+    if (palette_window_init(&dm, font) != 0) {
+        TTF_CloseFont(font);
+        TTF_Quit();
         return -1;
     }
     return 0;
@@ -28,25 +34,14 @@ int debugger_init(int width, int height)
 
 void debugger_finish(void)
 {
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-}
-
-void render_palette_view(void)
-{
-    SDL_Rect rect = {100,100,100,100};
-    SDL_SetRenderDrawColor(renderer, 0xff, 0x0, 0x0, SDL_ALPHA_OPAQUE);
-    SDL_RenderDrawRect(renderer, &rect);
+    if (windows & DEBUGGER_PALETTE)
+        palette_window_finish();
+    TTF_CloseFont(font);
+    TTF_Quit();
 }
 
 void debugger_render(void)
 {
-    SDL_SetRenderDrawColor(renderer, 0xe7, 0xe7, 0xe6, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(renderer);
-    switch (view) {
-        case DEBUGGER_PALETTE:
-            render_palette_view();
-            break;
-    }
-    SDL_RenderPresent(renderer);
+    if (windows & DEBUGGER_PALETTE)
+        palette_window_render();
 }

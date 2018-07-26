@@ -72,7 +72,7 @@ static void gb_key_press(const SDL_Keysym *keysym)
             GB.paused = !GB.paused;
 #ifdef DEBUGGER
             if (GB.paused) {
-                debugger_init(400, 400);
+                debugger_init();
             } else {
                 SDL_RaiseWindow(GB.window);
                 debugger_finish();

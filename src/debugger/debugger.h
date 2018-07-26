@@ -1,7 +1,7 @@
 #ifndef DEBUGGER_H
 #define DEBUGGER_H
 
-int debugger_init(int width, int height);
+int debugger_init(void);
 void debugger_finish(void);
 void debugger_render(void);
 

@@ -17,14 +17,6 @@ typedef enum {
 } gpu_mode_e;
 
 typedef struct {
-#if (SDL_BYTE_ORDER == SDL_BIG_ENDIAN)
-    uint8_t a, r, g, b;
-#else
-    uint8_t b, g, r, a;
-#endif
-} color_t;
-
-typedef struct {
     uint8_t y;    /* Y-coordinate minus 16. */
     uint8_t x;    /* X-coordinate minus 8. */
     uint8_t tile; /* Tile number. */
@@ -663,8 +655,6 @@ static void gpu_render_scanline(void)
 
 void gpu_render_framebuffer(void)
 {
-    SDL_SetRenderDrawColor(GPU_GL.ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(GPU_GL.ren);
     SDL_UpdateTexture(GPU_GL.tex, NULL, GPU.framebuffer, GB_SCREEN_WIDTH * 4);
     SDL_RenderCopy(GPU_GL.ren, GPU_GL.tex, NULL, NULL);
     SDL_RenderPresent(GPU_GL.ren);
@@ -790,6 +780,16 @@ void gpu_tick(unsigned int clock_step)
 void gpu_change_speed(unsigned int speed)
 {
     GPU.speed = speed;
+}
+
+color_t *gpu_get_bg_palette(void)
+{
+    return GPU.bg_palette;
+}
+
+color_t *gpu_get_sprite_palette(void)
+{
+    return GPU.sprite_palette;
 }
 
 void gpu_dump(void)
