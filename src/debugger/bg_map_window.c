@@ -3,10 +3,10 @@
 #include "button.h"
 #include "text.h"
 
-#define BG_MAP_WIN_WIDTH 512
-#define BG_MAP_WIN_HEIGHT 512
 #define BG_WIDTH 256
 #define BG_HEIGHT 256
+#define BG_MAP_WIN_WIDTH (BG_WIDTH * 2)
+#define BG_MAP_WIN_HEIGHT (BG_HEIGHT * 2)
 
 static SDL_Window *window;
 static SDL_Renderer *renderer;
@@ -22,15 +22,6 @@ static SDL_Rect scroll_rect1 = {0, 0, GB_SCREEN_WIDTH * 2,
 static SDL_Rect scroll_rect2 = {0, 0, GB_SCREEN_WIDTH * 2,
                                 GB_SCREEN_HEIGHT * 2};
 
-static uint32_t get_tile_id(int mapoffs)
-{
-    uint32_t tile_id = vram[mapoffs];
-    uint8_t lcdc = gpu_read_lcdc();
-    if (!(lcdc & 0x10))
-        tile_id = (uint32_t)(256 + (int8_t)tile_id);
-    return tile_id;
-}
-
 static int get_map_offset(void)
 {
     uint8_t lcdc = gpu_read_lcdc();
@@ -44,15 +35,15 @@ static void update_framebuffer(void)
     /* 32 x 32 tiles */
     for (int my = 0; my < 32; ++my) {
         for (int mx = 0; mx < 32; ++mx) {
-            uint32_t tile_id = get_tile_id(mapoffs);
-            bg_attr_t attr = gpu_get_tile_attributes(tile_id);
+            int tile_id = gpu_get_tile_id(mapoffs);
+            bg_attr_t attr = gpu_get_tile_attributes(mapoffs);
             /* 8 x 8 pixels */
             for (int ty = 0; ty < 8; ++ty) {
                 tile_line_t line = gpu_get_tile_line(attr, tile_id, ty);
                 for (int tx = 0; tx < 8; ++tx) {
-                    uint32_t c = gpu_get_tile_color(line, tx, attr.hflip);
+                    int c = gpu_get_tile_color(line, tx, attr.hflip);
                     int i = 256 * 8 * my + 8 * mx + 256 * ty + tx;
-                    int pal_idx = ((uint32_t)attr.pal_number << 2) + c;
+                    int pal_idx = ((int)attr.pal_number << 2) + c;
                     framebuffer[i] = bg_palette[pal_idx];
                 }
             }
@@ -152,9 +143,9 @@ static void select_map_tile(int x, int y)
     int mx = x / 16;
     int my = y / 16;
     int mapoffs = get_map_offset() + my * 32 + mx;
-    uint32_t tile_id = get_tile_id(mapoffs);
-    uint32_t tile_addr = 0x8000 + (tile_id << 4);
-    bg_attr_t attr = gpu_get_tile_attributes(tile_id);
+    int tile_id = gpu_get_tile_id(mapoffs);
+    int tile_addr = 0x8000 + (tile_id << 4);
+    bg_attr_t attr = gpu_get_tile_attributes(mapoffs);
     map_tile_rect.x = mx * 16;
     map_tile_rect.y = my * 16;
     map_tile_selected = true;
@@ -166,7 +157,7 @@ static void select_map_tile(int x, int y)
         tile_line_t line = gpu_get_tile_line(attr, tile_id, i);
         printf("%.2hhx %.2hhx ", line.data_h, line.data_l);
         for (int j = 0; j < 8; ++j) {
-            uint32_t color_num = gpu_get_tile_color(line, j, attr.hflip);
+            int color_num = gpu_get_tile_color(line, j, attr.hflip);
             printf("%u", color_num);
         }
         printf("\n");
