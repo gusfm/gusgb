@@ -28,6 +28,7 @@ ifeq ($(DEBUGGER),y)
 obj += src/debugger/button.o
 obj += src/debugger/text.o
 obj += src/debugger/palette_window.o
+obj += src/debugger/bg_map_window.o
 obj += src/debugger/debugger.o
 FLAGS = -DDEBUGGER
 LDFLAGS += -lSDL2_ttf

@@ -1,6 +1,6 @@
 #include "button.h"
 
-void button_render_pressed(SDL_Renderer *renderer, button_t *b)
+static void button_render_pressed(SDL_Renderer *renderer, button_t *b)
 {
     SDL_SetRenderDrawColor(renderer, 0x80, 0x80, 0x80, SDL_ALPHA_OPAQUE);
     SDL_RenderDrawLine(renderer, b->x, b->y, b->x, b->y + b->h - 1);
@@ -13,7 +13,7 @@ void button_render_pressed(SDL_Renderer *renderer, button_t *b)
     SDL_RenderDrawLine(renderer, b->x + 1, b->y + 1, b->x + b->w - 2, b->y + 1);
 }
 
-void button_render_released(SDL_Renderer *renderer, button_t *b)
+static void button_render_released(SDL_Renderer *renderer, button_t *b)
 {
     SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, SDL_ALPHA_OPAQUE);
     SDL_RenderDrawLine(renderer, b->x, b->y, b->x, b->y + b->h - 1);

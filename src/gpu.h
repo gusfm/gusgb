@@ -2,11 +2,31 @@
 #define GPU_H
 
 #include <SDL2/SDL.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include "color.h"
 
 #define GB_SCREEN_WIDTH 160
 #define GB_SCREEN_HEIGHT 144
+
+typedef struct {
+    uint8_t data_h;
+    uint8_t data_l;
+} tile_line_t;
+
+typedef struct {
+    union {
+        uint8_t attributes;
+        struct {
+            uint8_t pal_number : 3; /* BGP0-7 */
+            uint8_t vram_bank : 1;  /* (0=Bank 0, 1=Bank 1) */
+            uint8_t unused : 1;
+            uint8_t hflip : 1;    /* (0=Normal, 1=Mirror horizontally) */
+            uint8_t vflip : 1;    /* (0=Normal, 1=Mirror vertically) */
+            uint8_t priority : 1; /* (0=Use OAM priority bit, 1=BG Priority) */
+        };
+    };
+} bg_attr_t;
 
 typedef void (*render_callback_t)(void);
 
@@ -57,7 +77,14 @@ void gpu_render_framebuffer(void);
 void gpu_change_speed(unsigned int speed);
 void gpu_dump(void);
 
+bg_attr_t gpu_get_tile_attributes(uint32_t tile_id);
+tile_line_t gpu_get_tile_line(bg_attr_t attr, uint32_t tile_id, uint32_t y);
+uint32_t gpu_get_tile_color(tile_line_t tile_line, int tile_x, bool hflip);
+
+#ifdef DEBUGGER
+uint8_t *gpu_get_vram(void);
 color_t *gpu_get_bg_palette(void);
 color_t *gpu_get_sprite_palette(void);
+#endif /* DEBUGGER */
 
 #endif /* GPU_H */

@@ -140,6 +140,9 @@ static void handle_events(void)
                 GB.running = false;
                 break;
         }
+#ifdef DEBUGGER
+        debugger_handle_events(&e);
+#endif
     }
 }
 

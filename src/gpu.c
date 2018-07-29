@@ -1,6 +1,5 @@
 #include "gpu.h"
 #include <assert.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,20 +31,6 @@ typedef struct {
         };
     };
 } sprite_t;
-
-typedef struct {
-    union {
-        uint8_t attributes;
-        struct {
-            uint8_t pal_number : 3; /* BGP0-7 */
-            uint8_t vram_bank : 1;  /* (0=Bank 0, 1=Bank 1) */
-            uint8_t unused : 1;
-            uint8_t hflip : 1;    /* (0=Normal, 1=Mirror horizontally) */
-            uint8_t vflip : 1;    /* (0=Normal, 1=Mirror vertically) */
-            uint8_t priority : 1; /* (0=Use OAM priority bit, 1=BG Priority) */
-        };
-    };
-} bg_attr_t;
 
 typedef struct {
     /* 0xff40 (LCDC): LCD Control (R/W) */
@@ -482,12 +467,7 @@ static uint32_t gpu_get_tile_id(int mapoffs, int map_row, int map_col)
     return tile_id;
 }
 
-typedef struct {
-    uint8_t data_h;
-    uint8_t data_l;
-} tile_line_t;
-
-static tile_line_t get_tile_line(bg_attr_t attr, uint32_t tile_id, uint32_t y)
+tile_line_t gpu_get_tile_line(bg_attr_t attr, uint32_t tile_id, uint32_t y)
 {
     tile_line_t tile_line;
     if (attr.vflip) {
@@ -503,7 +483,7 @@ static tile_line_t get_tile_line(bg_attr_t attr, uint32_t tile_id, uint32_t y)
     return tile_line;
 }
 
-static bg_attr_t get_tile_attributes(uint32_t tile_id)
+bg_attr_t gpu_get_tile_attributes(uint32_t tile_id)
 {
     bg_attr_t bg_attr;
     if (cart_is_cgb()) {
@@ -529,8 +509,7 @@ static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy,
     return tile_line;
 }
 
-static uint32_t gpu_get_tile_color(tile_line_t tile_line, int tile_x,
-                                   bool hflip)
+uint32_t gpu_get_tile_color(tile_line_t tile_line, int tile_x, bool hflip)
 {
     /* Get bit index for pixel. */
     uint32_t color_bit = hflip ? tile_x : 7 - tile_x;
@@ -562,9 +541,9 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
         int map_col = (bg_x >> 3) & 0x1f;
         /* Get tile index adjusted for the 0x8000 - 0x97ff range. */
         uint32_t tile_id = gpu_get_tile_id(mapoffs, map_row, map_col);
-        bg_attr_t attr = get_tile_attributes(tile_id);
+        bg_attr_t attr = gpu_get_tile_attributes(tile_id);
         /* Get tile line data. */
-        tile_line_t tile_line = get_tile_line(attr, tile_id, bg_y);
+        tile_line_t tile_line = gpu_get_tile_line(attr, tile_id, bg_y);
         /* Iterate over remaining pixels of the tile. */
         for (int tile_x = bg_x & 0x7; tile_x < 8; ++tile_x) {
             if (screen_x >= GB_SCREEN_WIDTH) {
@@ -782,16 +761,6 @@ void gpu_change_speed(unsigned int speed)
     GPU.speed = speed;
 }
 
-color_t *gpu_get_bg_palette(void)
-{
-    return GPU.bg_palette;
-}
-
-color_t *gpu_get_sprite_palette(void)
-{
-    return GPU.sprite_palette;
-}
-
 void gpu_dump(void)
 {
     printf("GPU dump:\n");
@@ -834,3 +803,20 @@ void gpu_dump(void)
                0x8000 + s.tile * 16);
     }
 }
+
+#ifdef DEBUGGER
+uint8_t *gpu_get_vram(void)
+{
+    return GPU.vram[GPU.vram_bank];
+}
+
+color_t *gpu_get_bg_palette(void)
+{
+    return GPU.bg_palette;
+}
+
+color_t *gpu_get_sprite_palette(void)
+{
+    return GPU.sprite_palette;
+}
+#endif /* DEBUGGER */
