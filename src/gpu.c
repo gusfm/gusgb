@@ -133,6 +133,7 @@ int gpu_init(SDL_Renderer *ren, SDL_Texture *tex, render_callback_t cb)
     GPU_GL.cb = cb;
     GPU_GL.ren = ren;
     GPU_GL.tex = tex;
+    SDL_SetRenderDrawColor(GPU_GL.ren, 0, 0, 0, SDL_ALPHA_OPAQUE);
     return 0;
 }
 
@@ -633,6 +634,7 @@ static void gpu_render_scanline(void)
 
 void gpu_render_framebuffer(void)
 {
+    SDL_RenderClear(GPU_GL.ren);
     SDL_UpdateTexture(GPU_GL.tex, NULL, GPU.framebuffer, GB_SCREEN_WIDTH * 4);
     SDL_RenderCopy(GPU_GL.ren, GPU_GL.tex, NULL, NULL);
     SDL_RenderPresent(GPU_GL.ren);
