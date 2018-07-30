@@ -459,11 +459,11 @@ void gpu_write_obpd(uint8_t val)
 int gpu_get_tile_id(int mapoffs)
 {
     /* Unsigned tile region: 0 to 255. */
-    int tile_id = GPU.vram[GPU.vram_bank][mapoffs];
+    int tile_id = GPU.vram[0][mapoffs];
     if (!GPU.bg_tile_set) {
         /* Signed tile region: -128 to 127. */
         /* Adjust id for the 0x8000 - 0x97ff range. */
-        tile_id = (int)(256 + (int8_t)tile_id);
+        tile_id = 256 + (int8_t)tile_id;
     }
     return tile_id;
 }
@@ -806,11 +806,6 @@ void gpu_dump(void)
 }
 
 #ifdef DEBUGGER
-uint8_t *gpu_get_vram(void)
-{
-    return GPU.vram[GPU.vram_bank];
-}
-
 color_t *gpu_get_bg_palette(void)
 {
     return GPU.bg_palette;

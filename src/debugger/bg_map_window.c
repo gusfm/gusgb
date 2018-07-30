@@ -14,7 +14,6 @@ static SDL_Texture *texture;
 
 static uint32_t window_id;
 static color_t framebuffer[BG_WIDTH * BG_HEIGHT];
-static uint8_t *vram;
 static bool map_tile_selected = false;
 static SDL_Rect map_tile_rect = {0, 0, 16, 16};
 static SDL_Rect scroll_rect1 = {0, 0, GB_SCREEN_WIDTH * 2,
@@ -98,7 +97,6 @@ int bg_map_window_init(void)
     }
 
     window_id = SDL_GetWindowID(window);
-    vram = gpu_get_vram();
     update_framebuffer();
     update_scroll();
 

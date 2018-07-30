@@ -83,7 +83,6 @@ tile_line_t gpu_get_tile_line(bg_attr_t attr, int tile_id, int y);
 int gpu_get_tile_color(tile_line_t tile_line, int tile_x, bool hflip);
 
 #ifdef DEBUGGER
-uint8_t *gpu_get_vram(void);
 color_t *gpu_get_bg_palette(void);
 color_t *gpu_get_sprite_palette(void);
 #endif /* DEBUGGER */
