@@ -149,8 +149,9 @@ static void select_map_tile(int x, int y)
     map_tile_selected = true;
     printf("x=%d, y=%d, map_addr=0x%x, tile_id=0x%x, tile_addr=0x%x\n", mx, my,
            0x8000 + mapoffs, tile_id, tile_addr);
-    printf("attributes: palette=%d, hflip=%d, vflip=%d, priority=%d\n",
-           attr.pal_number, attr.hflip, attr.vflip, attr.priority);
+    printf("attributes: palette=%d, bank=%d, hflip=%d, vflip=%d, priority=%d\n",
+           attr.pal_number, attr.vram_bank, attr.hflip, attr.vflip,
+           attr.priority);
     for (int i = 0; i < 8; ++i) {
         tile_line_t line = gpu_get_tile_line(attr, tile_id, i);
         printf("%.2hhx %.2hhx ", line.data_h, line.data_l);

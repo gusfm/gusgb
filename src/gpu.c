@@ -519,7 +519,12 @@ int gpu_get_tile_color(tile_line_t tile_line, int tile_x, bool hflip)
     return color_num;
 }
 
-static void gpu_update_fb_bg(uint8_t *scanline_row)
+struct scanline {
+    uint8_t color;
+    bool bg_priority;
+};
+
+static void gpu_update_fb_bg(struct scanline *line)
 {
     int mapoffs, bg_x, bg_y, map_x, pixeloffs;
     /* Get background xy coordinate, and Get map offset relative to vram array.
@@ -551,7 +556,8 @@ static void gpu_update_fb_bg(uint8_t *scanline_row)
             }
             /* Get tile color number for coordinate. */
             int color = gpu_get_tile_color(tile_line, tile_x, attr.hflip);
-            scanline_row[screen_x] = (uint8_t)color;
+            line[screen_x].color = (uint8_t)color;
+            line[screen_x].bg_priority = attr.priority;
             /* Copy color to frame buffer. */
             GPU.framebuffer[pixeloffs + screen_x] =
                 GPU.bg_palette[((int)attr.pal_number << 2) + color];
@@ -572,7 +578,7 @@ static color_t *get_sprite_pal(sprite_t *sprite)
     return pal;
 }
 
-static void gpu_update_fb_sprite(uint8_t *scanline_row)
+static void gpu_update_fb_sprite(struct scanline *line)
 {
     int ysize = GPU.obj_size ? 16 : 8;
     int sprites = 0;
@@ -596,8 +602,9 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
                 /* If pixel is on screen. */
                 if (px >= 0 && px < GB_SCREEN_WIDTH) {
                     /* Check if pixel is hidden. */
-                    if (GPU.bg_display && sprite.priority == 1 &&
-                        scanline_row[px] != 0)
+                    if (line[px].bg_priority ||
+                        (GPU.bg_display && sprite.priority == 1 &&
+                         line[px].color != 0))
                         continue;
                     int color =
                         gpu_get_tile_color(tile_line, tile_x, sprite.hflip);
@@ -616,20 +623,20 @@ static void gpu_update_fb_sprite(uint8_t *scanline_row)
 
 static void gpu_render_scanline(void)
 {
-    uint8_t scanline_row[GB_SCREEN_WIDTH];
+    struct scanline line[GB_SCREEN_WIDTH];
     if (cart_is_cgb()) {
         /* In CGB mode when Bit 0 is cleared, the background and window
          * lose their priority. */
-        gpu_update_fb_bg(scanline_row);
+        gpu_update_fb_bg(line);
     } else {
         if (GPU.bg_display) {
-            gpu_update_fb_bg(scanline_row);
+            gpu_update_fb_bg(line);
         } else {
             gpu_clear_line(GPU.scanline);
         }
     }
     if (GPU.obj_enable)
-        gpu_update_fb_sprite(scanline_row);
+        gpu_update_fb_sprite(line);
 }
 
 void gpu_render_framebuffer(void)
