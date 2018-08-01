@@ -1,11 +1,13 @@
 #include "debugger.h"
 #include <SDL2/SDL_ttf.h>
-#include "palette_window.h"
 #include "bg_map_window.h"
+#include "palette_window.h"
+#include "tile_window.h"
 
 enum debugger_windows {
     DEBUGGER_BG_MAP = 1,
     DEBUGGER_PALETTE = 2,
+    DEBUGGER_TILES = 3,
 };
 
 static enum debugger_windows windows;
@@ -25,13 +27,18 @@ int debugger_init(void)
         fprintf(stderr, "TTF_OpenFont: %s\n", TTF_GetError());
         return -1;
     }
-    windows = DEBUGGER_BG_MAP | DEBUGGER_PALETTE;
+    windows = DEBUGGER_BG_MAP | DEBUGGER_PALETTE | DEBUGGER_TILES;
     if (bg_map_window_init() != 0) {
         TTF_CloseFont(font);
         TTF_Quit();
         return -1;
     }
     if (palette_window_init(&dm, font) != 0) {
+        TTF_CloseFont(font);
+        TTF_Quit();
+        return -1;
+    }
+    if (tile_window_init(&dm) != 0) {
         TTF_CloseFont(font);
         TTF_Quit();
         return -1;
@@ -45,6 +52,8 @@ void debugger_finish(void)
         bg_map_window_finish();
     if (windows & DEBUGGER_PALETTE)
         palette_window_finish();
+    if (windows & DEBUGGER_TILES)
+        tile_window_finish();
     TTF_CloseFont(font);
     TTF_Quit();
 }
@@ -55,10 +64,14 @@ void debugger_render(void)
         bg_map_window_render();
     if (windows & DEBUGGER_PALETTE)
         palette_window_render();
+    if (windows & DEBUGGER_TILES)
+        tile_window_render();
 }
 
 void debugger_handle_events(SDL_Event *e)
 {
     if (windows & DEBUGGER_BG_MAP)
         bg_map_window_handle_events(e);
+    if (windows & DEBUGGER_TILES)
+        tile_window_handle_events(e);
 }

@@ -1,7 +1,5 @@
 #include "bg_map_window.h"
 #include "../gpu.h"
-#include "button.h"
-#include "text.h"
 
 #define BG_WIDTH 256
 #define BG_HEIGHT 256
@@ -105,6 +103,7 @@ int bg_map_window_init(void)
 
 void bg_map_window_finish(void)
 {
+    map_tile_selected = false;
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

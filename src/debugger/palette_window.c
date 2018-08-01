@@ -19,7 +19,8 @@ int palette_window_init(SDL_DisplayMode *dm, TTF_Font *font)
     int width = PALETTE_WIN_WIDTH;
     int height = PALETTE_WIN_HEIGHT;
 
-    window = SDL_CreateWindow("Palettes", dm->w - width, 0, width, height, 0);
+    window = SDL_CreateWindow("Palettes", dm->w - width, dm->h - height, width,
+                              height, 0);
     if (window == NULL) {
         fprintf(stderr, "%s:%d: %s\n", __func__, __LINE__, SDL_GetError());
         return -1;
