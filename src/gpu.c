@@ -249,7 +249,7 @@ static void gpu_set_cgb_sprite_palette(uint8_t value)
     GPU.cgb_sprite_pal_idx = (reg & 0x80) | ((i + (reg >> 7)) & 0x3f);
 }
 
-static void gpu_clear_line(int y)
+static void clear_line(int y)
 {
     for (int x = 0; x < GB_SCREEN_WIDTH; ++x) {
         int px = y * GB_SCREEN_WIDTH + x;
@@ -260,7 +260,7 @@ static void gpu_clear_line(int y)
 static void gpu_clear_screen(void)
 {
     for (int y = 0; y < GB_SCREEN_HEIGHT; ++y) {
-        gpu_clear_line(y);
+        clear_line(y);
     }
 }
 
@@ -524,36 +524,26 @@ struct scanline {
     bool bg_priority;
 };
 
-static void gpu_update_fb_bg(struct scanline *line)
+static void update_fb_bg(struct scanline *line)
 {
-    int mapoffs, bg_x, bg_y, map_x, pixeloffs;
-    /* Get background xy coordinate, and Get map offset relative to vram array.
-     */
-    if (GPU.window_enable && GPU.window_y <= GPU.scanline) {
-        bg_x = 7 - GPU.window_x;
-        bg_y = GPU.scanline - GPU.window_y;
-        mapoffs = (GPU.window_tile_map) ? 0x1c00 : 0x1800;
-    } else {
-        bg_x = GPU.scroll_x;
-        bg_y = (GPU.scanline + GPU.scroll_y) & 0xff;
-        mapoffs = (GPU.bg_tile_map) ? 0x1c00 : 0x1800;
-    }
+    int bg_x = GPU.scroll_x;
+    int bg_y = (GPU.scanline + GPU.scroll_y) & 0xff;
+    int map_x = (bg_x >> 3);
+    int mapoffs = (GPU.bg_tile_map) ? 0x1c00 : 0x1800;
+    int pixeloffs = GPU.scanline * GB_SCREEN_WIDTH;
     /* Map row offset: (bg_y / 8) * 32. */
     mapoffs += ((bg_y >> 3) << 5);
-    map_x = (bg_x >> 3);
-    pixeloffs = GPU.scanline * GB_SCREEN_WIDTH;
     for (int screen_x = 0; screen_x < GB_SCREEN_WIDTH; ++map_x) {
         map_x &= 0x1f;
+        int mapoffs_tmp = mapoffs + map_x;
         /* Get tile index adjusted for the 0x8000 - 0x97ff range. */
-        int tile_id = gpu_get_tile_id(mapoffs + map_x);
-        bg_attr_t attr = gpu_get_tile_attributes(mapoffs + map_x);
+        int tile_id = gpu_get_tile_id(mapoffs_tmp);
+        bg_attr_t attr = gpu_get_tile_attributes(mapoffs_tmp);
         /* Get tile line data. */
         tile_line_t tile_line = gpu_get_tile_line(attr, tile_id, bg_y);
         /* Iterate over remaining pixels of the tile. */
-        for (int tile_x = bg_x & 0x7; tile_x < 8; ++tile_x) {
-            if (screen_x >= GB_SCREEN_WIDTH) {
-                return;
-            }
+        for (int tile_x = bg_x & 0x7; tile_x < 8 && screen_x < GB_SCREEN_WIDTH;
+             ++tile_x) {
             /* Get tile color number for coordinate. */
             int color = gpu_get_tile_color(tile_line, tile_x, attr.hflip);
             line[screen_x].color = (uint8_t)color;
@@ -564,6 +554,36 @@ static void gpu_update_fb_bg(struct scanline *line)
             ++screen_x;
             ++bg_x;
         }
+    }
+}
+
+static void update_fb_window(struct scanline *line)
+{
+    int bg_x = 0;
+    int bg_y = GPU.scanline - GPU.window_y;
+    int screen_x = GPU.window_x - 7;
+    int mapoffs = (GPU.window_tile_map) ? 0x1c00 : 0x1800;
+    int pixeloffs = GPU.scanline * GB_SCREEN_WIDTH;
+    mapoffs += ((bg_y >> 3) << 5);
+    if (screen_x < 0) {
+        screen_x = 0;
+        bg_x = 7 - GPU.window_x;
+    }
+    while (screen_x < GB_SCREEN_WIDTH) {
+        int tile_id = gpu_get_tile_id(mapoffs);
+        bg_attr_t attr = gpu_get_tile_attributes(mapoffs);
+        tile_line_t tile_line = gpu_get_tile_line(attr, tile_id, bg_y);
+        for (int tile_x = bg_x & 7; tile_x < 8 && screen_x < GB_SCREEN_WIDTH;
+             ++tile_x) {
+            int color = gpu_get_tile_color(tile_line, tile_x, attr.hflip);
+            line[screen_x].color = (uint8_t)color;
+            line[screen_x].bg_priority = attr.priority;
+            GPU.framebuffer[pixeloffs + screen_x] =
+                GPU.bg_palette[((int)attr.pal_number << 2) + color];
+            ++screen_x;
+            ++bg_x;
+        }
+        ++mapoffs;
     }
 }
 
@@ -578,7 +598,7 @@ static color_t *get_sprite_pal(sprite_t *sprite)
     return pal;
 }
 
-static void gpu_update_fb_sprite(struct scanline *line)
+static void update_fb_sprite(struct scanline *line)
 {
     int ysize = GPU.obj_size ? 16 : 8;
     int sprites = 0;
@@ -621,22 +641,26 @@ static void gpu_update_fb_sprite(struct scanline *line)
     }
 }
 
-static void gpu_render_scanline(void)
+static void render_scanline(void)
 {
     struct scanline line[GB_SCREEN_WIDTH];
     if (cart_is_cgb()) {
         /* In CGB mode when Bit 0 is cleared, the background and window
          * lose their priority. */
-        gpu_update_fb_bg(line);
+        update_fb_bg(line);
+        if (GPU.window_enable && GPU.window_y <= GPU.scanline)
+            update_fb_window(line);
     } else {
         if (GPU.bg_display) {
-            gpu_update_fb_bg(line);
+            update_fb_bg(line);
         } else {
-            gpu_clear_line(GPU.scanline);
+            clear_line(GPU.scanline);
         }
+        if (GPU.window_enable && GPU.window_y <= GPU.scanline)
+            update_fb_window(line);
     }
     if (GPU.obj_enable)
-        gpu_update_fb_sprite(line);
+        update_fb_sprite(line);
 }
 
 void gpu_render_framebuffer(void)
@@ -705,7 +729,7 @@ static void gpu_tick_lcd_enabled(unsigned int clock_step)
                 GPU.modeclock -= switch_clock;
                 gpu_change_mode(GPU_MODE_HBLANK);
                 /* End of scanline. Write a scanline to framebuffer. */
-                gpu_render_scanline();
+                render_scanline();
             }
             break;
         case GPU_MODE_HBLANK:
