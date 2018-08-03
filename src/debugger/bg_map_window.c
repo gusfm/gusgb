@@ -19,10 +19,25 @@ static SDL_Rect scroll_rect1 = {0, 0, GB_SCREEN_WIDTH * 2,
 static SDL_Rect scroll_rect2 = {0, 0, GB_SCREEN_WIDTH * 2,
                                 GB_SCREEN_HEIGHT * 2};
 
+enum map_type {
+    MAP_AUTO = 0,
+    MAP_9800,
+    MAP_9C00,
+};
+static int selected_map = MAP_AUTO;
+static char *map_name[] = {"auto", "9800", "9C00"};
+
 static int get_map_offset(void)
 {
-    uint8_t lcdc = gpu_read_lcdc();
-    return (lcdc & 0x8) ? 0x1c00 : 0x1800;
+    switch (selected_map) {
+        case MAP_AUTO:
+            return (gpu_read_lcdc() & 0x8) ? 0x1c00 : 0x1800;
+        case MAP_9800:
+            return 0x1800;
+        case MAP_9C00:
+            return 0x1c00;
+    }
+    return 0;
 }
 
 static void update_framebuffer(void)
@@ -95,6 +110,7 @@ int bg_map_window_init(void)
     }
 
     window_id = SDL_GetWindowID(window);
+    selected_map = MAP_AUTO;
     update_framebuffer();
     update_scroll();
 
@@ -162,12 +178,35 @@ static void select_map_tile(int x, int y)
     }
 }
 
+static void change_map(enum map_type type)
+{
+    selected_map = type;
+    map_tile_selected = false;
+    update_framebuffer();
+    printf("Map selected: %s\n", map_name[type]);
+}
+
 void bg_map_window_handle_events(SDL_Event *e)
 {
     switch (e->type) {
         case SDL_MOUSEBUTTONUP:
             if (e->button.windowID == window_id) {
                 select_map_tile(e->button.x, e->button.y);
+            }
+            break;
+        case SDL_KEYUP:
+            switch (e->key.keysym.scancode) {
+                case SDL_SCANCODE_1:
+                    change_map(MAP_AUTO);
+                    break;
+                case SDL_SCANCODE_2:
+                    change_map(MAP_9800);
+                    break;
+                case SDL_SCANCODE_3:
+                    change_map(MAP_9C00);
+                    break;
+                default:
+                    break;
             }
             break;
     }
