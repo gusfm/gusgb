@@ -362,9 +362,10 @@ void cpu_reset(void)
 
 static uint8_t cpu_fetch_opcode(void)
 {
-    uint8_t op = mmu_read_byte(CPU.reg.pc);
-    CPU.last_pc = CPU.reg.pc++;
-    return op;
+#ifdef DEBUG
+    CPU.last_pc = CPU.reg.pc;
+#endif
+    return mmu_read_byte(CPU.reg.pc++);
 }
 
 static void cpu_decode_opcode(uint8_t opcode)

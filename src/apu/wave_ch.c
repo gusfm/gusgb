@@ -9,11 +9,11 @@ void wave_ch_reset(wave_ch_t *c)
     memset(c, 0, sizeof(*c));
 }
 
-void wave_ch_tick(wave_ch_t *c)
+void wave_ch_tick(wave_ch_t *c, int clock_step)
 {
-    c->timer -= 2;
-    if (c->timer <= 0) {
-        c->timer = (2048 - c->frequency) * 2;
+    c->timer -= clock_step;
+    while (c->timer <= 0) {
+        c->timer += (2048 - c->frequency) * 2;
         c->position = (c->position + 1) & 0x1f;
         if (c->volume) {
             uint8_t out = c->wave_ram[c->position / 2];

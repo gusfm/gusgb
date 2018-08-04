@@ -28,7 +28,7 @@ typedef struct {
 } sqr_ch_t;
 
 void sqr_ch_reset(sqr_ch_t *c);
-void sqr_ch_tick(sqr_ch_t *c);
+void sqr_ch_tick(sqr_ch_t *c, int clock_step);
 bool sqr_ch_status(sqr_ch_t *c);
 int sqr_ch_output(sqr_ch_t *c);
 

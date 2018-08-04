@@ -456,7 +456,7 @@ void gpu_write_obpd(uint8_t val)
     gpu_set_cgb_sprite_palette(val);
 }
 
-int gpu_get_tile_id(int mapoffs)
+inline int gpu_get_tile_id(int mapoffs)
 {
     /* Unsigned tile region: 0 to 255. */
     int tile_id = GPU.vram[0][mapoffs];
@@ -468,7 +468,7 @@ int gpu_get_tile_id(int mapoffs)
     return tile_id;
 }
 
-tile_line_t gpu_get_tile_line(bg_attr_t attr, int tile_id, int y)
+inline tile_line_t gpu_get_tile_line(bg_attr_t attr, int tile_id, int y)
 {
     tile_line_t tile_line;
     if (attr.vflip) {
@@ -484,7 +484,7 @@ tile_line_t gpu_get_tile_line(bg_attr_t attr, int tile_id, int y)
     return tile_line;
 }
 
-bg_attr_t gpu_get_tile_attributes(int mapoffs)
+inline bg_attr_t gpu_get_tile_attributes(int mapoffs)
 {
     bg_attr_t bg_attr;
     if (cart_is_cgb()) {
@@ -495,7 +495,8 @@ bg_attr_t gpu_get_tile_attributes(int mapoffs)
     return bg_attr;
 }
 
-static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy, int ysize)
+static inline tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy,
+                                               int ysize)
 {
     tile_line_t tile_line;
     int tile_y = GPU.scanline - sy;
@@ -509,13 +510,14 @@ static tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy, int ysize)
     return tile_line;
 }
 
-int gpu_get_tile_color(tile_line_t tile_line, int tile_x, bool hflip)
+inline int gpu_get_tile_color(tile_line_t tile_line, int tile_x, bool hflip)
 {
     /* Get bit index for pixel. */
     int color_bit = hflip ? tile_x : 7 - tile_x;
     /* Get color number. */
-    int color_num = (tile_line.data_h & (1 << color_bit)) ? 2 : 0;
-    color_num |= (tile_line.data_l & (1 << color_bit)) ? 1 : 0;
+    int color_num = (tile_line.data_h & (1 << color_bit)) >> color_bit;
+    color_num <<= 1;
+    color_num |= (tile_line.data_l & (1 << color_bit)) >> color_bit;
     return color_num;
 }
 

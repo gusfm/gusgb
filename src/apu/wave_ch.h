@@ -19,7 +19,7 @@ typedef struct {
 } wave_ch_t;
 
 void wave_ch_reset(wave_ch_t *c);
-void wave_ch_tick(wave_ch_t *c);
+void wave_ch_tick(wave_ch_t *c, int clock_step);
 bool wave_ch_status(wave_ch_t *c);
 int wave_ch_output(wave_ch_t *c);
 

@@ -11,11 +11,11 @@ void noise_ch_reset(noise_ch_t *c)
     memset(c, 0, sizeof(*c));
 }
 
-void noise_ch_tick(noise_ch_t *c)
+void noise_ch_tick(noise_ch_t *c, int clock_step)
 {
-    c->timer -= 2;
-    if (c->timer <= 0) {
-        c->timer = divisor[c->div_ratio] << c->shift_clock;
+    c->timer -= clock_step;
+    while (c->timer <= 0) {
+        c->timer += divisor[c->div_ratio] << c->shift_clock;
         uint32_t lfsr = c->lfsr;
         uint32_t xor_result = (lfsr & 1) ^ ((lfsr >> 1) & 1);
         lfsr = (lfsr >> 1) | (xor_result << 14);

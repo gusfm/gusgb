@@ -1,5 +1,4 @@
 #include "cart.h"
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "mbc1.h"
@@ -8,6 +7,7 @@
 
 #define ROM_OFFSET_TITLE 0x134
 
+bool is_cgb;
 cart_t CART;
 
 const char *g_rom_types[256] = {
@@ -118,6 +118,7 @@ static int cart_load_header(void)
     /* Copy header pointer. */
     cart_header_t *header = (cart_header_t *)&CART.rom.bytes[ROM_OFFSET_TITLE];
     CART.rom.header = header;
+    is_cgb = CART.rom.header->cgb & 0x80;
     printf("Game title: %s\n", header->title);
     printf("CGB: 0x%.2x (%s)\n", CART.rom.header->cgb,
            cart_is_cgb() ? "true" : "false");
@@ -320,7 +321,7 @@ void cart_write_ram(uint16_t addr, uint8_t val)
     CART.mbc.ram_write(addr, val);
 }
 
-bool cart_is_cgb(void)
+inline bool cart_is_cgb(void)
 {
-    return CART.rom.header->cgb & 0x80;
+    return is_cgb;
 }

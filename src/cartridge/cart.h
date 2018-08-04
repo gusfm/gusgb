@@ -98,6 +98,6 @@ uint8_t cart_read_rom1(uint16_t addr);
 void cart_write_mbc(uint16_t addr, uint8_t val);
 uint8_t cart_read_ram(uint16_t addr);
 void cart_write_ram(uint16_t addr, uint8_t val);
-bool cart_is_cgb(void);
+extern bool cart_is_cgb(void);
 
 #endif /* __CART_H__ */

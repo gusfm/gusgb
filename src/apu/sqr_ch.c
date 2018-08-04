@@ -17,11 +17,11 @@ void sqr_ch_reset(sqr_ch_t *c)
     memset(c, 0, sizeof(*c));
 }
 
-void sqr_ch_tick(sqr_ch_t *c)
+void sqr_ch_tick(sqr_ch_t *c, int clock_step)
 {
-    c->timer -= 2;
-    if (c->timer <= 0) {
-        c->timer = (2048 - c->frequency) * 4;
+    c->timer -= clock_step;
+    while (c->timer <= 0) {
+        c->timer += (2048 - c->frequency) * 4;
         c->wave_ptr = (c->wave_ptr + 1) & 0x7;
     }
 }

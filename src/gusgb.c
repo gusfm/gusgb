@@ -67,26 +67,26 @@ static void gb_key_press(const SDL_Keysym *keysym)
         case SDL_SCANCODE_RIGHT:
             key_press(KEY_RIGHT);
             break;
+#ifdef DEBUGGER
         case SDL_SCANCODE_P:
             /* Pause emulation. */
             GB.paused = !GB.paused;
-#ifdef DEBUGGER
             if (GB.paused) {
                 debugger_init();
             } else {
                 SDL_RaiseWindow(GB.window);
                 debugger_finish();
             }
-#endif
             break;
         case SDL_SCANCODE_O:
             /* Debug CPU. */
             cpu_dump();
             break;
-        case SDL_SCANCODE_Q:
+#endif
         case SDL_SCANCODE_ESCAPE:
             /* Quit. */
             GB.running = false;
+            gusgb_finish();
             break;
         default:
             break;
@@ -138,6 +138,7 @@ static void handle_events(void)
                 break;
             case SDL_QUIT:
                 GB.running = false;
+                gusgb_finish();
                 break;
         }
 #ifdef DEBUGGER
@@ -225,18 +226,18 @@ void gusgb_finish(void)
     SDL_DestroyRenderer(GB.ren);
     SDL_DestroyWindow(GB.window);
     SDL_Quit();
+    exit(EXIT_SUCCESS);
 }
 
 void gusgb_main(void)
 {
-    while (GB.running) {
+    for (;;) {
+#ifdef DEBUGGER
         if (GB.paused) {
             gpu_render_framebuffer();
-#ifdef DEBUGGER
             debugger_render();
+        } else
 #endif
-        } else {
             cpu_emulate_cycle();
-        }
     }
 }

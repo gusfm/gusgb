@@ -97,8 +97,10 @@ typedef struct {
 
 typedef struct {
     cpu_registers_t reg;
-    uint16_t last_pc;
     bool halt;
+#ifdef DEBUG
+    uint16_t last_pc;
+#endif
 } cpu_t;
 
 int cpu_init(const char *rom_path);

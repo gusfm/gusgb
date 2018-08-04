@@ -77,10 +77,10 @@ void gpu_render_framebuffer(void);
 void gpu_change_speed(unsigned int speed);
 void gpu_dump(void);
 
-int gpu_get_tile_id(int mapoffs);
-bg_attr_t gpu_get_tile_attributes(int tile_id);
-tile_line_t gpu_get_tile_line(bg_attr_t attr, int tile_id, int y);
-int gpu_get_tile_color(tile_line_t tile_line, int tile_x, bool hflip);
+extern int gpu_get_tile_id(int mapoffs);
+extern bg_attr_t gpu_get_tile_attributes(int tile_id);
+extern tile_line_t gpu_get_tile_line(bg_attr_t attr, int tile_id, int y);
+extern int gpu_get_tile_color(tile_line_t tile_line, int tile_x, bool hflip);
 
 #ifdef DEBUGGER
 color_t *gpu_get_bg_palette(void);
