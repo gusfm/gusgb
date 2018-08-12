@@ -600,17 +600,31 @@ static color_t *get_sprite_pal(sprite_t *sprite)
     return pal;
 }
 
+static int get_lowest_prio_sprite(void)
+{
+    int ysize = GPU.obj_size ? 16 : 8;
+    int sprites = 0, i;
+    for (i = 0; i < 40 && sprites < 10; ++i) {
+        sprite_t sprite = ((sprite_t *)GPU.oam)[i];
+        int sy = sprite.y - 16;
+        if (sy <= GPU.scanline && (sy + ysize) > GPU.scanline) {
+            ++sprites;
+        }
+    }
+    return i - 1;
+}
+
 static void update_fb_sprite(struct scanline *line)
 {
     int ysize = GPU.obj_size ? 16 : 8;
     int sprites = 0;
     /* Iterate over the first 10 sprites on the scanline. */
-    for (int i = 0; i < 40; i++) {
+    for (int i = get_lowest_prio_sprite(); i >= 0; --i) {
         sprite_t sprite = ((sprite_t *)GPU.oam)[i];
-        int sx = (int)sprite.x - 8;
-        int sy = (int)sprite.y - 16;
+        int sx = sprite.x - 8;
+        int sy = sprite.y - 16;
         /* If sprite is on scanline. */
-        if (sy <= GPU.scanline && (sy + (int)ysize) > GPU.scanline) {
+        if (sy <= GPU.scanline && (sy + ysize) > GPU.scanline) {
             /* Get palette for this sprite. */
             color_t *pal = get_sprite_pal(&sprite);
             /* Get frame buffer pixel offset. */
@@ -636,9 +650,6 @@ static void update_fb_sprite(struct scanline *line)
                     }
                 }
             }
-            /* Only show 10 sprites for each scanline. */
-            if (++sprites == 10)
-                return;
         }
     }
 }
