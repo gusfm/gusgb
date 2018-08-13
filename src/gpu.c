@@ -617,7 +617,6 @@ static int get_lowest_prio_sprite(void)
 static void update_fb_sprite(struct scanline *line)
 {
     int ysize = GPU.obj_size ? 16 : 8;
-    int sprites = 0;
     /* Iterate over the first 10 sprites on the scanline. */
     for (int i = get_lowest_prio_sprite(); i >= 0; --i) {
         sprite_t sprite = ((sprite_t *)GPU.oam)[i];
