@@ -273,7 +273,9 @@ void gpu_write_lcdc(uint8_t val)
 {
     if (GPU.lcd_enable && (val & 0x80) == 0) {
         /* If disabling LCD */
-        assert(GPU.mode_flag == GPU_MODE_VBLANK);
+        if (GPU.mode_flag != GPU_MODE_VBLANK)
+            printf("WARNING: LCD should be disabled only during VBLANK: %d\n",
+                   GPU.mode_flag);
         gpu_clear_screen();
         GPU.lcd_disabled_clock = GPU.modeclock;
         GPU.lcd_disabled_frame_rendered = false;
