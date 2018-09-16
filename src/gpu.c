@@ -639,9 +639,8 @@ static void update_fb_sprite(struct scanline *line)
                 /* If pixel is on screen. */
                 if (px >= 0 && px < GB_SCREEN_WIDTH) {
                     /* Check if pixel is hidden. */
-                    if (line[px].bg_priority ||
-                        (GPU.bg_display && sprite.priority == 1 &&
-                         line[px].color != 0))
+                    if (GPU.bg_display && line[px].color != 0 &&
+                        (line[px].bg_priority || sprite.priority == 1))
                         continue;
                     int color =
                         gpu_get_tile_color(tile_line, tile_x, sprite.hflip);
