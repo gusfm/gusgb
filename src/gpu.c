@@ -767,9 +767,15 @@ static void gpu_tick_lcd_enabled(unsigned int clock_step)
                 GPU.modeclock -= switch_clock;
                 if (GPU.scanline > 153) {
                     GPU.scanline = 0;
+                    if (GPU.coincidence_int && GPU.scanline == GPU.lyc) {
+                        interrupt_raise(INTERRUPTS_LCDSTAT);
+                    }
                     gpu_change_mode(GPU_MODE_OAM);
                 } else {
                     GPU.scanline++;
+                    if (GPU.coincidence_int && GPU.scanline == GPU.lyc) {
+                        interrupt_raise(INTERRUPTS_LCDSTAT);
+                    }
                 }
             }
             break;
