@@ -288,13 +288,12 @@ void gpu_write_lcdc(uint8_t val)
 
 uint8_t gpu_read_stat(void)
 {
-    return (uint8_t)(GPU.lcd_status | (GPU.scanline == GPU.lyc ? 4u : 0u) |
-                     GPU.mode_flag);
+    return (GPU.lcd_status & 0xfb) | (GPU.scanline == GPU.lyc ? 4u : 0u);
 }
 
 void gpu_write_stat(uint8_t val)
 {
-    GPU.lcd_status = (val & 0xf8) | (GPU.lcd_status & 0x07);
+    GPU.lcd_status = (val & 0x78) | (GPU.lcd_status & 0x87);
 }
 
 uint8_t gpu_read_scy(void)
