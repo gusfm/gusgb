@@ -37,7 +37,7 @@ endif
 
 dep = $(obj:.o=.d)
 
-CFLAGS = -Wall -Wextra -std=gnu11 -O2 $(FLAGS)
+CFLAGS = -Wall -Wextra -std=gnu11 -O2 -fno-strict-aliasing $(FLAGS)
 CPPFLAGS = -I./src
 LDFLAGS += -lSDL2
 
