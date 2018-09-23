@@ -83,15 +83,18 @@ void mbc3_write(uint16_t addr, uint8_t val)
     } else if (addr <= 0x5fff) {
         /* Select RAM bank. */
         ram_bank = val;
+        CART.ram.offset = (ram_bank % CART.ram.max_bank) << 13;
     } else {
-        /* Latch Clock Data. */
-        static uint8_t last = 0xff;
-        if (last == 0 && val == 1) {
-            time_t time_diff = time(NULL) - rtc.time_start;
-            mbc3_rtc_update(&rtc.time, time_diff);
-            rtc.latched_time = rtc.time;
+        if (CART.ram.enabled) {
+            /* Latch Clock Data. */
+            static uint8_t last = 0xff;
+            if (last == 0 && val == 1) {
+                time_t time_diff = time(NULL) - rtc.time_start;
+                mbc3_rtc_update(&rtc.time, time_diff);
+                rtc.latched_time = rtc.time;
+            }
+            last = val;
         }
-        last = val;
     }
 }
 
