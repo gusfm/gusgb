@@ -68,8 +68,14 @@ typedef struct {
     uint8_t scanline;
     /* 0xff45 (LYC): LY Compare (R/W) */
     uint8_t lyc;
-    /* 0xff46 (DMA): DMA Transfer and Start Address (W) */
-    uint8_t dma;
+    /* 0xff46 (DMA): DMA Transfer and Start Address (R/W) */
+    struct {
+        uint8_t reg;
+        bool enabled;
+        bool started;
+        int byte;
+        int clock;
+    } oam_dma;
     /* 0xff47 (BGP): BG Palette Data (R/W) - Non CGB */
     uint8_t bgp;
     /* 0xff48 (OBP0): Object Palette 0 Data (R/W) - Non CGB */
@@ -101,10 +107,6 @@ typedef struct {
     unsigned int speed;
     bool lcd_disabled_frame_rendered;
     unsigned int lcd_disabled_clock;
-    bool dma_enabled;
-    bool dma_started;
-    int dma_byte;
-    int dma_clock;
 } gpu_t;
 
 typedef struct {
@@ -182,7 +184,7 @@ void gpu_write_vram(uint16_t addr, uint8_t val)
 static bool gpu_check_oam_io(void)
 {
     return (!GPU.lcd_enable || GPU.mode_flag == GPU_MODE_HBLANK ||
-           GPU.mode_flag == GPU_MODE_VBLANK) && GPU.dma_byte == 0;
+           GPU.mode_flag == GPU_MODE_VBLANK) && GPU.oam_dma.byte == 0;
 }
 
 uint8_t gpu_read_oam(uint16_t addr)
@@ -337,17 +339,17 @@ void gpu_write_lyc(uint8_t val)
 
 uint8_t gpu_read_dma(void)
 {
-    return GPU.dma;
+    return GPU.oam_dma.reg;
 }
 
 void gpu_write_dma(uint8_t val)
 {
-    GPU.dma = val;
-    GPU.dma_enabled = true;
-    if (GPU.dma_byte > 0)
-        GPU.dma_started = false;
-    GPU.dma_byte = 0;
-    GPU.dma_clock = 0;
+    GPU.oam_dma.reg = val;
+    GPU.oam_dma.enabled = true;
+    if (GPU.oam_dma.byte > 0)
+        GPU.oam_dma.started = false;
+    GPU.oam_dma.byte = 0;
+    GPU.oam_dma.clock = 0;
 }
 
 uint8_t gpu_read_bgp(void)
@@ -722,28 +724,6 @@ static void gpu_change_mode(gpu_mode_e new_mode)
     }
 }
 
-static void gpu_dma_transfer(unsigned int clock_step)
-{
-    if (!GPU.dma_started) {
-        /* Ignore instruction that enabled DMA. */
-        GPU.dma_started = true;
-        return;
-    }
-    GPU.dma_clock += clock_step;
-    while (GPU.dma_clock >= 4) {
-        if (GPU.dma_byte < 40 * 4) {
-            int i = GPU.dma_byte++;
-            GPU.oam[i] = mmu_read_byte_dma((GPU.dma << 8) + i);
-            GPU.dma_clock -= 4;
-        }
-        if (GPU.dma_byte == 40 * 4) {
-            GPU.dma_enabled = false;
-            GPU.dma_byte = 0;
-            GPU.dma_clock = 0;
-        }
-    }
-}
-
 static unsigned int mode_switch_clocks[2][4] = {
     {204, 456, 80, 172},
     {408, 912, 164, 344},
@@ -824,9 +804,30 @@ static void gpu_tick_lcd_disabled(unsigned int clock_step)
     }
 }
 
+static void gpu_dma_transfer(unsigned int clock_step)
+{
+    if (!GPU.oam_dma.started) {
+        /* Ignore instruction that enabled DMA. */
+        GPU.oam_dma.started = true;
+        return;
+    }
+    GPU.oam_dma.clock += clock_step;
+    while (GPU.oam_dma.clock >= 4) {
+        int i = GPU.oam_dma.byte++;
+        GPU.oam[i] = mmu_read_byte_dma((GPU.oam_dma.reg << 8) + i);
+        GPU.oam_dma.clock -= 4;
+        if (GPU.oam_dma.byte == 40 * 4) {
+            GPU.oam_dma.enabled = false;
+            GPU.oam_dma.byte = 0;
+            GPU.oam_dma.clock = 0;
+            break;
+        }
+    }
+}
+
 void gpu_tick(unsigned int clock_step)
 {
-    if (GPU.dma_enabled) {
+    if (GPU.oam_dma.enabled) {
         gpu_dma_transfer(clock_step);
     }
     if (GPU.lcd_enable)
