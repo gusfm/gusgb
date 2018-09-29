@@ -20,14 +20,19 @@ void keys_reset(void)
 
 uint8_t keys_read(void)
 {
+    uint8_t ret;
     switch (KEY.column) {
         case 0x10:
-            return KEY.rows[0];
+            ret = KEY.rows[0];
+            break;
         case 0x20:
-            return KEY.rows[1];
+            ret = KEY.rows[1];
+            break;
         default:
-            return 0;
+            ret = 0;
+            break;
     }
+    return 0xc0 | ret;
 }
 
 void keys_write(uint8_t value)

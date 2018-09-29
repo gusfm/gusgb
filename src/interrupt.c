@@ -42,12 +42,12 @@ void interrupt_set_enable(uint8_t value)
 
 uint8_t interrupt_get_flag(void)
 {
-    return flag;
+    return 0xe0 | flag;
 }
 
 void interrupt_set_flag(uint8_t value)
 {
-    flag = value;
+    flag = 0x1f & value;
 }
 
 void interrupt_raise(uint8_t bit)

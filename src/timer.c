@@ -115,12 +115,12 @@ void timer_write_tma(uint8_t val)
 
 uint8_t timer_read_tac(void)
 {
-    return tac;
+    return 0xf8 | tac;
 }
 
 void timer_write_tac(uint8_t val)
 {
-    tac = val;
+    tac = 7 & val;
 }
 
 void timer_dump(void)

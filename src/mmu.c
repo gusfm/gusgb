@@ -32,10 +32,17 @@ void mmu_reset(void)
 {
     memset(MMU.wram, 0, sizeof(MMU.wram));
     memset(MMU.zram, 0, sizeof(MMU.zram));
-    if (cart_is_cgb())
+    if (cart_is_cgb()) {
         MMU.speed_switch = 0x7e;
-    else
+    } else {
         MMU.speed_switch = 0xff;
+        MMU.hdma1 = 0xff;
+        MMU.hdma2 = 0xff;
+        MMU.hdma3 = 0xff;
+        MMU.hdma4 = 0xff;
+        MMU.hdma5 = 0xff;
+        MMU.ir = 0xff;
+    }
     MMU.wram_bank = 0;
     interrupt_reset();
     keys_reset();
@@ -73,7 +80,7 @@ static uint8_t mmu_read_reg(uint16_t addr)
             return 0;
         case 0x02:
             /* TODO: SIO control */
-            return 0;
+            return 0x7e;
         case 0x04:
             return timer_read_div();
         case 0x05:
@@ -181,8 +188,12 @@ static uint8_t mmu_read_reg(uint16_t addr)
             return gpu_read_wy();
         case 0x4b:
             return gpu_read_wx();
+        case 0x4d:
+            return MMU.speed_switch;
         case 0x4f:
             return gpu_read_vbk();
+        case 0x50:
+            return 0xff;
         case 0x51:
             return MMU.hdma1;
         case 0x52:
@@ -193,6 +204,8 @@ static uint8_t mmu_read_reg(uint16_t addr)
             return MMU.hdma4;
         case 0x55:
             return MMU.hdma5;
+        case 0x56:
+            return MMU.ir;
         case 0x68:
             return gpu_read_bgpi();
         case 0x69:
@@ -201,17 +214,12 @@ static uint8_t mmu_read_reg(uint16_t addr)
             return gpu_read_obpi();
         case 0x6b:
             return gpu_read_obpd();
-        case 0x4d:
-            return MMU.speed_switch;
-        case 0x50:
-            return 0xff;
-        case 0x56:
-            return MMU.ir;
         case 0x70:
-            return MMU.wram_bank;
+            if (cart_is_cgb())
+                return MMU.wram_bank;
+            return 0xff;
         default:
-            printf("%s: not implemented: 0x%04x\n", __func__, addr);
-            return 0;
+            return 0xff;
     }
 }
 
@@ -372,25 +380,40 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x4b:
             gpu_write_wx(value);
             break;
+        case 0x4d:
+            if (cart_is_cgb())
+                MMU.speed_switch = (MMU.speed_switch & 0xfe) | (value & 1);
+            break;
         case 0x4f:
             gpu_write_vbk(value);
             break;
+        case 0x50:
+            /* Disable internal ROM. */
+            break;
         case 0x51:
-            MMU.hdma1 = value;
+            if (cart_is_cgb())
+                MMU.hdma1 = value;
             break;
         case 0x52:
-            MMU.hdma2 = value;
+            if (cart_is_cgb())
+                MMU.hdma2 = value;
             break;
         case 0x53:
-            MMU.hdma3 = value;
+            if (cart_is_cgb())
+                MMU.hdma3 = value;
             break;
         case 0x54:
-            MMU.hdma4 = value;
+            if (cart_is_cgb())
+                MMU.hdma4 = value;
             break;
         case 0x55:
             if (cart_is_cgb()) {
                 mmu_dma_start(value);
             }
+            break;
+        case 0x56:
+            if (cart_is_cgb())
+                MMU.ir = value;
             break;
         case 0x68:
             gpu_write_bgpi(value);
@@ -404,22 +427,11 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x6b:
             gpu_write_obpd(value);
             break;
-        case 0x4d:
-            if (cart_is_cgb())
-                MMU.speed_switch = (MMU.speed_switch & 0xfe) | (value & 1);
-            break;
-        case 0x50:
-            /* Disable internal ROM. */
-            break;
-        case 0x56:
-            MMU.ir = value;
-            break;
         case 0x70:
-            MMU.wram_bank = value & 7;
+            if (cart_is_cgb())
+                MMU.wram_bank = value & 7;
             break;
         default:
-            printf("%s: not implemented: 0x%04x=0x%02x\n", __func__, addr,
-                   value);
             break;
     }
 }

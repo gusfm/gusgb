@@ -415,52 +415,67 @@ void gpu_write_wx(uint8_t val)
 
 uint8_t gpu_read_vbk(void)
 {
-    return GPU.vram_bank;
+    if (cart_is_cgb())
+        return GPU.vram_bank;
+    return 0xff;
 }
 
 void gpu_write_vbk(uint8_t val)
 {
-    GPU.vram_bank = val & 1;
+    if (cart_is_cgb())
+        GPU.vram_bank = val & 1;
 }
 
 uint8_t gpu_read_bgpi(void)
 {
-    return GPU.cgb_bg_pal_idx;
+    if (cart_is_cgb())
+        return GPU.cgb_bg_pal_idx;
+    return 0xff;
 }
 
 void gpu_write_bgpi(uint8_t val)
 {
-    GPU.cgb_bg_pal_idx = val;
+    if (cart_is_cgb())
+        GPU.cgb_bg_pal_idx = val;
 }
 
 uint8_t gpu_read_bgpd(void)
 {
-    return GPU.cgb_bg_pal_data[GPU.cgb_bg_pal_idx & 0x3f];
+    if (cart_is_cgb())
+        return GPU.cgb_bg_pal_data[GPU.cgb_bg_pal_idx & 0x3f];
+    return 0xff;
 }
 
 void gpu_write_bgpd(uint8_t val)
 {
-    gpu_set_cgb_bg_palette(val);
+    if (cart_is_cgb())
+        gpu_set_cgb_bg_palette(val);
 }
 
 uint8_t gpu_read_obpi(void)
 {
-    return GPU.cgb_sprite_pal_idx;
+    if (cart_is_cgb())
+        return GPU.cgb_sprite_pal_idx;
+    return 0xff;
 }
 
 void gpu_write_obpi(uint8_t val)
 {
-    GPU.cgb_sprite_pal_idx = val;
+    if (cart_is_cgb())
+        GPU.cgb_sprite_pal_idx = val;
 }
 
 uint8_t gpu_read_obpd(void)
 {
-    return GPU.cgb_sprite_pal_data[GPU.cgb_sprite_pal_idx & 0x3f];
+    if (cart_is_cgb())
+        return GPU.cgb_sprite_pal_data[GPU.cgb_sprite_pal_idx & 0x3f];
+    return 0xff;
 }
 
 void gpu_write_obpd(uint8_t val)
 {
-    gpu_set_cgb_sprite_palette(val);
+    if (cart_is_cgb())
+        gpu_set_cgb_sprite_palette(val);
 }
 
 inline int gpu_get_tile_id(int mapoffs)
