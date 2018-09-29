@@ -151,7 +151,10 @@ void gpu_reset(void)
     gpu_write_bgp(0xfc);
     gpu_write_obp0(0xff);
     gpu_write_obp1(0xff);
-    if (!cart_is_cgb()) {
+    if (cart_is_cgb()) {
+        GPU.cgb_bg_pal_idx = 0xc8;
+        GPU.cgb_sprite_pal_idx = 0xd0;
+    } else {
         for (int i = 0; i < 4; ++i) {
             GPU.bg_palette_data[i] = dmg_palette[i];
             GPU.sprite_palette_data[i] = dmg_palette[i];
@@ -417,7 +420,7 @@ void gpu_write_wx(uint8_t val)
 uint8_t gpu_read_vbk(void)
 {
     if (cart_is_cgb())
-        return GPU.vram_bank;
+        return 0xfe | GPU.vram_bank;
     return 0xff;
 }
 

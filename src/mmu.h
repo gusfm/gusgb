@@ -18,6 +18,7 @@ typedef struct {
     uint8_t ir;              /* 0xff56 (RP): Infrared Port */
     uint8_t wram_bank;       /* 0xff70 (SVBK): WRAM Bank */
     uint8_t clock_speed;     /* 0: normal speed; 1: double speed */
+    uint8_t undoc_reg[5];
 } mmu_t;
 
 /* Init MMU subsystem. */

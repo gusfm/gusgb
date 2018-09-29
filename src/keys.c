@@ -1,6 +1,9 @@
 #include "keys.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "cartridge/cart.h"
 #include "debug.h"
 #include "interrupt.h"
 
@@ -13,26 +16,26 @@ static keys_t KEY;
 
 void keys_reset(void)
 {
-    KEY.rows[0] = 0x0F;
-    KEY.rows[1] = 0x0F;
+    if (cart_is_cgb()) {
+        KEY.rows[0] = 0xff;
+        KEY.rows[1] = 0xff;
+    } else {
+        KEY.rows[0] = 0xcf;
+        KEY.rows[1] = 0xcf;
+    }
     KEY.column = 0x10;
 }
 
 uint8_t keys_read(void)
 {
-    uint8_t ret;
     switch (KEY.column) {
         case 0x10:
-            ret = KEY.rows[0];
-            break;
+            return KEY.rows[0];
         case 0x20:
-            ret = KEY.rows[1];
-            break;
+            return KEY.rows[1];
         default:
-            ret = 0;
-            break;
+            return 0xc0;
     }
-    return 0xc0 | ret;
 }
 
 void keys_write(uint8_t value)
@@ -44,28 +47,28 @@ void key_press(key_e key)
 {
     switch (key) {
         case KEY_START:
-            KEY.rows[0] &= 0x7;
+            KEY.rows[0] &= 0xc7;
             break;
         case KEY_SELECT:
-            KEY.rows[0] &= 0xb;
+            KEY.rows[0] &= 0xcb;
             break;
         case KEY_B:
-            KEY.rows[0] &= 0xd;
+            KEY.rows[0] &= 0xcd;
             break;
         case KEY_A:
-            KEY.rows[0] &= 0xe;
+            KEY.rows[0] &= 0xce;
             break;
         case KEY_DOWN:
-            KEY.rows[1] &= 0x7;
+            KEY.rows[1] &= 0xc7;
             break;
         case KEY_UP:
-            KEY.rows[1] &= 0xb;
+            KEY.rows[1] &= 0xcb;
             break;
         case KEY_LEFT:
-            KEY.rows[1] &= 0xd;
+            KEY.rows[1] &= 0xcd;
             break;
         case KEY_RIGHT:
-            KEY.rows[1] &= 0xe;
+            KEY.rows[1] &= 0xce;
             break;
         default:
             error("unknown key: %d", key);

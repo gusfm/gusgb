@@ -34,6 +34,11 @@ void mmu_reset(void)
     memset(MMU.zram, 0, sizeof(MMU.zram));
     if (cart_is_cgb()) {
         MMU.speed_switch = 0x7e;
+        MMU.undoc_reg[0] = 0xfe;
+        MMU.undoc_reg[1] = 0x00;
+        MMU.undoc_reg[2] = 0x00;
+        MMU.undoc_reg[3] = 0x00;
+        MMU.undoc_reg[4] = 0x00;
     } else {
         MMU.speed_switch = 0xff;
         MMU.hdma1 = 0xff;
@@ -42,6 +47,11 @@ void mmu_reset(void)
         MMU.hdma4 = 0xff;
         MMU.hdma5 = 0xff;
         MMU.ir = 0xff;
+        MMU.undoc_reg[0] = 0xff;
+        MMU.undoc_reg[1] = 0xff;
+        MMU.undoc_reg[2] = 0xff;
+        MMU.undoc_reg[3] = 0xff;
+        MMU.undoc_reg[4] = 0xff;
     }
     MMU.wram_bank = 0;
     interrupt_reset();
@@ -217,6 +227,20 @@ static uint8_t mmu_read_reg(uint16_t addr)
         case 0x70:
             if (cart_is_cgb())
                 return MMU.wram_bank;
+            return 0xff;
+        case 0x72:
+            return MMU.undoc_reg[1];
+        case 0x73:
+            return MMU.undoc_reg[2];
+        case 0x75:
+            return MMU.undoc_reg[4] | 0x8f;
+        case 0x76:
+            if (cart_is_cgb())
+                return 0x00;
+            return 0xff;
+        case 0x77:
+            if (cart_is_cgb())
+                return 0x00;
             return 0xff;
         default:
             return 0xff;
@@ -430,6 +454,18 @@ static void mmu_write_reg(uint16_t addr, uint8_t value)
         case 0x70:
             if (cart_is_cgb())
                 MMU.wram_bank = value & 7;
+            break;
+        case 0x72:
+            if (cart_is_cgb())
+                MMU.undoc_reg[1] = value;
+            break;
+        case 0x73:
+            if (cart_is_cgb())
+                MMU.undoc_reg[2] = value;
+            break;
+        case 0x75:
+            if (cart_is_cgb())
+                MMU.undoc_reg[4] = 0x70 & value;
             break;
         default:
             break;

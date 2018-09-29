@@ -348,8 +348,8 @@ void cpu_reset(void)
     if (cart_is_cgb()) {
         CPU.reg.af = 0x1180;
         CPU.reg.bc = 0x0000;
-        CPU.reg.de = 0xff56;
-        CPU.reg.hl = 0x000d;
+        CPU.reg.de = 0x0008;
+        CPU.reg.hl = 0x007c;
     } else {
         CPU.reg.af = 0x01b0;
         CPU.reg.bc = 0x0013;
