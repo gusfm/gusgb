@@ -15,7 +15,7 @@ void keys_reset(void)
 {
     KEY.rows[0] = 0x0F;
     KEY.rows[1] = 0x0F;
-    KEY.column = 0;
+    KEY.column = 0x10;
 }
 
 uint8_t keys_read(void)

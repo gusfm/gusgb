@@ -147,7 +147,7 @@ void gpu_reset(void)
 {
     memset(&GPU, 0, sizeof(GPU));
     GPU.lcd_control = 0x91;
-    GPU.lcd_status = 0x85;
+    GPU.lcd_status = 0x82; /* Initial value for DMG ABC */
     gpu_write_bgp(0xfc);
     gpu_write_obp0(0xff);
     gpu_write_obp1(0xff);
@@ -184,7 +184,8 @@ void gpu_write_vram(uint16_t addr, uint8_t val)
 static bool gpu_check_oam_io(void)
 {
     return (!GPU.lcd_enable || GPU.mode_flag == GPU_MODE_HBLANK ||
-           GPU.mode_flag == GPU_MODE_VBLANK) && GPU.oam_dma.byte == 0;
+            GPU.mode_flag == GPU_MODE_VBLANK) &&
+           GPU.oam_dma.byte == 0;
 }
 
 uint8_t gpu_read_oam(uint16_t addr)

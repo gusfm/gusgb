@@ -25,7 +25,7 @@ void timer_reset(void)
     tima = 0;
     tma = 0;
     tac = 0;
-    clk_sys = 0;
+    clk_sys = 0xabca; /* Initial value for DMG ABC */
     tima_state = TIMA_STATE_COUNTING;
     delay_bit = 0;
 }

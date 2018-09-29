@@ -16,7 +16,7 @@ void interrupt_reset(void)
     ime = 1;
     ime_cnt = 0;
     enable = 0;
-    flag = 0;
+    flag = 1;
 }
 
 void interrupt_set_master(uint8_t value)
