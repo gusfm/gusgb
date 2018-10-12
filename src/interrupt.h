@@ -1,6 +1,7 @@
 #ifndef INTERRUPT_H
 #define INTERRUPT_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #define INTERRUPTS_VBLANK (1 << 0)
@@ -11,7 +12,8 @@
 
 void interrupt_reset(void);
 
-void interrupt_set_master(uint8_t value);
+void interrupt_set_master(bool value);
+bool interrupt_master_enabled(void);
 
 uint8_t interrupt_is_enable(uint8_t bit);
 uint8_t interrupt_get_enable(void);

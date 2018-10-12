@@ -98,6 +98,7 @@ typedef struct {
 typedef struct {
     cpu_registers_t reg;
     bool halt;
+    bool halt_bug;
 #ifdef DEBUG
     uint16_t last_pc;
 #endif

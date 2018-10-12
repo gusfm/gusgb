@@ -382,27 +382,38 @@ static void cpu_decode_opcode(uint8_t opcode)
         CPU.reg.pc = (uint16_t)(CPU.reg.pc + 1);
         printd("%s\n", cpu_debug_instr1(debug_str, opcode, operand));
         g_instr[opcode].exec1(operand);
-    } else if (oper_length == 2) {
+    } else {
         uint16_t operand = mmu_read_word(CPU.reg.pc);
         CPU.reg.pc = (uint16_t)(CPU.reg.pc + 2);
         printd("%s\n", cpu_debug_instr2(debug_str, opcode, operand));
         g_instr[opcode].exec2(operand);
-    } else {
-        error("invalid operand length %hhu", oper_length);
     }
 }
 
 void cpu_emulate_cycle(void)
 {
-    interrupt_step();
     clock_clear();
     if (CPU.halt) {
-        /* Tick clock while halted. */
-        clock_step(4);
+        if (interrupt_master_enabled()) {
+            clock_step(4);
+        } else {
+            if (CPU.halt_bug) {
+                uint8_t opcode = cpu_fetch_opcode();
+                --CPU.reg.pc;
+                cpu_decode_opcode(opcode);
+                CPU.halt = false;
+            } else {
+                clock_step(4);
+                if (interrupt_get_enable() & interrupt_get_flag() & 0x1f) {
+                    CPU.halt = false;
+                }
+            }
+        }
     } else {
         uint8_t opcode = cpu_fetch_opcode();
         cpu_decode_opcode(opcode);
     }
     apu_tick(clock_get_step());
     gpu_tick(clock_get_step());
+    interrupt_step();
 }

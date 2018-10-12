@@ -1026,6 +1026,11 @@ void ld_hlp_l(void)
 void halt(void)
 {
     CPU.halt = true;
+    if (interrupt_get_enable() & interrupt_get_flag() & 0x1f) {
+        CPU.halt_bug = true;
+    } else {
+        CPU.halt_bug = false;
+    }
 }
 
 /* 0x77: Save A to address pointed by HL. */
@@ -1635,7 +1640,7 @@ void ret_c(void)
 void reti(void)
 {
     reg16_set(&CPU.reg.pc, pop());
-    interrupt_set_master(1);
+    interrupt_set_master(true);
 }
 
 /* 0xda: Jump to address. */
@@ -1775,7 +1780,7 @@ void ld_a_cp(void)
  */
 void di(void)
 {
-    interrupt_set_master(0);
+    interrupt_set_master(false);
 }
 
 /* 0xf5: Push AF to stack. */
@@ -1832,7 +1837,7 @@ void ld_a_nnp(uint16_t addr)
  */
 void ei(void)
 {
-    interrupt_set_master(1);
+    interrupt_set_master(true);
 }
 
 /* 0xfe: Compare A with n. */

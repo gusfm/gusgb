@@ -6,23 +6,28 @@
 
 extern cpu_t CPU;
 
-static unsigned int ime;     /* Interrupt master enable: IE, DI */
+static bool ime;             /* Interrupt master enable: IE, DI */
 static unsigned int ime_cnt; /* IE takes efect after next instr. */
 static unsigned int enable;  /* Interrupt enable: 0xffff register */
 static unsigned int flag;    /* Interrupt flag: 0xff0f register */
 
 void interrupt_reset(void)
 {
-    ime = 1;
+    ime = true;
     ime_cnt = 0;
     enable = 0;
     flag = 1;
 }
 
-void interrupt_set_master(uint8_t value)
+void interrupt_set_master(bool value)
 {
     ime = value;
     ime_cnt = 0;
+}
+
+bool interrupt_master_enabled(void)
+{
+    return ime;
 }
 
 uint8_t interrupt_is_enable(uint8_t bit)
@@ -106,7 +111,7 @@ void interrupt_step(void)
         }
         unsigned char fire = enable & flag;
         if (fire) {
-            interrupt_set_master(0);
+            interrupt_set_master(false);
             if (fire & INTERRUPTS_VBLANK) {
                 interrupt_clear_flag_bit(INTERRUPTS_VBLANK);
                 vblank();
@@ -134,7 +139,7 @@ void interrupt_step(void)
 void interrupt_dump(void)
 {
     printf("Interrupts:\n");
-    printf("ime=0x%.2x\n", ime);
+    printf("ime=%d\n", ime);
     printf("ie=0x%.2x\n", enable);
     printf("if=0x%.2x\n", flag);
 }
