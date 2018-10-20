@@ -360,7 +360,7 @@ void cpu_reset(void)
     mmu_reset();
 }
 
-static uint8_t cpu_fetch_opcode(void)
+static inline uint8_t cpu_fetch_opcode(void)
 {
 #ifdef DEBUG
     CPU.last_pc = CPU.reg.pc;
@@ -393,27 +393,22 @@ static void cpu_decode_opcode(uint8_t opcode)
 void cpu_emulate_cycle(void)
 {
     clock_clear();
-    if (CPU.halt) {
-        if (interrupt_master_enabled()) {
-            clock_step(4);
-        } else {
-            if (CPU.halt_bug) {
-                uint8_t opcode = cpu_fetch_opcode();
-                --CPU.reg.pc;
-                cpu_decode_opcode(opcode);
-                CPU.halt = false;
-            } else {
-                clock_step(4);
-                if (interrupt_get_enable() & interrupt_get_flag() & 0x1f) {
-                    CPU.halt = false;
-                }
-            }
-        }
-    } else {
-        uint8_t opcode = cpu_fetch_opcode();
-        cpu_decode_opcode(opcode);
-    }
+    cpu_decode_opcode(cpu_fetch_opcode());
+    interrupt_step();
     apu_tick(clock_get_step());
     gpu_tick(clock_get_step());
-    interrupt_step();
+}
+
+void cpu_halted(void)
+{
+    if (CPU.halt_bug) {
+        uint8_t opcode = cpu_fetch_opcode();
+        CPU.reg.pc--;
+        cpu_decode_opcode(opcode);
+        CPU.halt = false;
+        CPU.halt_bug = false;
+    } else {
+        clock_step(4);
+        CPU.reg.pc--;
+    }
 }

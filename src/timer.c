@@ -15,19 +15,23 @@ typedef enum {
     TIMA_STATE_RELOADING,    /* TIMA is being reloaded. */
 } tima_state_t;
 
-static uint16_t clk_sys;        /* Internal timer clock. */
+static unsigned int clk_sys;    /* Internal timer clock. */
 static uint8_t tima;            /* [$ff05] Timer counter (R/W) */
 static uint8_t tma;             /* [$ff06] Timer Modulo (R/W) */
 static uint8_t tac;             /* [$ff07] Timer Control (R/W) */
 static tima_state_t tima_state; /* TIMA operation states. */
 static unsigned int delay_bit;  /* Falling edge detector delay bit. */
-static uint16_t masks[4] = {0x200, 0x8, 0x20, 0x80};
+static const unsigned int masks[4] = {0x200, 0x8, 0x20, 0x80};
+static unsigned int timer_enabled;
+static unsigned int timer_mask;
 
 void timer_reset(void)
 {
     tima = 0;
     tma = 0;
     tac = 0;
+    timer_enabled = 0;
+    timer_mask = masks[0];
     if (cart_is_cgb())
         clk_sys = 0x2674; /* Initial value for CGB ABCDE */
     else
@@ -36,12 +40,7 @@ void timer_reset(void)
     delay_bit = 0;
 }
 
-static inline unsigned int mux(uint8_t sel, uint16_t in)
-{
-    return in & masks[sel & 3];
-}
-
-void timer_step(uint32_t clock_step)
+void timer_step(unsigned int clock_step)
 {
     clk_sys += clock_step;
     /* Check whether a step needs to be made in the timer. */
@@ -61,7 +60,7 @@ void timer_step(uint32_t clock_step)
             break;
     }
     /* Falling edge detector. */
-    unsigned int bit = mux(tac, clk_sys) && (tac & TIMER_ENABLE);
+    unsigned int bit = (clk_sys & timer_mask) && timer_enabled;
     if (delay_bit & ~bit) {
         if (++tima == 0) {
             /* When TIMA overflows, it contains zero for 1 cycle. */
@@ -127,6 +126,8 @@ uint8_t timer_read_tac(void)
 void timer_write_tac(uint8_t val)
 {
     tac = 7 & val;
+    timer_enabled = tac >> 2;
+    timer_mask = masks[tac & 3];
 }
 
 void timer_dump(void)

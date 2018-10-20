@@ -1025,11 +1025,17 @@ void ld_hlp_l(void)
 /* 0x76: Power down CPU until an interrupt occurs. */
 void halt(void)
 {
-    CPU.halt = true;
-    if (interrupt_get_enable() & interrupt_get_flag() & 0x1f) {
-        CPU.halt_bug = true;
+    if (CPU.halt) {
+        cpu_halted();
     } else {
-        CPU.halt_bug = false;
+        /* HALT instruction will be executed repeatedly. */
+        CPU.halt = true;
+        CPU.reg.pc--;
+        if (interrupt_get_enable() & interrupt_get_flag() & 0x1f) {
+            CPU.halt_bug = true;
+        } else {
+            CPU.halt_bug = false;
+        }
     }
 }
 

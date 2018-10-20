@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 void timer_reset(void);
-void timer_step(uint32_t clock_step);
+void timer_step(unsigned int clock_step);
 
 uint8_t timer_read_div(void);
 uint8_t timer_read_tima(void);
