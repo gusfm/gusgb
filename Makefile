@@ -35,6 +35,13 @@ FLAGS = -DDEBUGGER
 LDFLAGS += -lSDL2_ttf
 endif
 
+# CPU debug option
+CPU_DEBUG ?= n
+ifeq ($(CPU_DEBUG),y)
+obj += src/cpu_debug.o
+FLAGS = -DCPU_DEBUG
+endif
+
 dep = $(obj:.o=.d)
 
 CFLAGS = -Wall -Wextra -std=gnu11 -O2 -fno-strict-aliasing $(FLAGS)
