@@ -868,7 +868,6 @@ void cpu_halted(void)
         CPU.halt = false;
         CPU.halt_bug = false;
     } else {
-        clock_step(4);
         CPU.reg.pc--;
     }
 }
