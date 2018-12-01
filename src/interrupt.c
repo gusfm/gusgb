@@ -21,8 +21,9 @@ void interrupt_reset(void)
 
 void interrupt_set_master(bool value)
 {
+    if (!ime)
+        ime_cnt = 0;
     ime = value;
-    ime_cnt = 0;
 }
 
 uint8_t interrupt_is_enable(uint8_t bit)
