@@ -9,6 +9,7 @@ H           [a-fA-F0-9]
 #include "gbas.tab.h"
 %}
 %option noinput nounput
+%x incl
 
 %%
 ${H}+                       { yylval.num = strtol(yytext + 1, NULL, 16); return NUMBER; }
@@ -17,6 +18,25 @@ ${H}+                       { yylval.num = strtol(yytext + 1, NULL, 16); return 
 L?\"(\\.|[^\\"])*\"         { yylval.sval = strdup(yytext); return STRING_LITERAL; }
 ";".*                       { /* ignore comments */ };
 "\n"                        {}
+
+^\.include                  { BEGIN(incl); }
+<incl>[ \t]*
+<incl>[^ \t\n]+             {
+    yytext[strlen(yytext) - 1] = '\0';
+    yyin = fopen(++yytext, "r");
+    if (yyin == NULL) {
+        fprintf(stderr, "error: file not found %s\n", yytext);
+        exit(EXIT_FAILURE);
+    }
+    yypush_buffer_state(yy_create_buffer(yyin, YY_BUF_SIZE));
+    BEGIN(INITIAL);
+}
+<<EOF>> {
+    yypop_buffer_state();
+    if (!YY_CURRENT_BUFFER) {
+        yyterminate();
+    }
+}
 
 "+" |
 "-" |
