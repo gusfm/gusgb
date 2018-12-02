@@ -33,7 +33,7 @@ unsigned int pc = 0;
 
 %token <num> NUMBER
 %token <sval> STRING_LITERAL
-%token <sval> LABEL
+%token <sval> IDENTIFIER
 /* Registers */
 %token A
 %token F
@@ -196,7 +196,7 @@ inc_cmd:
 
 jump_to:
          NUMBER                 { jump_label = NULL; jump_addr = $1; }
-       | LABEL                  { jump_label = $1; jump_addr = 0x00; }
+       | IDENTIFIER             { jump_label = $1; jump_addr = 0x00; }
        ;
 
 jp_cmd:
@@ -353,7 +353,7 @@ command:
         | '.' DB db_cmd
         | '.' ORG NUMBER            { org($3); }
         | '.' FILL NUMBER ',' NUMBER { fill($3, $5); }
-        | LABEL ':'                 { gbas_label_insert(gbas, $1, pc); }
+        | IDENTIFIER ':'             { gbas_label_insert(gbas, $1, pc); }
         | ADC adc_cmd
         | ADD add_cmd
         | AND and_cmd

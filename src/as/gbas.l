@@ -113,6 +113,6 @@ bc                          { return BC; }
 de                          { return DE; }
 hl                          { return HL; }
 sp                          { return SP; }
-{L}{A}*                     { yylval.sval = strdup(yytext); return LABEL; }
+{L}{A}*                     { yylval.sval = strdup(yytext); return IDENTIFIER; }
 [ \t]+                      /* ignore white space */;
 %%
