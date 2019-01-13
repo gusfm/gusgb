@@ -23,7 +23,7 @@ void rtc_print(rtc_time_t *time);
 typedef struct {
     rtc_time_t time;
     rtc_time_t latched_time;
-    time_t time_start;
+    time_t time_last;
 } rtc_t;
 
 void mbc3_init(void);

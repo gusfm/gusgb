@@ -29,7 +29,7 @@ int mbc3_rtc_load(FILE *file)
     } else {
         memset(&rtc.time, 0, sizeof(rtc.time));
         memset(&rtc.latched_time, 0, sizeof(rtc.latched_time));
-        rtc.time_start = time(NULL);
+        rtc.time_last = time(NULL);
     }
     printf("RTC current: ");
     rtc_print(&rtc.time);
@@ -88,9 +88,11 @@ void mbc3_write(uint16_t addr, uint8_t val)
         if (CART.ram.enabled) {
             /* Latch Clock Data. */
             static uint8_t last = 0xff;
-            if (last == 0 && val == 1) {
-                time_t time_diff = time(NULL) - rtc.time_start;
+            if ((rtc.time.reg[4] & 0x40) == 0 && last == 0 && val == 1) {
+                time_t now = time(NULL);
+                time_t time_diff = now - rtc.time_last;
                 mbc3_rtc_update(&rtc.time, time_diff);
+                rtc.time_last = now;
                 rtc.latched_time = rtc.time;
             }
             last = val;
@@ -126,7 +128,7 @@ void mbc3_ram_write(uint16_t addr, uint8_t val)
                  * registers. */
                 rtc.time.reg[bank - 8] = val;
                 if ((val & 0x40) == 0) {
-                    rtc.time_start = time(NULL);
+                    rtc.time_last = time(NULL);
                 }
             }
         }
