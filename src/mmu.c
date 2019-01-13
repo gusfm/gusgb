@@ -63,7 +63,7 @@ void mmu_reset(void)
 static void mmu_dma_start(uint8_t mode)
 {
     uint16_t src = ((MMU.hdma1 << 8) | MMU.hdma2) & 0xfff0;
-    uint16_t dest = ((MMU.hdma3 << 8) | MMU.hdma4) & 0xfff0;
+    uint16_t dest = 0x8000 | (((MMU.hdma3 << 8) | MMU.hdma4) & 0x1ff0);
     if (mode & 0x80) {
         /* H-Blank DMA */
         printf("%s: not implemented\n", __func__);
