@@ -119,7 +119,7 @@ static int cart_load_header(void)
     cart_header_t *header = (cart_header_t *)&CART.rom.bytes[ROM_OFFSET_TITLE];
     CART.rom.header = header;
     is_cgb = CART.rom.header->cgb & 0x80;
-    printf("Game title: %s\n", header->title);
+    printf("Game title: %.15s\n", header->title);
     printf("CGB: 0x%.2x (%s)\n", CART.rom.header->cgb,
            cart_is_cgb() ? "true" : "false");
     /* Get cart type. */
