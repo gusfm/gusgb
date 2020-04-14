@@ -522,14 +522,16 @@ inline bg_attr_t gpu_get_tile_attributes(int mapoffs)
 }
 
 static inline tile_line_t get_tile_line_sprite(sprite_t *sprite, int sy,
-                                               int ysize)
+                                               int ysize, int tile_mask)
 {
     tile_line_t tile_line;
     int tile_y = GPU.scanline - sy;
     if (sprite->vflip) {
         tile_y = ysize - tile_y - 1;
     }
-    int tile_line_id = sprite->tile * 16 + tile_y * 2;
+    /* When sprite size is 8x16 the lower tile number bit is always zero. */
+    int tile_number = tile_mask & sprite->tile;
+    int tile_line_id = tile_number * 16 + tile_y * 2;
     /* Get tile line data: Each tile line takes 2 bytes. */
     tile_line.data_l = GPU.vram[sprite->cgb_vram_bank][tile_line_id];
     tile_line.data_h = GPU.vram[sprite->cgb_vram_bank][tile_line_id + 1];
@@ -642,7 +644,14 @@ static int get_lowest_prio_sprite(void)
 
 static void update_fb_sprite(struct scanline *line)
 {
-    int ysize = GPU.obj_size ? 16 : 8;
+    int ysize, tile_mask;
+    if (GPU.obj_size) {
+        ysize = 16;
+        tile_mask = 0xfffffffe;
+    } else {
+        ysize = 8;
+        tile_mask = 0xffffffff;
+    }
     /* Iterate over the first 10 sprites on the scanline. */
     for (int i = get_lowest_prio_sprite(); i >= 0; --i) {
         sprite_t sprite = ((sprite_t *)GPU.oam)[i];
@@ -653,7 +662,8 @@ static void update_fb_sprite(struct scanline *line)
             /* Get palette for this sprite. */
             color_t *pal = get_sprite_pal(&sprite);
             /* Get frame buffer pixel offset. */
-            tile_line_t tile_line = get_tile_line_sprite(&sprite, sy, ysize);
+            tile_line_t tile_line =
+                get_tile_line_sprite(&sprite, sy, ysize, tile_mask);
             /* Iterate over all tile pixels in the X-axis. */
             for (int tile_x = 0; tile_x < 8; tile_x++) {
                 /* Calculate pixel x coordinate. */
