@@ -21,7 +21,7 @@ int debugger_init(void)
         printf("TTF_Init: %s\n", TTF_GetError());
         return -1;
     }
-    font = TTF_OpenFont("/usr/share/fonts/noto/NotoSansMono-Thin.ttf", 12);
+    font = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 12);
     if (font == NULL) {
         TTF_Quit();
         fprintf(stderr, "TTF_OpenFont: %s\n", TTF_GetError());
