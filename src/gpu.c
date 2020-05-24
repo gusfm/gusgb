@@ -107,6 +107,7 @@ typedef struct {
     unsigned int speed;
     bool lcd_disabled_frame_rendered;
     unsigned int lcd_disabled_clock;
+    int wy_cnt; /* Number of window lines draw. */
 } gpu_t;
 
 typedef struct {
@@ -590,11 +591,10 @@ static void update_fb_bg(struct scanline *line)
 static void update_fb_window(struct scanline *line)
 {
     int bg_x = 0;
-    int bg_y = GPU.scanline - GPU.window_y;
     int screen_x = GPU.window_x - 7;
     int mapoffs = (GPU.window_tile_map) ? 0x1c00 : 0x1800;
     int pixeloffs = GPU.scanline * GB_SCREEN_WIDTH;
-    mapoffs += ((bg_y >> 3) << 5);
+    mapoffs += ((GPU.wy_cnt >> 3) << 5);
     if (screen_x < 0) {
         screen_x = 0;
         bg_x = 7 - GPU.window_x;
@@ -602,7 +602,7 @@ static void update_fb_window(struct scanline *line)
     while (screen_x < GB_SCREEN_WIDTH) {
         int tile_id = gpu_get_tile_id(mapoffs);
         bg_attr_t attr = gpu_get_tile_attributes(mapoffs);
-        tile_line_t tile_line = gpu_get_tile_line(attr, tile_id, bg_y);
+        tile_line_t tile_line = gpu_get_tile_line(attr, tile_id, GPU.wy_cnt);
         for (int tile_x = bg_x & 7; tile_x < 8 && screen_x < GB_SCREEN_WIDTH;
              ++tile_x) {
             int color = gpu_get_tile_color(tile_line, tile_x, attr.hflip);
@@ -615,6 +615,7 @@ static void update_fb_window(struct scanline *line)
         }
         ++mapoffs;
     }
+    ++GPU.wy_cnt;
 }
 
 static color_t *get_sprite_pal(sprite_t *sprite)
@@ -695,7 +696,8 @@ static void render_scanline(void)
         /* In CGB mode when Bit 0 is cleared, the background and window
          * lose their priority. */
         update_fb_bg(line);
-        if (GPU.window_enable && GPU.window_y <= GPU.scanline)
+        if (GPU.window_enable && GPU.window_x < GB_SCREEN_WIDTH + 7 &&
+            GPU.window_y <= GPU.scanline)
             update_fb_window(line);
     } else {
         if (GPU.bg_display) {
@@ -703,7 +705,8 @@ static void render_scanline(void)
         } else {
             clear_line(GPU.scanline);
         }
-        if (GPU.window_enable && GPU.window_y <= GPU.scanline)
+        if (GPU.window_enable && GPU.window_x < GB_SCREEN_WIDTH + 7 &&
+            GPU.window_y <= GPU.scanline)
             update_fb_window(line);
     }
     if (GPU.obj_enable)
@@ -801,6 +804,7 @@ static void gpu_tick_lcd_enabled(unsigned int clock_step)
                 GPU.modeclock -= switch_clock;
                 if (GPU.scanline > 153) {
                     GPU.scanline = 0;
+                    GPU.wy_cnt = 0;
                     if (GPU.coincidence_int && GPU.scanline == GPU.lyc) {
                         interrupt_raise(INTERRUPTS_LCDSTAT);
                     }
