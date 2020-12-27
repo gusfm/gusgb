@@ -73,7 +73,7 @@ static inline uint16_t cpu_fetch_word(void)
     return word;
 }
 
-static void cpu_execute(uint8_t opcode)
+void cpu_execute(uint8_t opcode)
 {
 #ifdef CPU_DEBUG
     cpu_debug(opcode);

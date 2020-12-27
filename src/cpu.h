@@ -107,6 +107,7 @@ typedef struct {
 int cpu_init(const char *rom_path);
 void cpu_finish(void);
 void cpu_reset(void);
+void cpu_execute(uint8_t opcode);
 void cpu_emulate_cycle(void);
 void cpu_halted(void);
 void cpu_dump(void);

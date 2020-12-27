@@ -10,13 +10,26 @@ struct ut {
 
 extern struct ut unit_test;
 
-#define ASSERT(test)                                                    \
-    do {                                                                \
-        if (!(test)) {                                                  \
-            printf("%s:%d: assertion failed: %s\n", __FILE__, __LINE__, \
-                   #test);                                              \
-            return -1;                                                  \
-        }                                                               \
+#define ASSERT_EQ(expected, actual)                                   \
+    do {                                                              \
+        unsigned int exp = (unsigned int)expected;                    \
+        unsigned int act = (unsigned int)actual;                      \
+        if (exp != act) {                                             \
+            printf("%s:%d: assertion failed:\n", __FILE__, __LINE__); \
+            printf("%s == %s\n", #actual, #expected);                 \
+            printf("    expected: %u (0x%x)\n", exp, exp);            \
+            printf("    actual:   %u (0x%x)\n", act, act);            \
+            return -1;                                                \
+        }                                                             \
+    } while (0)
+
+#define ASSERT(test)                                                  \
+    do {                                                              \
+        if (!(test)) {                                                \
+            printf("%s:%d: assertion failed:\n", __FILE__, __LINE__); \
+            printf("%s\n", #test);                                    \
+            return -1;                                                \
+        }                                                             \
     } while (0)
 
 #define ASSERTD(test, val1, val2, fmt)   \
