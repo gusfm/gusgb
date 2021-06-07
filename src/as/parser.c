@@ -339,11 +339,11 @@ static int parse_number_and_reg(parser_t *p, void (*f)(unsigned int, reg_t))
     long int n;
     reg_t reg;
     CHK(parse_number_u8(p, &n));
-    if (parser_next_token_type(p) != ',') {
-        return PARSER_ERR_SYNTAX;
-    }
     if (n > 7) {
         return PARSER_ERR_NUMBER;
+    }
+    if (parser_next_token_type(p) != ',') {
+        return PARSER_ERR_SYNTAX;
     }
     CHK(parse_regs_8_hlp(p, &reg));
     f(n, reg);
