@@ -286,6 +286,9 @@ static int jp_label_test(void)
                     "label1:\n"
                     "    jp label1",
                     0x1c300) == PARSER_OK);
+    ASSERT(asm_test("label1\n"
+                    "    jp label1",
+                    0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("jp label1\n"
                     "label1:",
                     0x3c3) == PARSER_OK);
