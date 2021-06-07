@@ -238,11 +238,15 @@ void lex_checkpoint(lex_t *l)
 
 void lex_error(lex_t *l, const char *msg)
 {
-    char str[100];
+    char str[256];
     fseek(l->input, l->checkpoint, SEEK_SET);
     if (fgets(str, sizeof(str), l->input) == NULL) {
         fprintf(stderr, "%s:%d: error: fgets\n", __func__, __LINE__);
         return;
+    }
+    size_t last_char_pos = strlen(str) - 1;
+    if (str[last_char_pos] == '\n') {
+        str[last_char_pos] = '\0';
     }
     fprintf(stderr, "%d:%d: error: %s\n%s\n", l->last_tok_line, l->last_tok_col,
             msg, str);
