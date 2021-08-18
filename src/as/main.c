@@ -3,8 +3,6 @@
 #include "as/cart.h"
 #include "parser.h"
 
-FILE *output;
-
 typedef struct {
     char *infile;
     char *outfile;
@@ -52,25 +50,13 @@ static int read_params(int argc, char **argv, params_t *params)
     return 0;
 }
 
-int main(int argc, char **argv)
+static int gbas_parse(params_t *params, FILE *input)
 {
-    params_t params;
     parser_t parser;
-    FILE *input;
 
-    if (read_params(argc, argv, &params) != 0) {
-        return -1;
-    }
-
-    input = fopen(params.infile, "r");
-    if (input == NULL) {
-        fprintf(stderr, "Could not open input file %s\n", params.infile);
-        return -1;
-    }
-
-    output = fopen(params.outfile, "wb");
+    FILE *output = fopen(params->outfile, "wb");
     if (output == NULL) {
-        fprintf(stderr, "Could not open output file %s\n", params.outfile);
+        fprintf(stderr, "Could not open output file %s\n", params->outfile);
         return -1;
     }
 
@@ -81,16 +67,33 @@ int main(int argc, char **argv)
     }
 
     ret = parser_exec(&parser);
-    if (ret == 0 && params.gen_header) {
+    if (ret == 0 && params->gen_header) {
         cart_header_t header;
-        cart_header_init(&header, params.outfile);
+        cart_header_init(&header, params->outfile);
         cart_header_write(&header, output);
     }
 
     parser_print_error(&parser, ret);
     parser_finish(&parser);
-
     fclose(output);
+
+    return ret;
+}
+
+int main(int argc, char **argv)
+{
+    params_t params;
+
+    if (read_params(argc, argv, &params) != 0) {
+        return -1;
+    }
+
+    FILE *input = fopen(params.infile, "r");
+    if (input == NULL) {
+        fprintf(stderr, "Could not open input file %s\n", params.infile);
+        return -1;
+    }
+    int ret = gbas_parse(&params, input);
     fclose(input);
 
     return ret;

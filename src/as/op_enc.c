@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern FILE *output;
+FILE *output;
 unsigned int pc;
 
 #define error(fmt, ...)                                      \
