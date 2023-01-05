@@ -168,6 +168,20 @@ static token_t *read_number(lex_t *l, int c)
     }
 }
 
+static token_t *read_char(lex_t *l, char c)
+{
+    str_t *str = str_create();
+    for (;;) {
+        c = lex_readc(l);
+        if (c != '\'') {
+            str_append(str, c);
+            continue;
+        }
+        str_append(str, '\0');
+        return token_create_string(TOKEN_CHAR, str_destroy(str));
+    }
+}
+
 static token_t *read_string(lex_t *l, char c)
 {
     str_t *str = str_create();
@@ -192,6 +206,8 @@ token_t *lex_next_token(lex_t *l)
     switch (c) {
         case '"':
             return read_string(l, c);
+        case '\'':
+            return read_char(l, c);
         case '(':
         case ')':
         case '+':
@@ -248,8 +264,7 @@ void lex_error(lex_t *l, const char *msg)
     if (str[last_char_pos] == '\n') {
         str[last_char_pos] = '\0';
     }
-    fprintf(stderr, "%d:%d: error: %s\n%s\n", l->last_tok_line, l->last_tok_col,
-            msg, str);
+    fprintf(stderr, "%d:%d: error: %s\n%s\n", l->last_tok_line, l->last_tok_col, msg, str);
     for (int i = 1; i < l->last_tok_col; ++i) {
         fputc(' ', stderr);
     }

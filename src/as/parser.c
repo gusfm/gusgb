@@ -64,8 +64,7 @@ static void parser_label_insert(parser_t *p, char *str, unsigned int addr)
     list_insert(p->label_list, label);
 }
 
-static unsigned int parser_search_label(parser_t *p, char *str,
-                                        unsigned int *jump_addr)
+static unsigned int parser_search_label(parser_t *p, char *str, unsigned int *jump_addr)
 {
     node_t *node = list_get_first(p->label_list);
     while (node != NULL) {
@@ -80,8 +79,7 @@ static unsigned int parser_search_label(parser_t *p, char *str,
     return PARSER_ERR_INVALID_LABEL;
 }
 
-static void parser_jump_insert(parser_t *p, char *label, unsigned int addr,
-                               jump_type_t type)
+static void parser_jump_insert(parser_t *p, char *label, unsigned int addr, jump_type_t type)
 {
     jump_t *jump = malloc(sizeof(jump_t));
     jump->type = type;
@@ -188,6 +186,9 @@ static int parse_number(parser_t *p, long int *number)
         int base = tok->s[1] == 'x' ? 16 : 10;
         *number = strtol(tok->s, NULL, base);
         ret = PARSER_OK;
+    } else if (tok->type == TOKEN_CHAR && strlen(tok->s) == 1) {
+        *number = tok->s[0];
+        ret = PARSER_OK;
     }
     token_destroy(tok);
     return ret;
@@ -238,7 +239,7 @@ static int parse_reg_or_n(parser_t *p, void (*freg)(reg_t), void (*fn)(uint8_t))
 {
     reg_t reg;
     token_t *tok = parser_lookahead_token(p);
-    if (tok->type == TOKEN_CONSTANT) {
+    if (tok->type == TOKEN_CONSTANT || tok->type == TOKEN_CHAR) {
         long int n;
         CHK(parse_number_u8(p, &n));
         fn(n);
@@ -999,8 +1000,8 @@ static int parse_rst(parser_t *p)
 {
     long int n;
     CHK(parse_number_u8(p, &n));
-    if (n != 0x0 && n != 0x8 && n != 0x10 && n != 0x18 && n != 0x20 &&
-        n != 0x28 && n != 0x30 && n != 0x38) {
+    if (n != 0x0 && n != 0x8 && n != 0x10 && n != 0x18 && n != 0x20 && n != 0x28 && n != 0x30 &&
+        n != 0x38) {
         return PARSER_ERR_SYNTAX;
     }
     op_enc_rst(n);
