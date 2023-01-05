@@ -1,0 +1,16 @@
+BasedOnStyle: llvm
+IndentWidth: 4
+AllowShortFunctionsOnASingleLine: None
+KeepEmptyLinesAtTheStartOfBlocks: false
+BreakBeforeBraces: Linux
+IncludeCategories: 
+  - Regex:           '^<.*\.h>'
+    Priority:        1
+  - Regex:           '^<.*'
+    Priority:        2
+  - Regex:           '.*'
+    Priority:        3
+PointerAlignment: Right
+AlignEscapedNewlinesLeft: true
+IndentCaseLabels: true
+ColumnLimit: 100
