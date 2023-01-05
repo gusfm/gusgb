@@ -11,8 +11,7 @@ typedef struct {
 
 static void print_help(char **argv)
 {
-    fprintf(stderr, "Syntax: %s -i <input file> -o <output file> [options]\n",
-            argv[0]);
+    fprintf(stderr, "Syntax: %s -i <input file> -o <output file> [options]\n", argv[0]);
     fprintf(stderr, "Options:\n\t-g generate cartridge header\n");
 }
 
@@ -53,14 +52,46 @@ static int read_params(int argc, char **argv, params_t *params)
 static int gbas_parse(params_t *params, FILE *input)
 {
     parser_t parser;
+    int ret;
 
-    FILE *output = fopen(params->outfile, "wb");
+    FILE *output = fopen(params->outfile, "w+");
     if (output == NULL) {
         fprintf(stderr, "Could not open output file %s\n", params->outfile);
         return -1;
     }
 
-    int ret = parser_init(&parser, input, output);
+    if (params->gen_header) {
+        /* Zero 32k bytes from cartridge */
+        for (int i = 0; i < 0x7fff;) {
+            int buf = 0;
+            ret = fwrite(&buf, sizeof(buf), 1, output);
+            if (ret != 1) {
+                fprintf(stderr, "Could not zero output file: ret=%d\n", ret);
+                return -1;
+            }
+            i += sizeof(buf);
+        }
+        /* Write nop; jp $150 to 0x100 address */
+        ret = fseek(output, 0x100, SEEK_SET);
+        if (ret != 0) {
+            fprintf(stderr, "ERROR: could not seek to 0x100\n");
+            return -1;
+        }
+        uint8_t buf[4] = {0x00, 0xc3, 0x50, 0x01};
+        ret = fwrite(buf, sizeof(buf), 1, output);
+        if (ret != 1) {
+            fprintf(stderr, "ERROR: could not write initial jump to $150\n");
+            return -1;
+        }
+        /* Seek to 0x150 so parser can write the output in the correct addr */
+        ret = fseek(output, 0x150, SEEK_SET);
+        if (ret != 0) {
+            fprintf(stderr, "ERROR: could not seek to 0x150\n");
+            return -1;
+        }
+    }
+
+    ret = parser_init(&parser, input, output);
     if (ret != PARSER_OK) {
         fprintf(stderr, "Could not initialize parser: ret=%d\n", ret);
         return -1;
