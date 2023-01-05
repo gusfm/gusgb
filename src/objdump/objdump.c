@@ -193,14 +193,14 @@ const instruction_t instr[256] = {
     {"or l", NULL, 1},               // 0xb5
     {"or (hl)", NULL, 1},            // 0xb6
     {"or a", NULL, 1},               // 0xb7
-    {"cp b", NULL, 1},               // 0xb8
-    {"cp c", NULL, 1},               // 0xb9
-    {"cp d", NULL, 1},               // 0xba
-    {"cp e", NULL, 1},               // 0xbb
-    {"cp h", NULL, 1},               // 0xbc
-    {"cp l", NULL, 1},               // 0xbd
-    {"cp (hl)", NULL, 1},            // 0xbe
-    {"cp a", NULL, 1},               // 0xbf
+    {"cp a, b", NULL, 1},            // 0xb8
+    {"cp a, c", NULL, 1},            // 0xb9
+    {"cp a, d", NULL, 1},            // 0xba
+    {"cp a, e", NULL, 1},            // 0xbb
+    {"cp a, h", NULL, 1},            // 0xbc
+    {"cp a, l", NULL, 1},            // 0xbd
+    {"cp a, (hl)", NULL, 1},         // 0xbe
+    {"cp a, a", NULL, 1},            // 0xbf
     {"ret nz", NULL, 1},             // 0xc0
     {"pop bc", NULL, 1},             // 0xc1
     {"jp nz, 0x", NULL, 3},          // 0xc2
@@ -263,7 +263,7 @@ const instruction_t instr[256] = {
     {"ei", NULL, 1},                 // 0xfb
     {NULL, NULL, 1},                 // 0xfc
     {NULL, NULL, 1},                 // 0xfd
-    {"cp 0x", NULL, 2},              // 0xfe
+    {"cp a, 0x", NULL, 2},           // 0xfe
     {"rst 0x38", NULL, 1},           // 0xff
 };
 

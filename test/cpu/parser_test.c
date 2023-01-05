@@ -168,21 +168,22 @@ static int call_test(void)
 
 static int cp_test(void)
 {
-    ASSERT(asm_test("cp b", 0xb8) == PARSER_OK);
-    ASSERT(asm_test("cp c", 0xb9) == PARSER_OK);
-    ASSERT(asm_test("cp d", 0xba) == PARSER_OK);
-    ASSERT(asm_test("cp e", 0xbb) == PARSER_OK);
-    ASSERT(asm_test("cp h", 0xbc) == PARSER_OK);
-    ASSERT(asm_test("cp l", 0xbd) == PARSER_OK);
-    ASSERT(asm_test("cp (hl)", 0xbe) == PARSER_OK);
-    ASSERT(asm_test("cp a", 0xbf) == PARSER_OK);
-    ASSERT(asm_test("cp 0", 0xfe) == PARSER_OK);
-    ASSERT(asm_test("cp 16", 0x10fe) == PARSER_OK);
-    ASSERT(asm_test("cp 0xff", 0xfffe) == PARSER_OK);
-    ASSERT(asm_test("cp 0x100", 0) == PARSER_ERR_NUMBER);
-    ASSERT(asm_test("cp 256", 0) == PARSER_ERR_NUMBER);
-    ASSERT(asm_test("cp x", 0) == PARSER_ERR_SYNTAX);
-    ASSERT(asm_test("cp (bc)", 0) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("cp a,b", 0xb8) == PARSER_OK);
+    ASSERT(asm_test("cp a,c", 0xb9) == PARSER_OK);
+    ASSERT(asm_test("cp a,d", 0xba) == PARSER_OK);
+    ASSERT(asm_test("cp a,e", 0xbb) == PARSER_OK);
+    ASSERT(asm_test("cp a,h", 0xbc) == PARSER_OK);
+    ASSERT(asm_test("cp a,l", 0xbd) == PARSER_OK);
+    ASSERT(asm_test("cp a,(hl)", 0xbe) == PARSER_OK);
+    ASSERT(asm_test("cp a,a", 0xbf) == PARSER_OK);
+    ASSERT(asm_test("cp a,0", 0xfe) == PARSER_OK);
+    ASSERT(asm_test("cp a,16", 0x10fe) == PARSER_OK);
+    ASSERT(asm_test("cp a,0xff", 0xfffe) == PARSER_OK);
+    ASSERT(asm_test("cp a,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("cp a,256", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("cp a,x", 0) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("cp a,(bc)", 0) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("cp b", 0) == PARSER_ERR_SYNTAX);
     return 0;
 }
 

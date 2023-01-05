@@ -388,6 +388,14 @@ static int parse_call(parser_t *p)
 
 static int parse_cp(parser_t *p)
 {
+    token_type_t tok_type = parser_next_token_type(p);
+    if (tok_type != TOKEN_KW_A) {
+        return PARSER_ERR_SYNTAX;
+    }
+    tok_type = parser_next_token_type(p);
+    if (tok_type != ',') {
+        return PARSER_ERR_SYNTAX;
+    }
     return parse_reg_or_n(p, op_enc_cp, op_enc_cp_n);
 }
 
