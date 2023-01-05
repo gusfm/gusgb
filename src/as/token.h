@@ -4,8 +4,10 @@
 typedef enum {
     TOKEN_IDENT = 0x100,
     TOKEN_CHAR,
+    TOKEN_CHAR_INVALID,
     TOKEN_CONSTANT,
     TOKEN_STRING_LITERAL,
+    TOKEN_STRING_LITERAL_INVALID,
     TOKEN_END,
 
     /* registers */

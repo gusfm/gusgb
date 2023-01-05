@@ -196,6 +196,7 @@ static int db_test(void)
     ASSERT(asm_test("db \"test string 1234 !@#$%^&*()_+\"", 0x74736574) == PARSER_OK);
     ASSERT(asm_test("db 0x01, \"test\"", 0x73657401) == PARSER_OK);
     ASSERT(asm_test("db \"tes\", 0x01", 0x01736574) == PARSER_OK);
+    ASSERT(asm_test("db \"tes", 0) == PARSER_ERR_SYNTAX);
     return 0;
 }
 
@@ -350,6 +351,9 @@ static int ld_a_test(void)
     ASSERT(asm_test("ld a,'a'", 0x613e) == PARSER_OK);
     ASSERT(asm_test("ld a,'Z'", 0x5a3e) == PARSER_OK);
     ASSERT(asm_test("ld a,'ZZ'", 0) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("ld a,''", 0) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("ld a,'", 0) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("ld a,'a", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld a,b", 0x78) == PARSER_OK);
     ASSERT(asm_test("ld a,c", 0x79) == PARSER_OK);
     ASSERT(asm_test("ld a,d", 0x7a) == PARSER_OK);

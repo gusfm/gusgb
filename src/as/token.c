@@ -18,8 +18,8 @@ token_t *token_create_string(token_type_t type, char *s)
 
 void token_destroy(token_t *t)
 {
-    if (t->type == TOKEN_CONSTANT || t->type == TOKEN_STRING_LITERAL ||
-        t->type == TOKEN_IDENT) {
+    if (t->type == TOKEN_CONSTANT || t->type == TOKEN_STRING_LITERAL || t->type == TOKEN_IDENT ||
+        t->type == TOKEN_CHAR) {
         free(t->s);
     }
     free(t);

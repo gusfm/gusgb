@@ -173,13 +173,19 @@ static token_t *read_char(lex_t *l, char c)
     str_t *str = str_create();
     for (;;) {
         c = lex_readc(l);
-        if (c != '\'') {
-            str_append(str, c);
-            continue;
+        printf("c=%d\n", c);
+        if (c == '\'' || c == '\0') {
+            break;
         }
-        str_append(str, '\0');
-        return token_create_string(TOKEN_CHAR, str_destroy(str));
+        str_append(str, c);
     }
+    str_append(str, '\0');
+    char *s = str_destroy(str);
+    if (c != '\'') {
+        free(s);
+        return token_create(TOKEN_CHAR_INVALID);
+    }
+    return token_create_string(TOKEN_CHAR, s);
 }
 
 static token_t *read_string(lex_t *l, char c)
@@ -187,13 +193,18 @@ static token_t *read_string(lex_t *l, char c)
     str_t *str = str_create();
     for (;;) {
         c = lex_readc(l);
-        if (c != '"') {
-            str_append(str, c);
-            continue;
+        if (c == '"' || c == '\0') {
+            break;
         }
-        str_append(str, '\0');
-        return token_create_string(TOKEN_STRING_LITERAL, str_destroy(str));
+        str_append(str, c);
     }
+    str_append(str, '\0');
+    char *s = str_destroy(str);
+    if (c != '\"') {
+        free(s);
+        return token_create(TOKEN_STRING_LITERAL_INVALID);
+    }
+    return token_create_string(TOKEN_STRING_LITERAL, s);
 }
 
 static token_t *read_comment(lex_t *l)
