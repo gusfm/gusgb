@@ -974,6 +974,14 @@ static int other_test(void)
     return 0;
 }
 
+static int comment_test(void)
+{
+    ASSERT(asm_test("ccf ; test comment", 0x3f) == PARSER_OK);
+    ASSERT(asm_test("; test comment\nccf", 0x3f) == PARSER_OK);
+    ASSERT(asm_test("; test comment", 0x0) == PARSER_OK);
+    return 0;
+}
+
 void parser_test(void)
 {
     ut_run(adc_test);
@@ -1019,4 +1027,5 @@ void parser_test(void)
     ut_run(swap_test);
     ut_run(xor_test);
     ut_run(other_test);
+    ut_run(comment_test);
 }

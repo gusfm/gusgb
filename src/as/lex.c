@@ -196,6 +196,18 @@ static token_t *read_string(lex_t *l, char c)
     }
 }
 
+static token_t *read_comment(lex_t *l)
+{
+    /* Consume comment until the end of line */
+    for (;;) {
+        int c = lex_readc(l);
+        if (c == '\0' || c == '\n') {
+            break;
+        }
+    }
+    return token_create(TOKEN_END);
+}
+
 token_t *lex_next_token(lex_t *l)
 {
     int c;
@@ -215,6 +227,8 @@ token_t *lex_next_token(lex_t *l)
         case ':':
         case '.':
             return token_create(c);
+        case ';':
+            return read_comment(l);
         case '0':
         case '1':
         case '2':
