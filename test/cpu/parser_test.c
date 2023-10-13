@@ -16,8 +16,8 @@ static int adc_test(void)
     ASSERT(asm_test("adc a,a", 0x8f) == PARSER_OK);
     ASSERT(asm_test("adc a,0", 0xce) == PARSER_OK);
     ASSERT(asm_test("adc a,16", 0x10ce) == PARSER_OK);
-    ASSERT(asm_test("adc a,0xff", 0xffce) == PARSER_OK);
-    ASSERT(asm_test("adc a,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("adc a,$ff", 0xffce) == PARSER_OK);
+    ASSERT(asm_test("adc a,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("adc a,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("adc a,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("adc a,(bc)", 0) == PARSER_ERR_SYNTAX);
@@ -37,8 +37,8 @@ static int add_test(void)
     ASSERT(asm_test("add a,a", 0x87) == PARSER_OK);
     ASSERT(asm_test("add a,0", 0xc6) == PARSER_OK);
     ASSERT(asm_test("add a,16", 0x10c6) == PARSER_OK);
-    ASSERT(asm_test("add a,0xff", 0xffc6) == PARSER_OK);
-    ASSERT(asm_test("add a,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("add a,$ff", 0xffc6) == PARSER_OK);
+    ASSERT(asm_test("add a,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("add a,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("add a,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("add a,(bc)", 0) == PARSER_ERR_SYNTAX);
@@ -50,8 +50,8 @@ static int add_test(void)
     ASSERT(asm_test("add hl,af", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("add hl,10", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("add sp,16", 0x10e8) == PARSER_OK);
-    ASSERT(asm_test("add sp,0xff", 0xffe8) == PARSER_OK);
-    ASSERT(asm_test("add sp,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("add sp,$ff", 0xffe8) == PARSER_OK);
+    ASSERT(asm_test("add sp,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("add sp,256", 0) == PARSER_ERR_NUMBER);
     return 0;
 }
@@ -68,8 +68,8 @@ static int and_test(void)
     ASSERT(asm_test("and a", 0xa7) == PARSER_OK);
     ASSERT(asm_test("and 0", 0xe6) == PARSER_OK);
     ASSERT(asm_test("and 16", 0x10e6) == PARSER_OK);
-    ASSERT(asm_test("and 0xff", 0xffe6) == PARSER_OK);
-    ASSERT(asm_test("and 0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("and $ff", 0xffe6) == PARSER_OK);
+    ASSERT(asm_test("and $100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("and 256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("and x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("and (bc)", 0) == PARSER_ERR_SYNTAX);
@@ -149,20 +149,20 @@ static int bit_test(void)
 static int call_test(void)
 {
     ASSERT(asm_test("call nz,256", 0x100c4) == PARSER_OK);
-    ASSERT(asm_test("call nz,0xffff", 0xffffc4) == PARSER_OK);
-    ASSERT(asm_test("call nz,0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("call nz,$ffff", 0xffffc4) == PARSER_OK);
+    ASSERT(asm_test("call nz,$10000", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("call z,256", 0x100cc) == PARSER_OK);
-    ASSERT(asm_test("call z,0xffff", 0xffffcc) == PARSER_OK);
-    ASSERT(asm_test("call z,0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("call z,$ffff", 0xffffcc) == PARSER_OK);
+    ASSERT(asm_test("call z,$10000", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("call 256", 0x100cd) == PARSER_OK);
-    ASSERT(asm_test("call 0xffff", 0xffffcd) == PARSER_OK);
-    ASSERT(asm_test("call 0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("call $ffff", 0xffffcd) == PARSER_OK);
+    ASSERT(asm_test("call $10000", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("call nc,256", 0x100d4) == PARSER_OK);
-    ASSERT(asm_test("call nc,0xffff", 0xffffd4) == PARSER_OK);
-    ASSERT(asm_test("call nc,0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("call nc,$ffff", 0xffffd4) == PARSER_OK);
+    ASSERT(asm_test("call nc,$10000", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("call c,256", 0x100dc) == PARSER_OK);
-    ASSERT(asm_test("call c,0xffff", 0xffffdc) == PARSER_OK);
-    ASSERT(asm_test("call c,0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("call c,$ffff", 0xffffdc) == PARSER_OK);
+    ASSERT(asm_test("call c,$10000", 0) == PARSER_ERR_NUMBER);
     return 0;
 }
 
@@ -178,8 +178,8 @@ static int cp_test(void)
     ASSERT(asm_test("cp a,a", 0xbf) == PARSER_OK);
     ASSERT(asm_test("cp a,0", 0xfe) == PARSER_OK);
     ASSERT(asm_test("cp a,16", 0x10fe) == PARSER_OK);
-    ASSERT(asm_test("cp a,0xff", 0xfffe) == PARSER_OK);
-    ASSERT(asm_test("cp a,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("cp a,$ff", 0xfffe) == PARSER_OK);
+    ASSERT(asm_test("cp a,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("cp a,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("cp a,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("cp a,(bc)", 0) == PARSER_ERR_SYNTAX);
@@ -189,14 +189,14 @@ static int cp_test(void)
 
 static int db_test(void)
 {
-    ASSERT(asm_test("db 0x00", 0x00) == PARSER_OK);
-    ASSERT(asm_test("db 0x01", 0x01) == PARSER_OK);
-    ASSERT(asm_test("db 0xff", 0xff) == PARSER_OK);
-    ASSERT(asm_test("db 0x01, 0x02, 0x03, 0x04", 0x04030201) == PARSER_OK);
-    ASSERT(asm_test("db 0x01,", 0x01) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("db $00", 0x00) == PARSER_OK);
+    ASSERT(asm_test("db $01", 0x01) == PARSER_OK);
+    ASSERT(asm_test("db $ff", 0xff) == PARSER_OK);
+    ASSERT(asm_test("db $01, $02, $03, $04", 0x04030201) == PARSER_OK);
+    ASSERT(asm_test("db $01,", 0x01) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("db \"test string 1234 !@#$%^&*()_+\"", 0x74736574) == PARSER_OK);
-    ASSERT(asm_test("db 0x01, \"test\"", 0x73657401) == PARSER_OK);
-    ASSERT(asm_test("db \"tes\", 0x01", 0x01736574) == PARSER_OK);
+    ASSERT(asm_test("db $01, \"test\"", 0x73657401) == PARSER_OK);
+    ASSERT(asm_test("db \"tes\", $01", 0x01736574) == PARSER_OK);
     ASSERT(asm_test("db \"tes", 0) == PARSER_ERR_SYNTAX);
     return 0;
 }
@@ -240,20 +240,20 @@ static int inc_test(void)
 static int jp_test(void)
 {
     ASSERT(asm_test("jp nz,256", 0x100c2) == PARSER_OK);
-    ASSERT(asm_test("jp nz,0xffff", 0xffffc2) == PARSER_OK);
-    ASSERT(asm_test("jp nz,0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("jp nz,$ffff", 0xffffc2) == PARSER_OK);
+    ASSERT(asm_test("jp nz,$10000", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("jp 256", 0x100c3) == PARSER_OK);
-    ASSERT(asm_test("jp 0xffff", 0xffffc3) == PARSER_OK);
-    ASSERT(asm_test("jp 0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("jp $ffff", 0xffffc3) == PARSER_OK);
+    ASSERT(asm_test("jp $10000", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("jp z,256", 0x100ca) == PARSER_OK);
-    ASSERT(asm_test("jp z,0xffff", 0xffffca) == PARSER_OK);
-    ASSERT(asm_test("jp z,0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("jp z,$ffff", 0xffffca) == PARSER_OK);
+    ASSERT(asm_test("jp z,$10000", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("jp nc,256", 0x100d2) == PARSER_OK);
-    ASSERT(asm_test("jp nc,0xffff", 0xffffd2) == PARSER_OK);
-    ASSERT(asm_test("jp nc,0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("jp nc,$ffff", 0xffffd2) == PARSER_OK);
+    ASSERT(asm_test("jp nc,$10000", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("jp c,256", 0x100da) == PARSER_OK);
-    ASSERT(asm_test("jp c,0xffff", 0xffffda) == PARSER_OK);
-    ASSERT(asm_test("jp c,0x10000", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("jp c,$ffff", 0xffffda) == PARSER_OK);
+    ASSERT(asm_test("jp c,$10000", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("jp (hl)", 0xe9) == PARSER_OK);
     return 0;
 }
@@ -262,19 +262,19 @@ static int jr_test(void)
 {
     ASSERT(asm_test("jr 16", 0x1018) == PARSER_OK);
     ASSERT(asm_test("jr -1", 0xff18) == PARSER_OK);
-    ASSERT(asm_test("jr 0x100", 0) == PARSER_ERR_NUMBER_S8);
+    ASSERT(asm_test("jr $100", 0) == PARSER_ERR_NUMBER_S8);
     ASSERT(asm_test("jr nz,16", 0x1020) == PARSER_OK);
     ASSERT(asm_test("jr nz,-1", 0xff20) == PARSER_OK);
-    ASSERT(asm_test("jr nz,0x100", 0) == PARSER_ERR_NUMBER_S8);
+    ASSERT(asm_test("jr nz,$100", 0) == PARSER_ERR_NUMBER_S8);
     ASSERT(asm_test("jr z,16", 0x1028) == PARSER_OK);
     ASSERT(asm_test("jr z,-1", 0xff28) == PARSER_OK);
-    ASSERT(asm_test("jr z,0x100", 0) == PARSER_ERR_NUMBER_S8);
+    ASSERT(asm_test("jr z,$100", 0) == PARSER_ERR_NUMBER_S8);
     ASSERT(asm_test("jr nc,16", 0x1030) == PARSER_OK);
     ASSERT(asm_test("jr nc,-1", 0xff30) == PARSER_OK);
-    ASSERT(asm_test("jr nc,0x100", 0) == PARSER_ERR_NUMBER_S8);
+    ASSERT(asm_test("jr nc,$100", 0) == PARSER_ERR_NUMBER_S8);
     ASSERT(asm_test("jr c,16", 0x1038) == PARSER_OK);
     ASSERT(asm_test("jr c,-1", 0xff38) == PARSER_OK);
-    ASSERT(asm_test("jr c,0x100", 0) == PARSER_ERR_NUMBER_S8);
+    ASSERT(asm_test("jr c,$100", 0) == PARSER_ERR_NUMBER_S8);
     return 0;
 }
 
@@ -345,8 +345,8 @@ static int ld_a_test(void)
     ASSERT(asm_test("ld a,(hl-)", 0x7e) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld a,0", 0x3e) == PARSER_OK);
     ASSERT(asm_test("ld a,16", 0x103e) == PARSER_OK);
-    ASSERT(asm_test("ld a,0xff", 0xff3e) == PARSER_OK);
-    ASSERT(asm_test("ld a,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld a,$ff", 0xff3e) == PARSER_OK);
+    ASSERT(asm_test("ld a,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld a,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld a,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld a,'a'", 0x613e) == PARSER_OK);
@@ -364,13 +364,13 @@ static int ld_a_test(void)
     ASSERT(asm_test("ld a,(hl)", 0x7e) == PARSER_OK);
     ASSERT(asm_test("ld a,a", 0x7f) == PARSER_OK);
     ASSERT(asm_test("ld a,(c)", 0) == PARSER_ERR_SYNTAX);
-    ASSERT(asm_test("ld a,(0xff00 + c)", 0xf2) == PARSER_OK);
-    ASSERT(asm_test("ld a,(0xff00 + 0)", 0xf0) == PARSER_OK);
-    ASSERT(asm_test("ld a,(0xff00 + 16)", 0x10f0) == PARSER_OK);
-    ASSERT(asm_test("ld a,(0xff00 + 0xff)", 0xfff0) == PARSER_OK);
-    ASSERT(asm_test("ld a,(0xff00 + 0x100)", 0) == PARSER_ERR_NUMBER);
-    ASSERT(asm_test("ld a,(0xff01 + 0)", 0) == PARSER_ERR_NUMBER_FF00);
-    ASSERT(asm_test("ld a,(0xff01)", 0xff01fa) == PARSER_OK);
+    ASSERT(asm_test("ld a,($ff00 + c)", 0xf2) == PARSER_OK);
+    ASSERT(asm_test("ld a,($ff00 + 0)", 0xf0) == PARSER_OK);
+    ASSERT(asm_test("ld a,($ff00 + 16)", 0x10f0) == PARSER_OK);
+    ASSERT(asm_test("ld a,($ff00 + $ff)", 0xfff0) == PARSER_OK);
+    ASSERT(asm_test("ld a,($ff00 + $100)", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld a,($ff01 + 0)", 0) == PARSER_ERR_NUMBER_FF00);
+    ASSERT(asm_test("ld a,($ff01)", 0xff01fa) == PARSER_OK);
     ASSERT(asm_test("ld a,(0)", 0xfa) == PARSER_OK);
     return 0;
 }
@@ -379,8 +379,8 @@ static int ld_b_test(void)
 {
     ASSERT(asm_test("ld b,0", 0x06) == PARSER_OK);
     ASSERT(asm_test("ld b,16", 0x1006) == PARSER_OK);
-    ASSERT(asm_test("ld b,0xff", 0xff06) == PARSER_OK);
-    ASSERT(asm_test("ld b,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld b,$ff", 0xff06) == PARSER_OK);
+    ASSERT(asm_test("ld b,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld b,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld b,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld b,'a'", 0x6106) == PARSER_OK);
@@ -401,8 +401,8 @@ static int ld_c_test(void)
 {
     ASSERT(asm_test("ld c,0", 0x0e) == PARSER_OK);
     ASSERT(asm_test("ld c,16", 0x100e) == PARSER_OK);
-    ASSERT(asm_test("ld c,0xff", 0xff0e) == PARSER_OK);
-    ASSERT(asm_test("ld c,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld c,$ff", 0xff0e) == PARSER_OK);
+    ASSERT(asm_test("ld c,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld c,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld c,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld c,'a'", 0x610e) == PARSER_OK);
@@ -423,8 +423,8 @@ static int ld_d_test(void)
 {
     ASSERT(asm_test("ld d,0", 0x16) == PARSER_OK);
     ASSERT(asm_test("ld d,16", 0x1016) == PARSER_OK);
-    ASSERT(asm_test("ld d,0xff", 0xff16) == PARSER_OK);
-    ASSERT(asm_test("ld d,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld d,$ff", 0xff16) == PARSER_OK);
+    ASSERT(asm_test("ld d,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld d,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld d,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld d,'a'", 0x6116) == PARSER_OK);
@@ -445,8 +445,8 @@ static int ld_e_test(void)
 {
     ASSERT(asm_test("ld e,0", 0x1e) == PARSER_OK);
     ASSERT(asm_test("ld e,16", 0x101e) == PARSER_OK);
-    ASSERT(asm_test("ld e,0xff", 0xff1e) == PARSER_OK);
-    ASSERT(asm_test("ld e,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld e,$ff", 0xff1e) == PARSER_OK);
+    ASSERT(asm_test("ld e,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld e,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld e,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld e,'a'", 0x611e) == PARSER_OK);
@@ -467,8 +467,8 @@ static int ld_h_test(void)
 {
     ASSERT(asm_test("ld h,0", 0x26) == PARSER_OK);
     ASSERT(asm_test("ld h,16", 0x1026) == PARSER_OK);
-    ASSERT(asm_test("ld h,0xff", 0xff26) == PARSER_OK);
-    ASSERT(asm_test("ld h,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld h,$ff", 0xff26) == PARSER_OK);
+    ASSERT(asm_test("ld h,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld h,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld h,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld h,'a'", 0x6126) == PARSER_OK);
@@ -489,8 +489,8 @@ static int ld_l_test(void)
 {
     ASSERT(asm_test("ld l,0", 0x2e) == PARSER_OK);
     ASSERT(asm_test("ld l,16", 0x102e) == PARSER_OK);
-    ASSERT(asm_test("ld l,0xff", 0xff2e) == PARSER_OK);
-    ASSERT(asm_test("ld l,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld l,$ff", 0xff2e) == PARSER_OK);
+    ASSERT(asm_test("ld l,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld l,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld l,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld l,'a'", 0x612e) == PARSER_OK);
@@ -510,19 +510,19 @@ static int ld_l_test(void)
 static int ld_reg16_test(void)
 {
     ASSERT(asm_test("ld bc,0", 0x01) == PARSER_OK);
-    ASSERT(asm_test("ld bc,0xffff", 0xffff01) == PARSER_OK);
+    ASSERT(asm_test("ld bc,$ffff", 0xffff01) == PARSER_OK);
     ASSERT(asm_test("ld bc,(10)", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld bc,'a'", 0x6101) == PARSER_OK);
     ASSERT(asm_test("ld de,0", 0x11) == PARSER_OK);
-    ASSERT(asm_test("ld de,0xffff", 0xffff11) == PARSER_OK);
+    ASSERT(asm_test("ld de,$ffff", 0xffff11) == PARSER_OK);
     ASSERT(asm_test("ld de,(10)", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld de,'a'", 0x6111) == PARSER_OK);
     ASSERT(asm_test("ld hl,0", 0x21) == PARSER_OK);
-    ASSERT(asm_test("ld hl,0xffff", 0xffff21) == PARSER_OK);
+    ASSERT(asm_test("ld hl,$ffff", 0xffff21) == PARSER_OK);
     ASSERT(asm_test("ld hl,(10)", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("ld hl,'a'", 0x6121) == PARSER_OK);
     ASSERT(asm_test("ld hl,sp+0", 0xf8) == PARSER_OK);
-    ASSERT(asm_test("ld hl,sp + 0x10", 0x10f8) == PARSER_OK);
+    ASSERT(asm_test("ld hl,sp + $10", 0x10f8) == PARSER_OK);
     ASSERT(asm_test("ld hl,sp + 16", 0x10f8) == PARSER_OK);
     ASSERT(asm_test("ld hl,sp + -16", 0xf0f8) == PARSER_OK);
     ASSERT(asm_test("ld hl,sp + -128", 0x80f8) == PARSER_OK);
@@ -538,8 +538,8 @@ static int ld_store_test(void)
     ASSERT(asm_test("ld (de),a", 0x12) == PARSER_OK);
     ASSERT(asm_test("ld (hl),0", 0x36) == PARSER_OK);
     ASSERT(asm_test("ld (hl),16", 0x1036) == PARSER_OK);
-    ASSERT(asm_test("ld (hl),0xff", 0xff36) == PARSER_OK);
-    ASSERT(asm_test("ld (hl),0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld (hl),$ff", 0xff36) == PARSER_OK);
+    ASSERT(asm_test("ld (hl),$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("ld (hl),'a'", 0x6136) == PARSER_OK);
     ASSERT(asm_test("ld (hl),b", 0x70) == PARSER_OK);
     ASSERT(asm_test("ld (hl),c", 0x71) == PARSER_OK);
@@ -550,24 +550,24 @@ static int ld_store_test(void)
     ASSERT(asm_test("ld (hl),a", 0x77) == PARSER_OK);
     ASSERT(asm_test("ld (0),a", 0xea) == PARSER_OK);
     ASSERT(asm_test("ld (16),a", 0x10ea) == PARSER_OK);
-    ASSERT(asm_test("ld (0x10),a", 0x10ea) == PARSER_OK);
+    ASSERT(asm_test("ld ($10),a", 0x10ea) == PARSER_OK);
     ASSERT(asm_test("ld ('a'),a", 0x61ea) == PARSER_OK);
-    ASSERT(asm_test("ld (0xffff),a", 0xffffea) == PARSER_OK);
+    ASSERT(asm_test("ld ($ffff),a", 0xffffea) == PARSER_OK);
     ASSERT(asm_test("ld (0),sp", 0x08) == PARSER_OK);
     ASSERT(asm_test("ld (16),sp", 0x1008) == PARSER_OK);
-    ASSERT(asm_test("ld (0x10),sp", 0x1008) == PARSER_OK);
+    ASSERT(asm_test("ld ($10),sp", 0x1008) == PARSER_OK);
     ASSERT(asm_test("ld ('a'),sp", 0x6108) == PARSER_OK);
-    ASSERT(asm_test("ld (0xffff),sp", 0xffff08) == PARSER_OK);
+    ASSERT(asm_test("ld ($ffff),sp", 0xffff08) == PARSER_OK);
     ASSERT(asm_test("ld (0),b", 0) == PARSER_ERR_SYNTAX);
-    ASSERT(asm_test("ld (0xff00 + c),a", 0xe2) == PARSER_OK);
-    ASSERT(asm_test("ld (0xff00 + c),b", 0xe2) == PARSER_ERR_SYNTAX);
-    ASSERT(asm_test("ld (0xff00 + 0),a", 0xe0) == PARSER_OK);
-    ASSERT(asm_test("ld (0xff00 + 16),a", 0x10e0) == PARSER_OK);
-    ASSERT(asm_test("ld (0xff00 + 0x10),a", 0x10e0) == PARSER_OK);
-    ASSERT(asm_test("ld (0xff00 + 0xff),a", 0xffe0) == PARSER_OK);
-    ASSERT(asm_test("ld (0xff00 + 0x100),a", 0) == PARSER_ERR_NUMBER);
-    ASSERT(asm_test("ld (0xff00 + 0xff),b", 0xffe0) == PARSER_ERR_SYNTAX);
-    ASSERT(asm_test("ld (0xff00 + 'a'),a", 0x61e0) == PARSER_OK);
+    ASSERT(asm_test("ld ($ff00 + c),a", 0xe2) == PARSER_OK);
+    ASSERT(asm_test("ld ($ff00 + c),b", 0xe2) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("ld ($ff00 + 0),a", 0xe0) == PARSER_OK);
+    ASSERT(asm_test("ld ($ff00 + 16),a", 0x10e0) == PARSER_OK);
+    ASSERT(asm_test("ld ($ff00 + $10),a", 0x10e0) == PARSER_OK);
+    ASSERT(asm_test("ld ($ff00 + $ff),a", 0xffe0) == PARSER_OK);
+    ASSERT(asm_test("ld ($ff00 + $100),a", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("ld ($ff00 + $ff),b", 0xffe0) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("ld ($ff00 + 'a'),a", 0x61e0) == PARSER_OK);
     return 0;
 }
 
@@ -605,8 +605,8 @@ static int or_test(void)
     ASSERT(asm_test("or a", 0xb7) == PARSER_OK);
     ASSERT(asm_test("or 0", 0xf6) == PARSER_OK);
     ASSERT(asm_test("or 16", 0x10f6) == PARSER_OK);
-    ASSERT(asm_test("or 0xff", 0xfff6) == PARSER_OK);
-    ASSERT(asm_test("or 0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("or $ff", 0xfff6) == PARSER_OK);
+    ASSERT(asm_test("or $100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("or 256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("or x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("or (bc)", 0) == PARSER_ERR_SYNTAX);
@@ -765,15 +765,15 @@ static int rrc_test(void)
 
 static int rst_test(void)
 {
-    ASSERT(asm_test("rst 0x00", 0xc7) == PARSER_OK);
-    ASSERT(asm_test("rst 0x08", 0xcf) == PARSER_OK);
-    ASSERT(asm_test("rst 0x10", 0xd7) == PARSER_OK);
-    ASSERT(asm_test("rst 0x18", 0xdf) == PARSER_OK);
-    ASSERT(asm_test("rst 0x20", 0xe7) == PARSER_OK);
-    ASSERT(asm_test("rst 0x28", 0xef) == PARSER_OK);
-    ASSERT(asm_test("rst 0x30", 0xf7) == PARSER_OK);
-    ASSERT(asm_test("rst 0x38", 0xff) == PARSER_OK);
-    ASSERT(asm_test("rst 0x40", 0) == PARSER_ERR_SYNTAX);
+    ASSERT(asm_test("rst $00", 0xc7) == PARSER_OK);
+    ASSERT(asm_test("rst $08", 0xcf) == PARSER_OK);
+    ASSERT(asm_test("rst $10", 0xd7) == PARSER_OK);
+    ASSERT(asm_test("rst $18", 0xdf) == PARSER_OK);
+    ASSERT(asm_test("rst $20", 0xe7) == PARSER_OK);
+    ASSERT(asm_test("rst $28", 0xef) == PARSER_OK);
+    ASSERT(asm_test("rst $30", 0xf7) == PARSER_OK);
+    ASSERT(asm_test("rst $38", 0xff) == PARSER_OK);
+    ASSERT(asm_test("rst $40", 0) == PARSER_ERR_SYNTAX);
     return 0;
 }
 
@@ -789,8 +789,8 @@ static int sbc_test(void)
     ASSERT(asm_test("sbc a,a", 0x9f) == PARSER_OK);
     ASSERT(asm_test("sbc a,0", 0xde) == PARSER_OK);
     ASSERT(asm_test("sbc a,16", 0x10de) == PARSER_OK);
-    ASSERT(asm_test("sbc a,0xff", 0xffde) == PARSER_OK);
-    ASSERT(asm_test("sbc a,0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("sbc a,$ff", 0xffde) == PARSER_OK);
+    ASSERT(asm_test("sbc a,$100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("sbc a,256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("sbc a,x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("sbc a,(bc)", 0) == PARSER_ERR_SYNTAX);
@@ -919,8 +919,8 @@ static int sub_test(void)
     ASSERT(asm_test("sub a", 0x97) == PARSER_OK);
     ASSERT(asm_test("sub 0", 0xd6) == PARSER_OK);
     ASSERT(asm_test("sub 16", 0x10d6) == PARSER_OK);
-    ASSERT(asm_test("sub 0xff", 0xffd6) == PARSER_OK);
-    ASSERT(asm_test("sub 0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("sub $ff", 0xffd6) == PARSER_OK);
+    ASSERT(asm_test("sub $100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("sub 256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("sub x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("sub (bc)", 0) == PARSER_ERR_SYNTAX);
@@ -952,8 +952,8 @@ static int xor_test(void)
     ASSERT(asm_test("xor a", 0xaf) == PARSER_OK);
     ASSERT(asm_test("xor 0", 0xee) == PARSER_OK);
     ASSERT(asm_test("xor 16", 0x10ee) == PARSER_OK);
-    ASSERT(asm_test("xor 0xff", 0xffee) == PARSER_OK);
-    ASSERT(asm_test("xor 0x100", 0) == PARSER_ERR_NUMBER);
+    ASSERT(asm_test("xor $ff", 0xffee) == PARSER_OK);
+    ASSERT(asm_test("xor $100", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("xor 256", 0) == PARSER_ERR_NUMBER);
     ASSERT(asm_test("xor x", 0) == PARSER_ERR_SYNTAX);
     ASSERT(asm_test("xor (bc)", 0) == PARSER_ERR_SYNTAX);

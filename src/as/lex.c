@@ -158,7 +158,7 @@ static token_t *read_number(lex_t *l, int c)
     str_append(str, (char)c);
     for (;;) {
         c = lex_readc(l);
-        if (isxdigit(c) || c == 'x') {
+        if (isxdigit(c)) {
             str_append(str, (char)c);
             continue;
         }
@@ -251,6 +251,7 @@ token_t *lex_next_token(lex_t *l)
         case '8':
         case '9':
         case '-':
+        case '$':
             return read_number(l, c);
         case '\0':
         case '\n':

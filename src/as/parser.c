@@ -183,7 +183,11 @@ static int parse_number(parser_t *p, long int *number)
     int ret = PARSER_ERR_SYNTAX;
     token_t *tok = parser_next_token(p);
     if (tok->type == TOKEN_CONSTANT) {
-        int base = tok->s[1] == 'x' ? 16 : 10;
+        int base = 10;
+        if (tok->s[0] == '$') {
+            base = 16;
+            tok->s[0] = ' ';
+        }
         *number = strtol(tok->s, NULL, base);
         ret = PARSER_OK;
     } else if (tok->type == TOKEN_CHAR && strlen(tok->s) == 1) {
