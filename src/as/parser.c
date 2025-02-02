@@ -43,13 +43,13 @@ int parser_init(parser_t *p, FILE *input, FILE *output)
 void parser_finish(parser_t *p)
 {
     while (!list_empty(p->label_list)) {
-        label_t *label = list_remove_first(p->label_list);
+        label_t *label = list_remove(p->label_list, list_get_first(p->label_list));
         free(label->str);
         free(label);
     }
     list_destroy(p->label_list);
     while (!list_empty(p->jump_list)) {
-        jump_t *jump = list_remove_first(p->jump_list);
+        jump_t *jump = list_remove(p->jump_list, list_get_first(p->jump_list));
         free(jump->label);
         free(jump);
     }
@@ -73,7 +73,7 @@ static unsigned int parser_search_label(parser_t *p, char *str, unsigned int *ju
             *jump_addr = label->addr;
             return PARSER_OK;
         }
-        node = node->forward;
+        node = node->next;
     }
     fprintf(stderr, "error: invalid label: %s\n", str);
     return PARSER_ERR_INVALID_LABEL;
@@ -93,7 +93,7 @@ static int parser_jump_process(parser_t *p)
     int ret = PARSER_OK;
     while (!list_empty(p->jump_list)) {
         unsigned int jump_addr;
-        jump_t *jump = list_remove_first(p->jump_list);
+        jump_t *jump = list_remove(p->jump_list, list_get_first(p->jump_list));
         int rv = parser_search_label(p, jump->label, &jump_addr);
         if (rv == PARSER_OK) {
             if (jump->type == JUMP_JP) {
