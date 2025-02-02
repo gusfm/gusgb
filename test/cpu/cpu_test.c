@@ -5,12 +5,8 @@
 #include "cpu.h"
 #include "ut.h"
 
-struct ut unit_test;
-
 static uint8_t memory[0x10];
 static int mem_pos;
-
-FILE *output;
 
 extern cpu_t CPU;
 
